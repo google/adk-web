@@ -25,7 +25,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
 import {instance} from '@viz-js/viz';
-import {catchError, distinctUntilChanged, filter, map, Observable, of, shareReplay, switchMap, take, tap,} from 'rxjs';
+import {catchError, distinctUntilChanged, filter, forkJoin, map, Observable, of, shareReplay, switchMap, take, tap,} from 'rxjs';
 
 import {URLUtil} from '../../../utils/url-util';
 import {AgentRunRequest} from '../../core/models/AgentRunRequest';
@@ -34,6 +34,7 @@ import {AgentService} from '../../core/services/agent.service';
 import {ArtifactService} from '../../core/services/artifact.service';
 import {AudioService} from '../../core/services/audio.service';
 import {EventService} from '../../core/services/event.service';
+import {FileStorageService} from '../../core/services/file-storage.service';
 import {SessionService} from '../../core/services/session.service';
 import {VideoService} from '../../core/services/video.service';
 import {WebSocketService} from '../../core/services/websocket.service';
@@ -124,7 +125,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy,
   llmRequestKey = 'gcp.vertex.agent.llm_request';
   llmResponseKey = 'gcp.vertex.agent.llm_response';
 
-  selectedFiles: {file: File; url: string}[] = [];
+  selectedFiles: {file: File; url: string; fileId?: string}[] = [];
   private previousMessageCount = 0;
 
   // Sync query params with value from agent picker.
@@ -176,6 +177,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy,
       private eventService: EventService,
       private sessionService: SessionService,
       private route: ActivatedRoute,
+      private fileStorageService: FileStorageService,
   ) {}
 
   ngOnInit(): void {
@@ -243,18 +245,54 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy,
 
   async sendMessage(event: Event) {
     event.preventDefault();
-    if (!this.userInput.trim()) return;
+    if (!this.userInput.trim() && this.selectedFiles.length === 0) return;
 
     // Add user message
     if (this.selectedFiles.length > 0) {
-      const messageAttachments = this.selectedFiles.map((file) => ({
-                                                          file: file.file,
-                                                          url: file.url,
-                                                        }));
-      this.messages.push({role: 'user', attachments: messageAttachments});
-    }
-    this.messages.push({role: 'user', text: this.userInput});
+      const messageIndex = this.messages.length;
+      
+      const storeFileObservables = this.selectedFiles.map(fileObj => {
+        return this.fileStorageService.storeFile(fileObj.file, this.sessionId, messageIndex).pipe(
+          map(fileId => {
+            return {
+              fileId: fileId,
+              file: fileObj.file,
+              url: fileObj.url
+            };
+          })
+        );
+      });
 
+      forkJoin(storeFileObservables).subscribe(storedFiles => {
+        const messageAttachments = storedFiles.map(storedFile => {
+          const attachment = {
+            fileId: storedFile.fileId,
+            file: storedFile.file,
+            url: storedFile.url,
+            name: storedFile.file.name,
+            type: storedFile.file.type,
+            size: storedFile.file.size,
+            messageIndex: messageIndex
+          };
+          return attachment;
+        });
+
+        this.messages.push({
+          role: 'user',
+          text: this.userInput.trim() || '',
+          attachments: messageAttachments,
+          messageIndex: messageIndex
+        });
+        
+        this.sendMessageToAgent();
+      });
+    } else {
+      this.messages.push({role: 'user', text: this.userInput});
+      this.sendMessageToAgent();
+    }
+  }
+
+  private async sendMessageToAgent() {
     const req: AgentRunRequest = {
       appName: this.appName,
       userId: this.userId,
@@ -765,21 +803,29 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy,
     this.eventMessageIndexArray = [];
     this.messages = [];
     this.artifacts = [];
+    
     let index = 0;
 
     session.events.forEach((event: any) => {
       event.content.parts.forEach((part: any) => {
+        const currentIndex = this.messages.length;
         this.storeMessage(part, event, index);
+        
+        if (this.messages.length > currentIndex) {
+          this.messages[this.messages.length - 1].messageIndex = currentIndex;
+        }
+        
         index += 1;
         if (event.author && event.author !== 'user') {
           this.storeEvents(part, event, index);
         }
       });
     });
-
+    
+    this.loadSessionFiles(session.id);
     this.eventService.getTrace(this.sessionId).subscribe(res => {
       this.traceData = res;
-    })
+    });
   }
 
   protected updateSessionState(session: Session) {
@@ -792,6 +838,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy,
     this.eventMessageIndexArray = [];
     this.messages = [];
     this.artifacts = [];
+    this.selectedFiles = [];
 
     // Close eval history if opened
     if (!!this.evalTab.showEvalHistory) {
@@ -866,16 +913,31 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy,
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.sessionService.deleteSession(this.userId, this.appName, session)
-            .subscribe((res) => {
-              const nextSession = this.sessionTab.refreshSession(session);
-              if (nextSession) {
-                this.sessionTab.getSession(nextSession.id);
-              } else {
-                window.location.reload();
-              }
-            });
-      } else {
+        this.fileStorageService.deleteSessionFiles(session).subscribe(
+          () => {
+            this.sessionService.deleteSession(this.userId, this.appName, session)
+                .subscribe(() => {
+                  const nextSession = this.sessionTab.refreshSession(session);
+                  if (nextSession) {
+                    this.sessionTab.getSession(nextSession.id);
+                  } else {
+                    window.location.reload();
+                  }
+                });
+          },
+          error => {
+            console.error('Error deleting files, proceeding with session deletion anyway:', error);
+            this.sessionService.deleteSession(this.userId, this.appName, session)
+                .subscribe((res) => {
+                  const nextSession = this.sessionTab.refreshSession(session);
+                  if (nextSession) {
+                    this.sessionTab.getSession(nextSession.id);
+                  } else {
+                    window.location.reload();
+                  }
+                });
+          }
+        );
       }
     });
   }
@@ -982,6 +1044,141 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy,
       data: {
         imageData: this.rawSvgString,
       },
+    });
+  }
+
+  /**
+   * Creates a File object from a data URL and metadata stored in IndexedDB
+   * This handles large files more efficiently by chunking the data
+   */
+  private createFileFromDataURL(dataURL: string, fileName: string, fileType: string, 
+                               fileSize?: number, lastModified?: number): File {
+    try {
+      const base64String = dataURL.split(',')[1];
+      const byteCharacters = atob(base64String);
+      const byteArrays = [];
+      
+      const chunkSize = 1024 * 1024; // 1MB chunks for better memory handling
+      
+      for (let offset = 0; offset < byteCharacters.length; offset += chunkSize) {
+        const slice = byteCharacters.slice(offset, Math.min(offset + chunkSize, byteCharacters.length));
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) {
+          byteNumbers[i] = slice.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        byteArrays.push(byteArray);
+      }
+      
+      const blob = new Blob(byteArrays, { type: fileType });
+      
+      return new File([blob], fileName, { 
+        type: fileType,
+        lastModified: lastModified || Date.now()
+      });
+    } catch (error) {
+      console.error('Error creating File from data URL:', error);
+      return new File([], fileName, { type: fileType });
+    }
+  }
+
+  private loadSessionFiles(sessionId: string) {
+    this.fileStorageService.getSessionFiles(sessionId).subscribe(files => {
+      if (files.length === 0) {
+        return; // No files to process
+      }
+      
+      // Wait a bit for messages to be populated from the server response
+      setTimeout(() => {
+        const filesByMessageIndex = new Map<number, any[]>();
+        files.forEach(file => {
+          if (file.messageIndex !== undefined) {
+            if (!filesByMessageIndex.has(file.messageIndex)) {
+              filesByMessageIndex.set(file.messageIndex, []);
+            }
+            filesByMessageIndex.get(file.messageIndex)?.push(file);
+          } else {
+            console.warn(`File ${file.id} has no messageIndex`);
+          }
+        });
+        
+        for (const [msgIndex, filesForIndex] of filesByMessageIndex.entries()) {
+          let messageExists = false;
+          for (let i = 0; i < this.messages.length; i++) {
+            if (this.messages[i].messageIndex === msgIndex) {
+              messageExists = true;
+              break;
+            }
+          }
+          
+          if (!messageExists && filesForIndex.length > 0) {
+            // Create a new user message with these attachments
+            const newMessage = {
+              role: 'user',
+              text: '',
+              messageIndex: msgIndex,
+              attachments: []
+            };
+            
+            // Insert the message at the correct position
+            let insertPosition = 0;
+            for (let i = 0; i < this.messages.length; i++) {
+              if (this.messages[i].messageIndex !== undefined && 
+                  this.messages[i].messageIndex < msgIndex) {
+                insertPosition = i + 1;
+              }
+            }
+            
+            this.messages.splice(insertPosition, 0, newMessage);
+          }
+        }
+        
+        for (let i = 0; i < this.messages.length; i++) {
+          const message = this.messages[i];
+          const msgIndex = message.messageIndex !== undefined ? message.messageIndex : i;
+          
+          // Skip bot messages - attachments should only be associated with user messages
+          if (message.role === 'bot') {
+            continue;
+          }
+          
+          const filesForThisMessage = filesByMessageIndex.get(msgIndex) || [];
+          
+          if (filesForThisMessage.length > 0) {
+            if (!message.attachments) {
+              message.attachments = [];
+            }
+            
+            for (const file of filesForThisMessage) {
+              const existingAttachment = message.attachments.find((att: any) => att.fileId === file.id);
+              if (!existingAttachment) {
+                try {
+                  const reconstructedFile = this.createFileFromDataURL(
+                    file.data, 
+                    file.name, 
+                    file.type,
+                    file.size,
+                    file.lastModified
+                  );
+                  
+                  message.attachments.push({
+                    fileId: file.id,
+                    url: file.data,
+                    type: file.type,
+                    name: file.name,
+                    size: file.size,
+                    lastModified: file.lastModified,
+                    file: reconstructedFile,
+                    messageIndex: msgIndex
+                  });
+                } catch (error) {
+                  console.error('Error reconstructing file:', error);
+                }
+              }
+            }
+          }
+        }
+      }, 500); // Wait for messages to be populated from server data
     });
   }
 }

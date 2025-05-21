@@ -250,6 +250,83 @@
   transition: transform 0.2s ease-in-out;
 }
 
+.error-message {
+  color: #ff6b6b;
+  background-color: rgba(255, 107, 107, 0.1);
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+  font-size: 14px;
+  border-left: 3px solid #ff6b6b;
+}
+
+.attachments {
+  margin: 8px 0;
+  
+  .attachment {
+    margin-bottom: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    
+    .image-container {
+      position: relative;
+      max-width: 300px;
+      
+      img.image-preview-chat {
+        max-width: 100%;
+        border-radius: 4px;
+        border: 1px solid #e0e0e0;
+      }
+    }
+    
+    .file-container {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      background-color: rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+      width: fit-content;
+      
+      .file-icon {
+        margin-right: 8px;
+      }
+      
+      a {
+        text-decoration: none;
+        color: #1a73e8;
+        display: flex;
+        align-items: center;
+        
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+    
+    .error-message {
+      background-color: rgba(244, 67, 54, 0.1);
+      color: #d32f2f;
+      padding: 8px;
+      border-radius: 4px;
+      margin-top: 4px;
+      font-size: 13px;
+      
+      p {
+        margin: 0 0 8px 0;
+      }
+      
+      .download-link {
+        color: #1a73e8;
+        text-decoration: none;
+        
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}
+
 button {
   margin-left: 20px;
   margin-right: 20px;
