@@ -189,13 +189,37 @@
           </button>
           <mat-card class="message-card" [ngClass]="{'eval-fail': message.evalStatus === 2}">
             <div class="attachments" *ngIf="message.attachments">
-              <div class="attachment" *ngFor="let file of message.attachments">
-                <ng-container *ngIf="file.file.type.startsWith('image/')">
-                  <img [src]="file.url" alt="attachment" class="image-preview-chat">
+              <div class="attachment" *ngFor="let file of message.attachments">                
+                <ng-container *ngIf="(file?.type && file.type.startsWith('image/')) ||
+                                     (file?.file?.type && file.file.type.startsWith('image/'))">
+                  <div class="image-container">
+                    <img [src]="file.url" alt="attachment" class="image-preview-chat"
+                         (error)="file.loadError = true" [hidden]="file.loadError">
+                    <div *ngIf="file.loadError" class="error-message">
+                      <p>Image failed to load</p>
+                      <a *ngIf="file.url" [href]="file.url" [download]="file.name || file.file?.name || 'image'" class="download-link">Download</a>
+                    </div>
+                  </div>
                 </ng-container>
-                <ng-container *ngIf="!file.file.type.startsWith('image/')">
-                  <mat-icon>insert_drive_file</mat-icon>
-                  <a [href]="file.url" download>{{ file.file.name }}</a>
+                
+                <ng-container *ngIf="(file?.type && !file.type.startsWith('image/')) ||
+                                     (file?.file?.type && !file.file.type.startsWith('image/'))">
+                  <div class="file-container">
+                    <a [href]="file.url" [download]="file.name || file.file?.name || 'file'">
+                      <span class="file-icon">📄</span>
+                      {{ file.name || file.file?.name || 'File' }}
+                    </a>
+                  </div>
+                </ng-container>
+                
+                <ng-container *ngIf="(!file?.type && (!file?.file || !file?.file?.type))">
+                  <div class="file-container">
+                    <a *ngIf="file.url" [href]="file.url" [download]="file.name || 'unknown'">
+                      <span class="file-icon">📄</span>
+                      {{ file.name || 'Unknown file' }}
+                    </a>
+                    <span *ngIf="!file.url" class="error-message">File data unavailable</span>
+                  </div>
                 </ng-container>
               </div>
             </div>

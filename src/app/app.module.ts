@@ -32,6 +32,7 @@ import {AudioService} from './core/services/audio.service';
 import {DownloadService} from './core/services/download.service';
 import {EvalService} from './core/services/eval.service';
 import {EventService} from './core/services/event.service';
+import {FileStorageService} from './core/services/file-storage.service';
 import {SessionService} from './core/services/session.service';
 import {VideoService} from './core/services/video.service';
 import {WebSocketService} from './core/services/websocket.service';
@@ -60,6 +61,7 @@ import {WebSocketService} from './core/services/websocket.service';
     EvalService,
     ArtifactService,
     DownloadService,
+    FileStorageService,
   ],
   bootstrap: [AppComponent],
 })
