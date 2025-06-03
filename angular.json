@@ -30,7 +30,12 @@
                 "glob": "**/*",
                 "input": "public"
               },
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "audio-processor.js",
+                "input": "src/assets",
+                "output": "assets"
+              }
             ],
             "styles": [
               "src/styles.scss"
