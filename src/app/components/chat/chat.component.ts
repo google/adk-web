@@ -386,6 +386,13 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     event.preventDefault();
     if (!this.userInput.trim()) return;
 
+    if (event instanceof KeyboardEvent) {
+      // support for japanese IME
+      if (event.isComposing) {
+        return;
+      }
+    }
+
     // Add user message
     this.messages.push({ role: 'user', text: this.userInput });
     this.messagesSubject.next(this.messages);
