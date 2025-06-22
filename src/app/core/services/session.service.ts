@@ -28,11 +28,12 @@ export class SessionService {
   apiServerDomain = URLUtil.getApiServerBaseUrl();
   constructor(private http: HttpClient) {}
 
-  createSession(userId: string, appName: string) {
+  createSession(userId: string, appName: string, initialState?: object) {
     if (this.apiServerDomain != undefined) {
       const url =
           this.apiServerDomain + `/apps/${appName}/users/${userId}/sessions`;
-      return this.http.post<any>(url, null);
+      const body = initialState ? { "state": initialState } : null;
+      return this.http.post<any>(url, body);
     }
     return new Observable<any>();
   }

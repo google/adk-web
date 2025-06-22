@@ -15,7 +15,27 @@
 -->
 
 <div class="session-wrapper">
+  <div class="new-session-container" style="padding: 16px; border-bottom: 1px solid #ccc;">
+    <h3>Create New Session with Initial Context</h3>
+    <p style="font-size: smaller; color: #666;">
+      Enter a valid JSON object to initialize the session's context state.
+    </p>
+    <textarea
+      [(ngModel)]="initialContextState"
+      placeholder="Enter initial context state as JSON (optional)"
+      rows="5"
+      style="width: 100%; margin-bottom: 8px; font-family: monospace; font-size: 12px;"></textarea>
+    <button (click)="createNewSession()" style="margin-bottom: 8px;">Create Session</button>
+    @if (jsonError) {
+      <div style="color: red; margin-bottom: 8px; white-space: pre-wrap;">{{ jsonError }}</div>
+    }
+  </div>
+
   <div class="session-tab-container" style="margin-top: 16px;">
+    <h4>Available Sessions</h4>
+    @if (sessionList.length === 0) {
+      <p style="padding-left: 16px; color: #777;">No sessions available for this agent yet.</p>
+    }
     @for (session of sessionList; track session) {
       <div (click)="getSession(session.id)" [ngClass]="session.id === sessionId ? 'session-item current': 'session-item'">
         <div class="session-info">
