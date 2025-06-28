@@ -36,6 +36,8 @@ export class SessionTabComponent implements OnInit {
   @Output() readonly sessionReloaded = new EventEmitter<Session>();
 
   sessionList: any[] = [];
+  initialContextState: string = ''; // For creating new session with initial context
+  jsonError: string | null = null;   // For JSON parsing errors for initialContextState
 
   private refreshSessionsSubject = new Subject<void>();
 
@@ -63,6 +65,39 @@ export class SessionTabComponent implements OnInit {
     setTimeout(() => {
       this.refreshSessionsSubject.next();
     }, 500);
+  }
+
+  // Method to create a new session, potentially with initial state
+  createNewSession() {
+    let initialStateObj: object | undefined;
+    this.jsonError = null; // Reset error
+
+    if (this.initialContextState.trim() !== '') {
+      try {
+        initialStateObj = JSON.parse(this.initialContextState);
+      } catch (e) {
+        this.jsonError = 'Invalid JSON format for initial context state.';
+        console.error('JSON parsing error:', e);
+        return; // Stop if JSON is invalid
+      }
+    }
+
+    this.sessionService
+        .createSession(this.userId, this.appName, initialStateObj)
+        .subscribe({
+          next: (newSession) => {
+            this.refreshSessionsSubject.next(); // Refresh the list
+            // Automatically select the new session
+            if (newSession && newSession.id) {
+              this.getSession(newSession.id);
+            }
+            this.jsonError = null; // Clear any previous errors
+          },
+          error: (err) => {
+            console.error('Error creating session:', err);
+            this.jsonError = 'Failed to create session. See console for details.';
+          }
+        });
   }
 
   getSession(sessionId: string) {
