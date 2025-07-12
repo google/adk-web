@@ -397,7 +397,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (event instanceof KeyboardEvent) {
       // support for japanese IME
-      if (event.isComposing) {
+      if (event.isComposing || event.keyCode === 229) {
         return;
       }
     }
