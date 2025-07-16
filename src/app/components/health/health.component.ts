@@ -15,24 +15,11 @@
  * limitations under the License.
  */
 
-import {NgModule} from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
-import {AppComponent} from './app.component';
-import {HealthComponent} from './components/health/health.component';
+import { Component } from '@angular/core';
 
-const routes: Routes = [
-  {
-    path: 'health',
-    component: HealthComponent,
-  },
-  {
-    path: '',
-    component: AppComponent,
-  }
-];
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule],
+@Component({
+  selector: 'app-health',
+  template: 'ok',
+  standalone: true
 })
-export class AppRoutingModule {}
+export class HealthComponent {}
