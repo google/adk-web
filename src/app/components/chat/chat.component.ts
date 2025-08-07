@@ -15,44 +15,44 @@
  * limitations under the License.
  */
 
-import {DOCUMENT, Location} from '@angular/common';
-import {HttpErrorResponse} from '@angular/common/http';
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Inject, inject, OnDestroy, OnInit, Renderer2, signal, ViewChild, WritableSignal} from '@angular/core';
-import {FormControl} from '@angular/forms';
-import {MatDialog, MatDialogModule} from '@angular/material/dialog';
-import {MatPaginatorIntl} from '@angular/material/paginator';
-import {MatDrawer} from '@angular/material/sidenav';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
-import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
-import {instance} from '@viz-js/viz';
-import {BehaviorSubject, catchError, combineLatest, distinctUntilChanged, filter, map, Observable, of, shareReplay, switchMap, take, tap} from 'rxjs';
+import { DOCUMENT, Location } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Inject, inject, OnDestroy, OnInit, Renderer2, signal, ViewChild, WritableSignal } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatPaginatorIntl } from '@angular/material/paginator';
+import { MatDrawer } from '@angular/material/sidenav';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { instance } from '@viz-js/viz';
+import { BehaviorSubject, catchError, combineLatest, distinctUntilChanged, filter, map, Observable, of, shareReplay, switchMap, take, tap } from 'rxjs';
 import stc from 'string-to-color';
 
-import {URLUtil} from '../../../utils/url-util';
-import {AgentRunRequest} from '../../core/models/AgentRunRequest';
-import {Session} from '../../core/models/Session';
-import {AgentService} from '../../core/services/agent.service';
-import {ArtifactService} from '../../core/services/artifact.service';
-import {AudioService} from '../../core/services/audio.service';
-import {DownloadService} from '../../core/services/download.service';
-import {EvalService} from '../../core/services/eval.service';
-import {EventService} from '../../core/services/event.service';
-import {FeatureFlagService} from '../../core/services/feature-flag.service';
-import {SessionService} from '../../core/services/session.service';
-import {TraceService} from '../../core/services/trace.service';
-import {VideoService} from '../../core/services/video.service';
-import {WebSocketService} from '../../core/services/websocket.service';
-import {ResizableDrawerDirective} from '../../directives/resizable-drawer.directive';
-import {getMediaTypeFromMimetype, MediaType, openBase64InNewTab} from '../artifact-tab/artifact-tab.component';
-import {AudioPlayerComponent} from '../audio-player/audio-player.component';
-import {EditJsonDialogComponent} from '../edit-json-dialog/edit-json-dialog.component';
-import {EvalCase, EvalTabComponent} from '../eval-tab/eval-tab.component';
-import {EventTabComponent} from '../event-tab/event-tab.component';
-import {PendingEventDialogComponent} from '../pending-event-dialog/pending-event-dialog.component';
-import {DeleteSessionDialogComponent, DeleteSessionDialogData,} from '../session-tab/delete-session-dialog/delete-session-dialog.component';
-import {SessionTabComponent} from '../session-tab/session-tab.component';
-import {ViewImageDialogComponent} from '../view-image-dialog/view-image-dialog.component';
+import { URLUtil } from '../../../utils/url-util';
+import { AgentRunRequest } from '../../core/models/AgentRunRequest';
+import { Session } from '../../core/models/Session';
+import { AgentService } from '../../core/services/agent.service';
+import { ArtifactService } from '../../core/services/artifact.service';
+import { AudioService } from '../../core/services/audio.service';
+import { DownloadService } from '../../core/services/download.service';
+import { EvalService } from '../../core/services/eval.service';
+import { EventService } from '../../core/services/event.service';
+import { FeatureFlagService } from '../../core/services/feature-flag.service';
+import { SessionService } from '../../core/services/session.service';
+import { TraceService } from '../../core/services/trace.service';
+import { VideoService } from '../../core/services/video.service';
+import { WebSocketService } from '../../core/services/websocket.service';
+import { ResizableDrawerDirective } from '../../directives/resizable-drawer.directive';
+import { getMediaTypeFromMimetype, MediaType, openBase64InNewTab } from '../artifact-tab/artifact-tab.component';
+import { AudioPlayerComponent } from '../audio-player/audio-player.component';
+import { EditJsonDialogComponent } from '../edit-json-dialog/edit-json-dialog.component';
+import { EvalCase, EvalTabComponent } from '../eval-tab/eval-tab.component';
+import { EventTabComponent } from '../event-tab/event-tab.component';
+import { PendingEventDialogComponent } from '../pending-event-dialog/pending-event-dialog.component';
+import { DeleteSessionDialogComponent, DeleteSessionDialogData, } from '../session-tab/delete-session-dialog/delete-session-dialog.component';
+import { SessionTabComponent } from '../session-tab/session-tab.component';
+import { ViewImageDialogComponent } from '../view-image-dialog/view-image-dialog.component';
 
 const ROOT_AGENT = 'root_agent';
 
@@ -212,11 +212,11 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Import session
   importSessionEnabledObs: Observable<boolean> =
-      this.featureFlagService.isImportSessionEnabled();
+    this.featureFlagService.isImportSessionEnabled();
 
   // Edit eval tool use
   isEditFunctionArgsEnabledObs =
-      this.featureFlagService.isEditFunctionArgsEnabled();
+    this.featureFlagService.isEditFunctionArgsEnabled();
 
   // Session url
   isSessionUrlEnabledObs = this.featureFlagService.isSessionUrlEnabled();
@@ -226,26 +226,27 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   hoveredEventMessageIndices: number[] = [];
 
   constructor(
-      private sanitizer: DomSanitizer,
-      private sessionService: SessionService,
-      private artifactService: ArtifactService,
-      private audioService: AudioService,
-      private webSocketService: WebSocketService,
-      private videoService: VideoService,
-      private dialog: MatDialog,
-      private eventService: EventService,
-      private route: ActivatedRoute,
-      private downloadService: DownloadService,
-      private evalService: EvalService,
-      private traceService: TraceService,
-      private location: Location,
-      private renderer: Renderer2,
-      @Inject(DOCUMENT) private document: Document,
-  ) {}
+    private sanitizer: DomSanitizer,
+    private sessionService: SessionService,
+    private artifactService: ArtifactService,
+    private audioService: AudioService,
+    private webSocketService: WebSocketService,
+    private videoService: VideoService,
+    private dialog: MatDialog,
+    private eventService: EventService,
+    private route: ActivatedRoute,
+    private downloadService: DownloadService,
+    private evalService: EvalService,
+    private traceService: TraceService,
+    private location: Location,
+    private renderer: Renderer2,
+    @Inject(DOCUMENT) private document: Document,
+  ) { }
 
   ngOnInit(): void {
     this.syncSelectedAppFromUrl();
     this.updateSelectedAppUrl();
+    this.validateAndFixSessionUrl();
 
     this.webSocketService.onCloseReason().subscribe((closeReason) => {
       const error =
@@ -332,25 +333,72 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         const sessionUrl = this.activatedRoute.snapshot.queryParams['session'];
 
         if (!sessionUrlEnabled || !sessionUrl) {
-          this.createSessionAndReset();
+          // 먼저 기존 세션이 있는지 확인
+          this.sessionService.listSessions(this.userId, this.appName)
+            .pipe(take(1), catchError((error) => {
+              console.warn('Failed to load existing sessions:', error);
+              return of([]);
+            }))
+            .subscribe((sessions) => {
+              if (sessions && sessions.length > 0) {
+                // 가장 최근 세션 선택 (lastUpdateTime 기준)
+                const latestSession = sessions.reduce((latest: any, current: any) =>
+                  current.lastUpdateTime > latest.lastUpdateTime ? current : latest
+                );
+                console.log('Using existing latest session:', latestSession.id);
+                this.updateWithSelectedSession(latestSession);
+
+                // URL도 업데이트
+                this.isSessionUrlEnabledObs.subscribe((enabled) => {
+                  if (enabled) {
+                    this.updateSelectedSessionUrl();
+                  }
+                });
+              } else {
+                console.log('No existing sessions found, creating new session');
+                this.createSessionAndReset();
+              }
+            });
 
           return;
         }
 
         if (sessionUrl) {
           this.sessionService.getSession(this.userId, this.appName, sessionUrl)
-              .pipe(take(1), catchError((error) => {
+            .pipe(take(1), catchError((error) => {
+              console.warn('Session not found, trying to use latest existing session:', sessionUrl);
+              // 세션을 찾을 수 없을 때도 기존 세션 목록 확인
+              return this.sessionService.listSessions(this.userId, this.appName)
+                .pipe(
+                  take(1),
+                  catchError((listError) => {
+                    console.warn('Failed to load existing sessions:', listError);
+                    return of([]);
+                  }),
+                  switchMap((sessions) => {
+                    if (sessions && sessions.length > 0) {
+                      // 가장 최근 세션 선택
+                      const latestSession = sessions.reduce((latest: any, current: any) =>
+                        current.lastUpdateTime > latest.lastUpdateTime ? current : latest
+                      );
+                      console.log('Using existing latest session instead:', latestSession.id);
+                      return of(latestSession);
+                    } else {
+                      console.log('No existing sessions found, creating new session');
                       this.openSnackBar(
-                          'Cannot find specified session. Creating a new one.',
-                          'OK');
+                        'Cannot find specified session. Creating a new one.',
+                        'OK');
                       this.createSessionAndReset();
                       return of(null);
-                    }))
-              .subscribe((session) => {
-                if (session) {
-                  this.updateWithSelectedSession(session);
-                }
-              });
+                    }
+                  })
+                );
+            }))
+            .subscribe((session) => {
+              if (session) {
+                this.updateWithSelectedSession(session);
+              }
+            });
         }
       });
     }
@@ -404,7 +452,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Add user message
     if (!!this.userInput.trim()) {
-      this.messages.push({role: 'user', text: this.userInput});
+      this.messages.push({ role: 'user', text: this.userInput });
       this.messagesSubject.next(this.messages);
     }
 
@@ -459,16 +507,16 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         this.streamingTextMessage = null;
         this.sessionTab.reloadSession(this.sessionId);
         this.eventService.getTrace(this.sessionId)
-            .pipe(catchError((error) => {
-              if (error.status === 404) {
-                return of(null);
-              }
-              return of([]);
-            }))
-            .subscribe(res => {
-              this.traceData = res;
-              this.changeDetectorRef.detectChanges();
-            });
+          .pipe(catchError((error) => {
+            if (error.status === 404) {
+              return of(null);
+            }
+            return of([]);
+          }))
+          .subscribe(res => {
+            this.traceData = res;
+            this.changeDetectorRef.detectChanges();
+          });
         this.traceService.setMessages(this.messages);
       },
     });
@@ -481,7 +529,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private processErrorMessage(chunkJson: any, index: number) {
     this.storeEvents(chunkJson, chunkJson, index);
     this.insertMessageBeforeLoadingMessage(
-        {text: chunkJson.errorMessage, role: 'bot'})
+      { text: chunkJson.errorMessage, role: 'bot' })
   }
 
   private processPart(chunkJson: any, part: any, index: number) {
@@ -554,7 +602,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     let parts: any = [];
 
     if (!!this.userInput.trim()) {
-      parts.push({'text': `${this.userInput}`});
+      parts.push({ 'text': `${this.userInput}` });
     }
 
     if (this.selectedFiles.length > 0) {
@@ -596,8 +644,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private storeMessage(
-      part: any, e: any, index: number, role: string, invocationIndex?: number,
-      additionalIndeces?: any) {
+    part: any, e: any, index: number, role: string, invocationIndex?: number,
+    additionalIndeces?: any) {
     if (e?.author) {
       this.createAgentIconColorClass(e.author);
     }
@@ -650,14 +698,14 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       actualFinalResponse: e?.actualFinalResponse,
       expectedFinalResponse: e?.expectedFinalResponse,
       invocationIndex: invocationIndex !== undefined ? invocationIndex :
-                                                       undefined,
+        undefined,
       finalResponsePartIndex:
-          additionalIndeces?.finalResponsePartIndex !== undefined ?
+        additionalIndeces?.finalResponsePartIndex !== undefined ?
           additionalIndeces.finalResponsePartIndex :
           undefined,
       toolUseIndex: additionalIndeces?.toolUseIndex !== undefined ?
-          additionalIndeces.toolUseIndex :
-          undefined,
+        additionalIndeces.toolUseIndex :
+        undefined,
     };
     if (part.inlineData) {
       const base64Data =
@@ -887,15 +935,15 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   customIconColorClass(i: number) {
     const agentName = this.getAgentNameFromEvent(i);
     return agentName !== ROOT_AGENT ?
-        `custom-icon-color-${stc(agentName).replace('#', '')}` :
-        '';
+      `custom-icon-color-${stc(agentName).replace('#', '')}` :
+      '';
   }
 
   createAgentIconColorClass(agentName: string) {
     const agentIconColor = stc(agentName);
 
     const agentIconColorClass =
-        `custom-icon-color-${agentIconColor.replace('#', '')}`;
+      `custom-icon-color-${agentIconColor.replace('#', '')}`;
 
     // Inject the style for this unique class
     this.injectCustomIconColorStyle(agentIconColorClass, agentIconColor);
@@ -1153,11 +1201,11 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         let toolUseIndex = 0;
         for (const toolUse of invocation.intermediateData.toolUses) {
           const functionCallPart = {
-            functionCall: {name: toolUse.name, args: toolUse.args}
+            functionCall: { name: toolUse.name, args: toolUse.args }
           };
           this.storeMessage(
-              functionCallPart, null, index, 'bot', invocationIndex,
-              {toolUseIndex});
+            functionCallPart, null, index, 'bot', invocationIndex,
+            { toolUseIndex });
           index++;
           toolUseIndex++;
 
@@ -1171,8 +1219,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         let finalResponsePartIndex = 0;
         for (const part of invocation.finalResponse.parts) {
           this.storeMessage(
-              part, null, index, 'bot', invocationIndex,
-              {finalResponsePartIndex});
+            part, null, index, 'bot', invocationIndex,
+            { finalResponsePartIndex });
           index++;
           finalResponsePartIndex++;
         }
@@ -1219,21 +1267,21 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.updatedEvalCase = structuredClone(this.evalCase!);
         this.updatedEvalCase!.conversation[message.invocationIndex]
-            .intermediateData!.toolUses![message.toolUseIndex]
-            .args = result;
+          .intermediateData!.toolUses![message.toolUseIndex]
+          .args = result;
       }
     });
   }
 
   protected saveEvalCase() {
     this.evalService
-        .updateEvalCase(
-            this.appName, this.evalSetId, this.updatedEvalCase!.evalId,
-            this.updatedEvalCase!)
-        .subscribe((res) => {
-          this.openSnackBar('Eval case updated', 'OK');
-          this.resetEditEvalCaseVars()
-        });
+      .updateEvalCase(
+        this.appName, this.evalSetId, this.updatedEvalCase!.evalId,
+        this.updatedEvalCase!)
+      .subscribe((res) => {
+        this.openSnackBar('Eval case updated', 'OK');
+        this.resetEditEvalCaseVars()
+      });
   }
 
   protected cancelEditEvalCase() {
@@ -1405,10 +1453,65 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
             if (nextSession) {
               this.sessionTab.getSession(nextSession.id);
             } else {
-              window.location.reload();
+              console.log('No more sessions after deletion, creating new session');
+              this.createSessionAndReset();
             }
           });
       } else {
+      }
+    });
+  }
+
+  private validateAndFixSessionUrl() {
+    // 앱과 세션이 로드되기를 기다림
+    combineLatest([
+      this.agentService.getApp(),
+      this.router.events.pipe(
+        filter((e) => e instanceof NavigationEnd),
+        map(() => this.activatedRoute.snapshot.queryParams),
+      )
+    ]).pipe(
+      filter(([appName, params]) => !!appName && !!params['session']),
+      take(1),
+      switchMap(([appName, params]) => {
+        const sessionId = params['session'];
+        console.log('Validating session on page load:', { appName, sessionId });
+
+        // 현재 URL의 세션이 유효한지 확인
+        return this.sessionService.getSession(this.userId, appName, sessionId)
+          .pipe(
+            catchError((error) => {
+              console.warn('Invalid session in URL, finding latest session:', sessionId);
+              // 세션이 유효하지 않으면 기존 세션 목록 확인
+              return this.sessionService.listSessions(this.userId, appName)
+                .pipe(
+                  catchError((listError) => {
+                    console.warn('Failed to load sessions for validation:', listError);
+                    return of([]);
+                  }),
+                  switchMap((sessions) => {
+                    if (sessions && sessions.length > 0) {
+                      // 가장 최근 세션 선택
+                      const latestSession = sessions.reduce((latest: any, current: any) =>
+                        current.lastUpdateTime > latest.lastUpdateTime ? current : latest
+                      );
+                      console.log('Redirecting to latest session:', latestSession.id);
+                      // URL 업데이트 및 세션 로드
+                      this.updateWithSelectedSession(latestSession);
+                      return of(latestSession);
+                    } else {
+                      console.log('No sessions found, will create new session');
+                      this.createSessionAndReset();
+                      return of(null);
+                    }
+                  })
+                );
+            })
+          );
+      })
+    ).subscribe((session) => {
+      if (session) {
+        console.log('Session validation completed:', session.id);
       }
     });
   }
@@ -1452,11 +1555,11 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private updateSelectedSessionUrl() {
     const url = this.router
-                    .createUrlTree([], {
-                      queryParams: {'session': this.sessionId},
-                      queryParamsHandling: 'merge',
-                    })
-                    .toString();
+      .createUrlTree([], {
+        queryParams: { 'session': this.sessionId },
+        queryParamsHandling: 'merge',
+      })
+      .toString();
     this.location.replaceState(url);
   }
 
@@ -1556,7 +1659,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       maxWidth: '90vw',
       maxHeight: '90vh',
       data:
-          {dialogHeader: 'Update state', jsonContent: this.currentSessionState},
+        { dialogHeader: 'Update state', jsonContent: this.currentSessionState },
     });
 
     dialogRef.afterClosed().subscribe((result: any) => {
@@ -1598,17 +1701,17 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           try {
             const sessionData = JSON.parse(e.target.result as string);
             if (!sessionData.userId || !sessionData.appName ||
-                !sessionData.events) {
+              !sessionData.events) {
               this.openSnackBar('Invalid session file format', 'OK');
               return;
             }
             this.sessionService
-                .importSession(
-                    sessionData.userId, sessionData.appName, sessionData.events)
-                .subscribe((res) => {
-                  this.openSnackBar('Session imported', 'OK');
-                  this.sessionTab.refreshSession();
-                });
+              .importSession(
+                sessionData.userId, sessionData.appName, sessionData.events)
+              .subscribe((res) => {
+                this.openSnackBar('Session imported', 'OK');
+                this.sessionTab.refreshSession();
+              });
           } catch (error) {
             this.openSnackBar('Error parsing session file', 'OK');
           }
@@ -1630,7 +1733,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const style = this.renderer.createElement('style');
     this.renderer.setAttribute(
-        style, 'id', className);  // Set an ID to check for existence later
+      style, 'id', className);  // Set an ID to check for existence later
     this.renderer.setAttribute(style, 'type', 'text/css');
 
     // Define the CSS
@@ -1642,6 +1745,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.renderer.appendChild(style, this.renderer.createText(css));
     this.renderer.appendChild(
-        this.document.head, style);  // Append to the head of the document
+      this.document.head, style);  // Append to the head of the document
   }
 }
