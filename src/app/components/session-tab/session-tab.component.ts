@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {MatDialog} from '@angular/material/dialog';
-import {Subject, switchMap} from 'rxjs';
-import {Session} from '../../core/models/Session';
-import {SessionService} from '../../core/services/session.service';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { Subject, switchMap } from 'rxjs';
+import { Session } from '../../core/models/Session';
+import { SessionService } from '../../core/services/session.service';
 
 @Component({
   selector: 'app-session-tab',
@@ -27,7 +27,7 @@ import {SessionService} from '../../core/services/session.service';
   styleUrl: './session-tab.component.scss',
   standalone: false,
 })
-export class SessionTabComponent implements OnInit {
+export class SessionTabComponent implements OnInit, OnChanges {
   @Input() userId: string = '';
   @Input() appName: string = '';
   @Input() sessionId: string = '';
@@ -44,25 +44,37 @@ export class SessionTabComponent implements OnInit {
     private dialog: MatDialog,
   ) {
     this.refreshSessionsSubject
-        .pipe(
-            switchMap(
-                () =>
-                    this.sessionService.listSessions(this.userId, this.appName),
-                ),
-            )
-        .subscribe((res) => {
-          res = res.sort(
-              (a: any, b: any) =>
-                  Number(b.lastUpdateTime) - Number(a.lastUpdateTime),
-          );
-          this.sessionList = res;
-        });
+      .pipe(
+        switchMap(
+          () =>
+            this.sessionService.listSessions(this.userId, this.appName),
+        ),
+      )
+      .subscribe((res) => {
+        res = res.sort(
+          (a: any, b: any) =>
+            Number(b.lastUpdateTime) - Number(a.lastUpdateTime),
+        );
+        this.sessionList = res;
+      });
   }
 
   ngOnInit(): void {
     setTimeout(() => {
       this.refreshSessionsSubject.next();
     }, 500);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // appName 또는 userId가 변경되면 세션 목록 새로고침
+    if ((changes['appName'] && !changes['appName'].firstChange) ||
+      (changes['userId'] && !changes['userId'].firstChange)) {
+      console.log('App or user changed, refreshing sessions:', {
+        appName: this.appName,
+        userId: this.userId
+      });
+      this.refreshSessionsSubject.next();
+    }
   }
 
   getSession(sessionId: string) {
