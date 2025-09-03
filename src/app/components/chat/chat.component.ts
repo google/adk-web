@@ -159,6 +159,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   selectedEvent: any = undefined;
   selectedEventIndex: any = undefined;
+  showEventDetailsJson: boolean = false;
   llmRequest: any = undefined;
   llmResponse: any = undefined;
   llmRequestKey = 'gcp.vertex.agent.llm_request';
@@ -1534,6 +1535,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   openLink(url: string) {
     window.open(url, '_blank');
+  }
+
+  toggleEventDetailsJson() {
+    this.showEventDetailsJson = !this.showEventDetailsJson;
   }
 
   renderGooglerSearch(content: string) {

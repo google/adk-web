@@ -731,6 +731,28 @@ button {
   font-size: 11px;
 }
 
+.event-details-toggle {
+  display: flex;
+  justify-content: center; // Center the button
+  margin-bottom: 8px; // Space below the button
+
+  button {
+    // Overriding mat-stroked-button styles for a custom look
+    background-color: #333537; // Darker background, same as pellets
+    color: white;           // Light text
+    border: 1px solid #5F6368; // Subtle border, same as pellets
+    border-radius: 20px;       // Pill shape
+    padding: 6px 16px;         // Slightly more padding than pellets
+    margin: 0;                 // Keep margin 0 as per existing
+    line-height: 1.5;
+
+    mat-icon {
+      color: white; // Ensure icon color matches text
+      margin-left: 8px; // Space between text and icon
+    }
+  }
+}
+
 :host ::ng-deep pre {
   white-space: pre-wrap;
   word-break: break-word;

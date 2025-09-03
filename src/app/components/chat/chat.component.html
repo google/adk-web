@@ -162,9 +162,17 @@
                   ></div>
                 }
               </div>
-              <div class="json-viewer-container">
-                <ngx-json-viewer [json]="selectedEvent"></ngx-json-viewer>
+              <div class="event-details-toggle">
+                <button mat-stroked-button (click)="toggleEventDetailsJson()">
+                  {{ showEventDetailsJson ? 'Hide' : 'Show' }} Event Details
+                  <mat-icon>{{ showEventDetailsJson ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
               </div>
+              @if(showEventDetailsJson){
+                <div class="json-viewer-container">
+                  <ngx-json-viewer [json]="selectedEvent"></ngx-json-viewer>
+                </div>
+              }
             </mat-tab>
             <mat-tab label="Request">
               <div class="json-viewer-container">
