@@ -710,11 +710,12 @@ button {
 }
 
 .event-graph-container {
-  margin-top: 16px;
   margin-bottom: 16px;
   display: flex;
   justify-content: center;
-  max-height: 33%;
+  flex-shrink: 0;
+  width: 100%;
+  min-height: 200px;
   cursor: pointer;
 }
 
