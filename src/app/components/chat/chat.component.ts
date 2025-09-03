@@ -16,7 +16,7 @@
  */
 
 import {DOCUMENT, Location} from '@angular/common';
-import {HttpErrorResponse} from '@angular/common/http';
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Inject, inject, OnDestroy, OnInit, Renderer2, signal, ViewChild, WritableSignal} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
@@ -138,6 +138,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   currentSessionState = {};
   root_agent = ROOT_AGENT;
   updatedSessionState = signal(null);
+
+  // Logo URLs - Bright on Transparent background
+  customLogoUrl: string = ''; // Configurable logo URL
+
   private readonly messagesSubject = new BehaviorSubject<any[]>([]);
   private readonly streamingTextMessageSubject =
     new BehaviorSubject<any | null>(null);
@@ -238,6 +242,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       @Inject(DOCUMENT) private document: Document,
       @Inject(AGENT_SERVICE) private agentService: AgentService,
       @Inject(FEATURE_FLAG_SERVICE) private featureFlagService: FeatureFlagService,
+      private readonly http: HttpClient,
   ) {
     this.importSessionEnabledObs =
         this.featureFlagService.isImportSessionEnabled();
@@ -247,6 +252,14 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.http.get<{customLogoUrl?: string}>('assets/config.json')
+        .pipe(catchError(() => of({customLogoUrl: ''})))
+        .subscribe(config => {
+          if (config && config.customLogoUrl) {
+            this.customLogoUrl = config.customLogoUrl;
+            this.changeDetectorRef.detectChanges();
+          }
+        });
     this.syncSelectedAppFromUrl();
     this.updateSelectedAppUrl();
 

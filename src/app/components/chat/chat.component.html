@@ -237,6 +237,9 @@
           </div>
         } @else {
           <div style="display: flex">
+            @if(customLogoUrl) {
+              <img [src]="customLogoUrl" alt="Logo" class="toolbar-logo"/>
+            }
             <div class="toolbar-session-text">Session ID</div>
             <div class="toolbar-session-id">{{ sessionId }}</div>
           </div>

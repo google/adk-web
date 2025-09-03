@@ -781,3 +781,10 @@ button {
   font-weight: 400;
   padding-left: unset;
 }
+
+.toolbar-logo {
+  height: 28px; // Adjust as needed for visual balance
+  width: auto; // Maintain aspect ratio
+  margin-right: 10px; // Space between logo and "Session ID" text
+  margin-left: 20px; // Match left margin of session-text if it were first
+}
