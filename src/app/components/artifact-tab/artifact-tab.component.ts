@@ -31,6 +31,7 @@ export enum MediaType {
   IMAGE = 'image',
   AUDIO = 'audio',
   TEXT = 'text',  // for text/html
+  PDF = 'pdf',
   UNSPECIFIED = 'unspecified',
 }
 
@@ -45,6 +46,9 @@ export enum MediaType {
 export function getMediaTypeFromMimetype(mimetype: string): MediaType {
   const lowerMime = mimetype.toLowerCase();
 
+  if (mimetype === 'application/pdf') {
+    return MediaType.PDF;
+  }
   for (const enumValue of Object.values(MediaType)) {
     if (enumValue === MediaType.UNSPECIFIED) {
       continue;

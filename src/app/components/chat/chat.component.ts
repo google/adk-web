@@ -768,7 +768,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         const mediaType = getMediaTypeFromMimetype(mimeType);
 
         let inlineData = {
-          name: this.createDefaultArtifactName(mimeType),
+          name: artifactId,
           data: base64Data,
           mimeType: mimeType,
           mediaType,

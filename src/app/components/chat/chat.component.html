@@ -490,6 +490,14 @@
                                 </div>
                               </div>
                             }
+                            @case (MediaType.PDF) {
+                              <div class="attachment">
+                                <mat-icon>picture_as_pdf</mat-icon>
+                                <a [href]="message.inlineData.data" [download]="message.inlineData.name" target="_blank">{{
+                                  message.inlineData.name
+                                }}</a>
+                              </div>
+                            }
                             @default {
                               <div>
                                 <button
