@@ -108,6 +108,35 @@
   display: inline-block;
 }
 
+.tool-pellet-base {
+  // Common styles for both call and response pellets
+  border-radius: 20px;
+  padding: 6px 12px;
+  margin: 5px 5px 10px;
+  display: inline-flex; // To align icon and text
+  align-items: center;
+  border: 1px solid transparent; // Base border
+  font-size: 14px;
+
+  mat-icon {
+    margin-right: 8px; // Space between icon and text
+  }
+}
+
+.function-call-pellet {
+  // Specific styles for the function call pellet
+  background-color: #d2e3fc; // Light blue background
+  color: #283549;           // Dark blue text
+  border-color: #5F6368;     // Subtle border
+}
+
+.function-response-pellet {
+  // Specific styles for the function response pellet
+  background-color: #c8f7d1; // Light green background
+  color: #203B31;           // Dark green text
+  border-color: #5F6368;     // Subtle border
+}
+
 .function-event-button {
   background-color: white;
   margin: 5px 5px 10px;
