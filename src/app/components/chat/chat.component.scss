@@ -119,6 +119,10 @@
   color: white !important;
 }
 
+.function-event-button .mdc-button__label {
+  font-family: 'Google Sans Mono', monospace;
+}
+
 .user-message {
   display: flex;
   justify-content: flex-end;
@@ -725,9 +729,11 @@ button {
   object-fit: contain;
 }
 
-.event-graph-container ::ng-deep svg text {
-  font-family: 'Google Sans Mono', monospace;
-  font-size: 11px;
+::ng-deep {
+  .event-graph-container svg text {
+    font-family: 'Google Sans Mono', monospace !important;
+    font-size: 11px !important;
+  }
 }
 
 :host ::ng-deep pre {
