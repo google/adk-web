@@ -169,7 +169,6 @@ const BIDI_STREAMING_RESTART_WARNING =
 })
 export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('videoContainer', { read: ElementRef }) videoContainer!: ElementRef;
-  // TODO(alexisdavidc): Possibly add a separate container for screen sharing
   @ViewChild('screenShareContainer', { read: ElementRef }) screenShareContainer!: ElementRef;
   @ViewChild('sideDrawer') sideDrawer!: MatDrawer;
   @ViewChild(EventTabComponent) eventTabComponent!: EventTabComponent;
@@ -1107,10 +1106,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   startScreenSharing() {
     if (this.sessionHasUsedBidi.has(this.sessionId)) {
       this.openSnackBar(BIDI_STREAMING_RESTART_WARNING, 'OK');
-      return;
-    }
-    if (this.isAudioRecording || this.isVideoRecording) {
-      this.openSnackBar("Cannot start screen sharing while audio or video recording is active.", "OK");
       return;
     }
 

@@ -717,7 +717,6 @@
                   mat-icon-button
                   matSuffix
                   (click)="toggleAudioRecording()"
-                  [disabled]="isScreenSharing || isVideoRecording"
                   [ngStyle]="{
                     'background-color': isAudioRecording ? 'rgb(234, 67, 53)' : 'rgb(51, 53, 55)'
                   }"
@@ -729,7 +728,6 @@
                   mat-icon-button
                   matSuffix
                   (click)="toggleVideoRecording()"
-                  [disabled]="isScreenSharing || isAudioRecording"
                   [ngStyle]="{
                     'background-color': isVideoRecording ? 'rgb(234, 67, 53)' : 'rgb(51, 53, 55)'
                   }"
@@ -741,7 +739,6 @@
                   mat-icon-button
                   matSuffix
                   (click)="toggleScreenSharing()"
-                  [disabled]="isAudioRecording || isVideoRecording"
                   [ngStyle]="{
                     'background-color': isScreenSharing ? 'rgb(234, 67, 53)' : 'rgb(51, 53, 55)'
                   }"

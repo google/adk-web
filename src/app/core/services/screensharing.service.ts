@@ -38,7 +38,6 @@ export class ScreenSharingService {
   private renderer: Renderer2;
   private videoElement!: HTMLVideoElement;
   private videoBuffer: Uint8Array[] = [];
-  private videoIntervalId: any = null;
   private captureIntervalId: any = null;
 
   constructor(
@@ -52,11 +51,10 @@ export class ScreenSharingService {
     this.clearVideoElement(container);
 
     this.videoElement = this.renderer.createElement('video');
-    this.renderer.setAttribute(this.videoElement, 'width', '800'); // Adjusted size for screen sharing
+    this.renderer.setAttribute(this.videoElement, 'width', '800');
     this.renderer.setAttribute(this.videoElement, 'height', '600');
     this.renderer.setAttribute(this.videoElement, 'autoplay', 'true');
     this.renderer.setAttribute(this.videoElement, 'muted', 'true');
-    this.renderer.setStyle(this.videoElement, 'display', 'block'); // Ensure it's visible
 
     this.renderer.appendChild(container.nativeElement, this.videoElement);
   }
@@ -167,12 +165,9 @@ export class ScreenSharingService {
   }
 
   private clearVideoElement(container: ElementRef) {
-    if (container && container.nativeElement) {
-      const existingVideo = container.nativeElement.querySelector('video');
-      if (existingVideo) {
+    const existingVideo = container.nativeElement.querySelector('video');
+    if (existingVideo) {
         this.renderer.removeChild(container.nativeElement, existingVideo);
-      }
     }
-    this.videoElement = null!;
   }
 }
