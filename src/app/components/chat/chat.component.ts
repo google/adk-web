@@ -1389,6 +1389,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.currentSessionState = session.state;
   }
 
+  stop() {
+    this.agentService.stopSse();
+  }
+
   onNewSessionClick() {
     this.createSession();
     this.eventData.clear();
