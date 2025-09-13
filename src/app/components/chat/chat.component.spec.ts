@@ -34,6 +34,10 @@ import {
   WebSocketService,
 } from '../../core/services/websocket.service';
 import { VIDEO_SERVICE, VideoService } from '../../core/services/video.service';
+import {
+  SCREEN_SHARING_SERVICE,
+  ScreenSharingService,
+} from '../../core/services/screensharing.service';
 import { EVENT_SERVICE, EventService } from '../../core/services/event.service';
 import {
   DOWNLOAD_SERVICE,
@@ -148,6 +152,13 @@ describe('ChatComponent', () => {
           useValue: jasmine.createSpyObj<VideoService>([
             'startRecording',
             'stopRecording',
+          ]),
+        },
+        {
+          provide: SCREEN_SHARING_SERVICE,
+          useValue: jasmine.createSpyObj<ScreenSharingService>([
+            'startScreenSharing',
+            'stopScreenSharing',
           ]),
         },
         {

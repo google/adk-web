@@ -21,6 +21,7 @@ import { AGENT_SERVICE, AgentService } from './app/core/services/agent.service';
 import { WEBSOCKET_SERVICE, WebSocketService } from './app/core/services/websocket.service';
 import { AUDIO_SERVICE, AudioService } from './app/core/services/audio.service';
 import { VIDEO_SERVICE, VideoService } from './app/core/services/video.service';
+import { SCREEN_SHARING_SERVICE, ScreenSharingService } from './app/core/services/screensharing.service';
 import { EVENT_SERVICE, EventService } from './app/core/services/event.service';
 import { EVAL_SERVICE, EvalService } from './app/core/services/eval.service';
 import { ARTIFACT_SERVICE, ArtifactService } from './app/core/services/artifact.service';
@@ -50,6 +51,7 @@ fetch('./assets/config/runtime-config.json')
         { provide: WEBSOCKET_SERVICE, useClass: WebSocketService },
         { provide: AUDIO_SERVICE, useClass: AudioService },
         { provide: VIDEO_SERVICE, useClass: VideoService },
+        { provide: SCREEN_SHARING_SERVICE, useClass: ScreenSharingService },
         { provide: EVENT_SERVICE, useClass: EventService },
         { provide: EVAL_SERVICE, useClass: EvalService },
         { provide: ARTIFACT_SERVICE, useClass: ArtifactService },

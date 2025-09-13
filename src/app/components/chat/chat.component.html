@@ -322,6 +322,7 @@
       @if (appName != "") {
         <div #autoScroll class="chat-messages">
           <div #videoContainer></div>
+          <div #screenShareContainer></div>
           @for (message of messages; track message; let i = $index) {
             <div
               [ngClass]="{
@@ -716,6 +717,7 @@
                   mat-icon-button
                   matSuffix
                   (click)="toggleAudioRecording()"
+                  [disabled]="isScreenSharing || isVideoRecording"
                   [ngStyle]="{
                     'background-color': isAudioRecording ? 'rgb(234, 67, 53)' : 'rgb(51, 53, 55)'
                   }"
@@ -727,12 +729,25 @@
                   mat-icon-button
                   matSuffix
                   (click)="toggleVideoRecording()"
+                  [disabled]="isScreenSharing || isAudioRecording"
                   [ngStyle]="{
                     'background-color': isVideoRecording ? 'rgb(234, 67, 53)' : 'rgb(51, 53, 55)'
                   }"
                   [matTooltip]="isVideoRecording ? 'Turn off camera' : 'Use camera'"
                 >
                   <mat-icon>videocam</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  matSuffix
+                  (click)="toggleScreenSharing()"
+                  [disabled]="isAudioRecording || isVideoRecording"
+                  [ngStyle]="{
+                    'background-color': isScreenSharing ? 'rgb(234, 67, 53)' : 'rgb(51, 53, 55)'
+                  }"
+                  [matTooltip]="isScreenSharing ? 'Stop screen sharing' : 'Share screen'"
+                >
+                  <mat-icon>{{ isScreenSharing ? 'stop_screen_share' : 'screen_share' }}</mat-icon>
                 </button>
               </div>
             </div>

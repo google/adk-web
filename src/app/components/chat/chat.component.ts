@@ -41,6 +41,7 @@ import {DownloadService, DOWNLOAD_SERVICE} from '../../core/services/download.se
 import {EvalService, EVAL_SERVICE} from '../../core/services/eval.service';
 import {EventService, EVENT_SERVICE} from '../../core/services/event.service';
 import {FeatureFlagService, FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
+import {ScreenSharingService, SCREEN_SHARING_SERVICE} from '../../core/services/screensharing.service';
 import {SessionService, SESSION_SERVICE} from '../../core/services/session.service';
 import {TraceService, TRACE_SERVICE} from '../../core/services/trace.service';
 import {VideoService, VIDEO_SERVICE} from '../../core/services/video.service';
@@ -168,6 +169,8 @@ const BIDI_STREAMING_RESTART_WARNING =
 })
 export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('videoContainer', { read: ElementRef }) videoContainer!: ElementRef;
+  // TODO(alexisdavidc): Possibly add a separate container for screen sharing
+  @ViewChild('screenShareContainer', { read: ElementRef }) screenShareContainer!: ElementRef;
   @ViewChild('sideDrawer') sideDrawer!: MatDrawer;
   @ViewChild(EventTabComponent) eventTabComponent!: EventTabComponent;
   @ViewChild(SessionTabComponent) sessionTab!: SessionTabComponent;
@@ -199,6 +202,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   evalSetId = '';
   isAudioRecording = false;
   isVideoRecording = false;
+  isScreenSharing = false;
   longRunningEvents: any[] = [];
   functionCallEventId = '';
   redirectUri = URLUtil.getBaseUrlWithoutPath();
@@ -296,6 +300,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       @Inject(AUDIO_SERVICE) private audioService: AudioService,
       @Inject(WEBSOCKET_SERVICE) private webSocketService: WebSocketService,
       @Inject(VIDEO_SERVICE) private videoService: VideoService,
+      @Inject(SCREEN_SHARING_SERVICE) private screenSharingService: ScreenSharingService,
       private dialog: MatDialog,
       @Inject(EVENT_SERVICE) private eventService: EventService,
       private route: ActivatedRoute,
@@ -1026,6 +1031,11 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       this.stopVideoRecording();
       this.isVideoRecording = false;
     }
+    if (this.isScreenSharing) {
+      this.stopScreenSharing();
+      this.isScreenSharing = false;
+    }
+
     this.evalTab?.resetEvalResults();
     this.traceData = [];
     this.bottomPanelVisible = false;
@@ -1088,6 +1098,38 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.videoService.stopRecording(this.videoContainer);
     this.webSocketService.closeConnection();
     this.isVideoRecording = false;
+  }
+
+  toggleScreenSharing() {
+    this.isScreenSharing ? this.stopScreenSharing() : this.startScreenSharing();
+  }
+
+  startScreenSharing() {
+    if (this.sessionHasUsedBidi.has(this.sessionId)) {
+      this.openSnackBar(BIDI_STREAMING_RESTART_WARNING, 'OK');
+      return;
+    }
+    if (this.isAudioRecording || this.isVideoRecording) {
+      this.openSnackBar("Cannot start screen sharing while audio or video recording is active.", "OK");
+      return;
+    }
+
+    this.isScreenSharing = true;
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    this.webSocketService.connect(
+      `${protocol}://${URLUtil.getWSServerUrl()}/run_live?app_name=${this.appName}&user_id=${this.userId}&session_id=${this.sessionId}`,
+    );
+    
+    this.screenSharingService.startScreenSharing(this.screenShareContainer);
+    this.messages.push({ role: 'user', text: 'Screen sharing started...' });
+    this.messagesSubject.next(this.messages);
+    this.sessionHasUsedBidi.add(this.sessionId);
+  }
+
+  stopScreenSharing() {
+    this.screenSharingService.stopScreenSharing(this.screenShareContainer);
+    this.webSocketService.closeConnection();
+    this.isScreenSharing = false;
   }
 
   private getAsyncFunctionsFromParts(pendingIds: any[], parts: any[]) {
