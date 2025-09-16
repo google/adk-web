@@ -348,7 +348,17 @@
                   }"
                 >
                   @if (message.isLoading) {
-                    <mat-progress-bar class="loading-bar" mode="buffer"></mat-progress-bar>
+                    <div class="loading-container">
+                      <mat-progress-bar class="loading-bar" mode="buffer"></mat-progress-bar>
+                      <button
+                        mat-fab-button
+                        class="stop-button"
+                        (click)="stop()"
+                        matTooltip="Stop execution"
+                      >
+                        <mat-icon>stop</mat-icon>
+                      </button>
+                    </div>
                   }
                   @if (message.attachments) {
                     <div class="attachments">

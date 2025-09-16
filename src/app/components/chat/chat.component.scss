@@ -85,9 +85,29 @@
   background-color: #131314;
 }
 
+.loading-container {
+  display: flex;
+  align-items: center;
+  width: 150px;
+  justify-content: space-between;
+}
+
 .loading-bar {
   width: 100px;
   margin: 15px;
+}
+
+.stop-button {
+  width: 30px;
+  height: 30px;
+  background-color: #303030;
+
+  .mat-icon {
+    font-size: 18px;
+    color: white;
+    margin-left: -20px;
+    margin-top: -10px;
+  }
 }
 
 .chat-messages {

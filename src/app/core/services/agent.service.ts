@@ -31,6 +31,7 @@ export class AgentService {
   private _currentApp = new BehaviorSubject<string>('');
   currentApp = this._currentApp.asObservable();
   private isLoading = new BehaviorSubject<boolean>(false);
+  private abortController: AbortController | null = null;
 
   constructor(
     private http: HttpClient,
@@ -49,9 +50,19 @@ export class AgentService {
     return this.isLoading;
   }
 
+  stopSse() {
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+    }
+  }
+
   runSse(req: AgentRunRequest) {
     const url = this.apiServerDomain + `/run_sse`;
     this.isLoading.next(true);
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+
     return new Observable<string>((observer) => {
       const self = this;
       fetch(url, {
@@ -61,6 +72,7 @@ export class AgentService {
           'Accept': 'text/event-stream',
         },
         body: JSON.stringify(req),
+        signal,
       })
         .then((response) => {
           const reader = response.body?.getReader();
@@ -97,13 +109,20 @@ export class AgentService {
                 })
                 .catch((err) => {
                   self.zone.run(() => observer.error(err));
+                  this.isLoading.next(false);
                 });
           };
 
           read();
         })
         .catch((err) => {
-          self.zone.run(() => observer.error(err));
+          if (err.name === 'AbortError') {
+            // Fetch was aborted
+            this.isLoading.next(false);
+            observer.complete();
+          } else {
+            self.zone.run(() => observer.error(err));
+          }
         });
     });
   }
