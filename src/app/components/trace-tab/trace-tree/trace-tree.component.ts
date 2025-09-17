@@ -14,17 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, OnChanges, SimpleChanges} from '@angular/core';
+import {Component, Input, OnChanges, SimpleChanges, Inject} from '@angular/core';
 
 import {Span} from '../../../core/models/Trace';
-import {TraceService} from '../../../core/services/trace.service';
+import {TraceService, TRACE_SERVICE} from '../../../core/services/trace.service';
+import { NgStyle } from '@angular/common';
 
 
 @Component({
-  selector: 'app-trace-tree',
-  templateUrl: './trace-tree.component.html',
-  styleUrl: './trace-tree.component.scss',
-  standalone: false
+    selector: 'app-trace-tree',
+    templateUrl: './trace-tree.component.html',
+    styleUrl: './trace-tree.component.scss',
+    imports: [NgStyle]
 })
 export class TraceTreeComponent {
   @Input() spans: any[] = [];
@@ -42,7 +43,7 @@ export class TraceTreeComponent {
   ]);
   selectedRow: Span|undefined = undefined;
 
-  constructor(private traceService: TraceService) {}
+  constructor(@Inject(TRACE_SERVICE) private traceService: TraceService) {}
 
   ngOnInit(): void {
     this.tree = this.buildSpanTree(this.spans);

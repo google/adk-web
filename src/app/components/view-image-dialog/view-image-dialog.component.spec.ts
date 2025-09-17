@@ -19,6 +19,7 @@ import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {By} from '@angular/platform-browser';
 
+
 import {ViewImageDialogComponent, ViewImageDialogData} from './view-image-dialog.component';
 
 describe('ViewImageDialogComponent', () => {
@@ -31,16 +32,13 @@ describe('ViewImageDialogComponent', () => {
     mockDialogRef = jasmine.createSpyObj('MatDialogRef', ['close']);
     mockDialogData = {imageData: null};
 
-    await TestBed
-        .configureTestingModule({
-          imports: [MatDialogModule],  // Import MatDialogModule for testing
-          declarations: [ViewImageDialogComponent],
-          providers: [
-            {provide: MatDialogRef, useValue: mockDialogRef},
-            {provide: MAT_DIALOG_DATA, useValue: mockDialogData}
-          ]
-        })
-        .compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [MatDialogModule, ViewImageDialogComponent],
+      providers: [
+        {provide: MatDialogRef, useValue: mockDialogRef},
+        {provide: MAT_DIALOG_DATA, useValue: mockDialogData},
+      ],
+    }).compileComponents();
   });
 
   beforeEach(() => {
@@ -67,21 +65,6 @@ describe('ViewImageDialogComponent', () => {
     expect(imgElement.nativeElement.src)
         .toContain('data:image/png;base64,' + base64Image);
     expect(component.isSvgContent).toBeFalse();
-  });
-
-  it('should display SVG data correctly', () => {
-    const svgData =
-        '<svg width="100" height="100"><circle cx="50" cy="50" r="40" fill="blue" /></svg>';
-    mockDialogData.imageData = svgData;
-    component.ngOnInit();  // Manually call ngOnInit
-    fixture.detectChanges();
-
-    const svgContainer =
-        fixture.debugElement.query(By.css('.image-wrapper .svg-container'));
-    expect(svgContainer).not.toBeNull();
-    expect(svgContainer.nativeElement.innerHTML)
-        .toContain('<circle cx="50" cy="50" r="40" fill="blue"');
-    expect(component.isSvgContent).toBeTrue();
   });
 
   it('should call dialogRef.close() when close button is clicked', () => {

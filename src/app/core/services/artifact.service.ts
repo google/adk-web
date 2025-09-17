@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +16,10 @@
  */
 
 import {HttpClient} from '@angular/common/http';
-import {Injectable} from '@angular/core';
+import {Injectable, InjectionToken} from '@angular/core';
 import {URLUtil} from '../../../utils/url-util';
+
+export const ARTIFACT_SERVICE = new InjectionToken<ArtifactService>('ArtifactService');
 
 @Injectable({
   providedIn: 'root',

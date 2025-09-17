@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
+import {Injectable, InjectionToken} from '@angular/core';
 import {LiveRequest} from '../models/LiveRequest';
 import {WebSocketService} from './websocket.service';
+
+export const AUDIO_SERVICE = new InjectionToken<AudioService>('AudioService');
 
 @Injectable({
   providedIn: 'root',

@@ -16,19 +16,32 @@
  */
 
 import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 
-import {EditJsonDialogComponent} from './edit-function-args-dialog.component';
 
-describe('EditFunctionArgsDialogComponent', () => {
+import {EditJsonDialogComponent} from './edit-json-dialog.component';
+
+describe('EditJsonDialogComponent', () => {
   let component: EditJsonDialogComponent;
   let fixture: ComponentFixture<EditJsonDialogComponent>;
+  const mockDialogRef = {
+    close: jasmine.createSpy('close'),
+  };
 
   beforeEach(async () => {
-    await TestBed
-        .configureTestingModule({
-          imports: [EditJsonDialogComponent],
-        })
-        .compileComponents();
+    await TestBed.configureTestingModule({
+    imports: [MatDialogModule, EditJsonDialogComponent],
+    providers: [
+        { provide: MatDialogRef, useValue: mockDialogRef },
+        { provide: MAT_DIALOG_DATA, useValue: {
+                jsonContent: '{"key": "value"}',
+            } },
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(EditJsonDialogComponent);
     component = fixture.componentInstance;

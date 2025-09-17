@@ -16,21 +16,36 @@
  */
 
 import {Component, Inject} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
 import {v4 as uuidv4} from 'uuid';
-import {EvalService} from '../../../../core/services/eval.service';
+import {EvalService, EVAL_SERVICE} from '../../../../core/services/eval.service';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatFormField } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatButton } from '@angular/material/button';
 
 @Component({
-  selector: 'app-add-eval-session-dialog',
-  templateUrl: './add-eval-session-dialog.component.html',
-  styleUrl: './add-eval-session-dialog.component.scss',
-  standalone: false,
+    selector: 'app-add-eval-session-dialog',
+    templateUrl: './add-eval-session-dialog.component.html',
+    styleUrl: './add-eval-session-dialog.component.scss',
+    imports: [
+        MatDialogTitle,
+        CdkScrollable,
+        MatDialogContent,
+        MatFormField,
+        MatInput,
+        FormsModule,
+        MatDialogActions,
+        MatButton,
+        MatDialogClose,
+    ],
 })
 export class AddEvalSessionDialogComponent {
   newCaseId: string = 'case' + uuidv4().slice(0, 6);
 
   constructor(
-    private evalService: EvalService,
+    @Inject(EVAL_SERVICE) private evalService: EvalService,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       appName: string;

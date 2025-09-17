@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,22 +15,32 @@
  * limitations under the License.
  */
 
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {ArtifactTabComponent} from './artifact-tab.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ArtifactTabComponent } from './artifact-tab.component';
+import { DOWNLOAD_SERVICE, DownloadService } from '../../core/services/download.service';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+
 describe('ArtifactTabComponent', () => {
   let component: ArtifactTabComponent;
-
   let fixture: ComponentFixture<ArtifactTabComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ArtifactTabComponent],
+      imports: [MatDialogModule, ArtifactTabComponent, NoopAnimationsModule],
+      providers: [
+        { provide: MatDialog, useValue: jasmine.createSpyObj('MatDialog', ['open']) },
+        {
+          provide: DOWNLOAD_SERVICE,
+          useValue: jasmine.createSpyObj<DownloadService>([
+            'downloadBase64Data',
+          ]),
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ArtifactTabComponent);
-
     component = fixture.componentInstance;
-
     fixture.detectChanges();
   });
 

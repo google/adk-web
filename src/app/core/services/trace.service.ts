@@ -14,9 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, InjectionToken } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { Span } from '../models/Trace';
+
+export const TRACE_SERVICE = new InjectionToken<TraceService>('TraceService');
 
 @Injectable({ providedIn: 'root' })
 export class TraceService {
@@ -59,7 +61,7 @@ export class TraceService {
                 index++
                 continue
             }
-            
+
             if (this.eventDataSource.value?.get(msg.eventId).invocationId != invocationId) {
                 index++
                 continue

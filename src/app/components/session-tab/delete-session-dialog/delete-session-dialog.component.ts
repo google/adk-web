@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +16,9 @@
  */
 
 import {Component, Inject} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatButton } from '@angular/material/button';
 
 export interface DeleteSessionDialogData {
   title: string;
@@ -25,10 +28,16 @@ export interface DeleteSessionDialogData {
 }
 
 @Component({
-  selector: 'app-delete-session-dialog',
-  templateUrl: './delete-session-dialog.component.html',
-  styleUrls: ['./delete-session-dialog.component.scss'],
-  standalone: false,
+    selector: 'app-delete-session-dialog',
+    templateUrl: './delete-session-dialog.component.html',
+    styleUrls: ['./delete-session-dialog.component.scss'],
+    imports: [
+        MatDialogTitle,
+        CdkScrollable,
+        MatDialogContent,
+        MatDialogActions,
+        MatButton,
+    ],
 })
 export class DeleteSessionDialogComponent {
   constructor(

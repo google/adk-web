@@ -25,10 +25,9 @@ export interface ViewImageDialogData {
 }
 
 @Component({
-  selector: 'app-view-image-dialog',
-  templateUrl: './view-image-dialog.component.html',
-  styleUrls: ['./view-image-dialog.component.scss'],
-  standalone: false,
+    selector: 'app-view-image-dialog',
+    templateUrl: './view-image-dialog.component.html',
+    styleUrls: ['./view-image-dialog.component.scss'],
 })
 export class ViewImageDialogComponent implements OnInit {
   // Property to hold the sanitized image URL or SVG HTML

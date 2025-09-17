@@ -16,10 +16,13 @@
  */
 
 import {Component, Inject} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 
-import {EvalMetric} from '../../../core/models/EvalMetric';
+import {EvalMetric} from '../../../core/models/Eval';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatSlider, MatSliderThumb } from '@angular/material/slider';
+import { MatButton } from '@angular/material/button';
 
 /**
  * @interface EvalConfigData
@@ -31,10 +34,20 @@ export interface EvalConfigData {
 }
 
 @Component({
-  selector: 'app-run-eval-config-dialog',
-  templateUrl: './run-eval-config-dialog.component.html',
-  styleUrls: ['./run-eval-config-dialog.component.scss'],
-  standalone: false,
+    selector: 'app-run-eval-config-dialog',
+    templateUrl: './run-eval-config-dialog.component.html',
+    styleUrls: ['./run-eval-config-dialog.component.scss'],
+    imports: [
+        MatDialogTitle,
+        CdkScrollable,
+        MatDialogContent,
+        FormsModule,
+        ReactiveFormsModule,
+        MatSlider,
+        MatSliderThumb,
+        MatDialogActions,
+        MatButton,
+    ],
 })
 export class RunEvalConfigDialogComponent {
   // FormGroup to manage the dialog's form controls

@@ -16,6 +16,7 @@
  */
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
+
 import {TraceTabComponent} from './trace-tab.component';
 
 describe('TraceTabComponent', () => {
@@ -23,7 +24,9 @@ describe('TraceTabComponent', () => {
   let fixture: ComponentFixture<TraceTabComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({imports: [TraceTabComponent]})
+    await TestBed.configureTestingModule({
+    imports: [TraceTabComponent]
+})
         .compileComponents();
 
     fixture = TestBed.createComponent(TraceTabComponent);

@@ -23,10 +23,7 @@ interface ResizingEvent {
   startingWidth: number;
 }
 
-@Directive({
-  selector: '[appResizableDrawer]',
-  standalone: false,
-})
+@Directive({ selector: '[appResizableDrawer]', })
 export class ResizableDrawerDirective implements AfterViewInit {
   private readonly sideDrawerMinWidth = 310;
   private sideDrawerMaxWidth;

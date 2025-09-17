@@ -18,11 +18,14 @@
 import {
   ElementRef,
   Injectable,
+  InjectionToken,
   Renderer2,
   RendererFactory2,
 } from '@angular/core';
 import {LiveRequest} from '../models/LiveRequest';
 import {WebSocketService} from './websocket.service';
+
+export const VIDEO_SERVICE = new InjectionToken<VideoService>('VideoService');
 
 @Injectable({
   providedIn: 'root',

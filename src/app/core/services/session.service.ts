@@ -16,10 +16,12 @@
  */
 
 import {HttpClient} from '@angular/common/http';
-import {Injectable} from '@angular/core';
+import {Injectable, InjectionToken} from '@angular/core';
 import {Observable} from 'rxjs';
 
 import {URLUtil} from '../../../utils/url-util';
+
+export const SESSION_SERVICE = new InjectionToken<SessionService>('SessionService');
 
 @Injectable({
   providedIn: 'root',

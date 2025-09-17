@@ -16,9 +16,11 @@
  */
 
 import {Component, Inject, OnInit, ViewChild} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
 
 import {JsonEditorComponent} from '../json-editor/json-editor.component';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatButton } from '@angular/material/button';
 
 export interface EditJsonData {
   dialogHeader: string;
@@ -27,10 +29,18 @@ export interface EditJsonData {
 }
 
 @Component({
-  selector: 'app-edit-json-dialog',
-  templateUrl: './edit-json-dialog.component.html',
-  styleUrls: ['./edit-json-dialog.component.scss'],
-  standalone: false,
+    selector: 'app-edit-json-dialog',
+    templateUrl: './edit-json-dialog.component.html',
+    styleUrls: ['./edit-json-dialog.component.scss'],
+    imports: [
+        MatDialogTitle,
+        CdkScrollable,
+        MatDialogContent,
+        JsonEditorComponent,
+        MatDialogActions,
+        MatButton,
+        MatDialogClose,
+    ],
 })
 export class EditJsonDialogComponent implements OnInit {
   @ViewChild(JsonEditorComponent) jsonEditorComponent!: JsonEditorComponent;

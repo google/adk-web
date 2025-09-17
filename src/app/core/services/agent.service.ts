@@ -16,10 +16,12 @@
  */
 
 import {HttpClient} from '@angular/common/http';
-import {Injectable, NgZone} from '@angular/core';
+import {Injectable, NgZone, InjectionToken} from '@angular/core';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {URLUtil} from '../../../utils/url-util';
 import {AgentRunRequest} from '../models/AgentRunRequest';
+
+export const AGENT_SERVICE = new InjectionToken<AgentService>('AgentService');
 
 @Injectable({
   providedIn: 'root',

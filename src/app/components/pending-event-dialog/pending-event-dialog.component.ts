@@ -16,15 +16,33 @@
  */
 
 import {Component, Inject} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
 import {AgentRunRequest} from '../../core/models/AgentRunRequest';
-import {AgentService} from '../../core/services/agent.service';
+import {AgentService, AGENT_SERVICE} from '../../core/services/agent.service';
+import { NgIf } from '@angular/common';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatButton } from '@angular/material/button';
 
 @Component({
-  selector: 'app-pending-event-dialog',
-  standalone: false,
-  templateUrl: './pending-event-dialog.component.html',
-  styleUrl: './pending-event-dialog.component.scss',
+    selector: 'app-pending-event-dialog',
+    templateUrl: './pending-event-dialog.component.html',
+    styleUrl: './pending-event-dialog.component.scss',
+    imports: [
+        MatDialogTitle,
+        NgIf,
+        CdkScrollable,
+        MatDialogContent,
+        MatFormField,
+        MatLabel,
+        MatInput,
+        FormsModule,
+        MatDialogActions,
+        MatButton,
+        MatDialogClose,
+    ],
 })
 export class PendingEventDialogComponent {
   selectedEvent: any = null;
@@ -38,7 +56,7 @@ export class PendingEventDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<PendingEventDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private agentService: AgentService,
+    @Inject(AGENT_SERVICE) private agentService: AgentService,
   ) {
     this.selectedEvent = data.event;
     this.appName = data.appName;

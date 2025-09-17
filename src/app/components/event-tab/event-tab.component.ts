@@ -19,12 +19,23 @@ import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from '
 import {MatDialog} from '@angular/material/dialog';
 
 import {TraceChartComponent} from './trace-chart/trace-chart.component';
+import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
+import { FormsModule } from '@angular/forms';
+import { MatList, MatListItem } from '@angular/material/list';
+import { KeyValuePipe } from '@angular/common';
 
 @Component({
-  selector: 'app-event-tab',
-  templateUrl: './event-tab.component.html',
-  styleUrl: './event-tab.component.scss',
-  standalone: false,
+    selector: 'app-event-tab',
+    templateUrl: './event-tab.component.html',
+    styleUrl: './event-tab.component.scss',
+    imports: [
+        MatButtonToggleGroup,
+        FormsModule,
+        MatButtonToggle,
+        MatList,
+        MatListItem,
+        KeyValuePipe,
+    ],
 })
 export class EventTabComponent implements OnChanges {
   @Input() eventsMap = new Map<string, any>();

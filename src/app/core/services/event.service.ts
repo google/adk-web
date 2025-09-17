@@ -16,8 +16,10 @@
  */
 
 import {HttpClient} from '@angular/common/http';
-import {Injectable} from '@angular/core';
+import {Injectable, InjectionToken} from '@angular/core';
 import {URLUtil} from '../../../utils/url-util';
+
+export const EVENT_SERVICE = new InjectionToken<EventService>('EventService');
 
 @Injectable({
   providedIn: 'root',

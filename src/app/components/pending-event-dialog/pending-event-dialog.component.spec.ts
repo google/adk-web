@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,17 +15,47 @@
  * limitations under the License.
  */
 
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-
-import {PendingEventDialogComponent} from './pending-event-dialog.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
+import { PendingEventDialogComponent } from './pending-event-dialog.component';
+import { AGENT_SERVICE, AgentService } from '../../core/services/agent.service';
+import { of } from 'rxjs';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('PendingEventDialogComponent', () => {
   let component: PendingEventDialogComponent;
   let fixture: ComponentFixture<PendingEventDialogComponent>;
+  const mockDialogRef = {
+    close: jasmine.createSpy('close'),
+  };
 
   beforeEach(async () => {
+    const agentService = jasmine.createSpyObj<AgentService>(['runSse']);
+    agentService.runSse.and.returnValue(of(''));
+
     await TestBed.configureTestingModule({
-      imports: [PendingEventDialogComponent],
+      imports: [
+        MatDialogModule,
+        PendingEventDialogComponent,
+        NoopAnimationsModule,
+      ],
+      providers: [
+        { provide: MatDialogRef, useValue: mockDialogRef },
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            event: {},
+            appName: 'Test App',
+            userId: 'testuser',
+            sessionId: 'testsession',
+          },
+        },
+        { provide: AGENT_SERVICE, useValue: agentService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PendingEventDialogComponent);

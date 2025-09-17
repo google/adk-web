@@ -1,0 +1,401 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+@if (appName != "") {
+<div #autoScroll class="chat-messages">
+  <div #videoContainer></div>
+  @for (message of messages; track message; let i = $index) {
+  <div
+    [ngClass]="{
+          'user-message': message.role === 'user',
+          'bot-message': message.role === 'bot'
+        }"
+  >
+    @if (message.role === "bot") {
+    <button
+      mat-mini-fab
+      (click)="clickEvent.emit(i)"
+      [matTooltip]="getAgentNameFromEvent(i)"
+      [class]="customIconColorClass(i)"
+    >
+      <mat-icon fontSet="material-symbols-outlined">robot_2</mat-icon>
+    </button>
+    } @if (!message.functionCall && !message.functionResponse) {
+    <mat-card
+      class="message-card"
+      [ngClass]="{ 'eval-fail': message.evalStatus === 2 }"
+      [ngStyle]="{
+              'background-color': shouldMessageHighlighted(i) ? 'rgb(15, 82, 35)' : ''
+            }"
+    >
+      @if (message.isLoading) {
+      <mat-progress-bar class="loading-bar" mode="buffer"></mat-progress-bar>
+      } @if (message.attachments) {
+      <div class="attachments">
+        @for (file of message.attachments; track file) {
+        <div class="attachment">
+          @if (file.file.type.startsWith("image/")) {
+          <img [src]="file.url" alt="attachment" class="image-preview-chat" />
+          } @if (!file.file.type.startsWith("image/")) {
+          <mat-icon>insert_drive_file</mat-icon>
+          <a [href]="file.url" download>{{ file.file.name }}</a>
+          }
+        </div>
+        }
+      </div>
+      }
+      <div>
+        @if (message.thought) {
+        <div class="thought-chip">{{ i18n.thoughtChipLabel }}</div>
+        }
+        <div>
+          @if (message.text) { @if (message.isEditing) {
+          <div class="edit-message-container">
+            <textarea
+              #messageTextarea
+              class="message-textarea"
+              [ngModel]="userEditEvalCaseMessage"
+              (ngModelChange)="userEditEvalCaseMessageChange.emit($event)"
+              rows="4"
+              cols="80"
+              (keydown)="handleKeydown.emit({event: $event, message: message})"
+            ></textarea>
+            <div class="edit-message-buttons-container">
+              <span
+                class="material-symbols-outlined"
+                [matTooltip]="i18n.cancelEditingTooltip"
+                style="
+                  width: 24px;
+                  height: 24px;
+                  color: #c4c7c5;
+                  cursor: pointer;
+                  margin-right: 16px;
+                "
+                (click)="cancelEditMessage.emit(message)"
+              >
+                close
+              </span>
+              <span
+                class="material-symbols-outlined"
+                [matTooltip]="i18n.saveEvalMessageTooltip"
+                style="
+                  width: 24px;
+                  height: 24px;
+                  color: rgb(97, 151, 202);
+                  cursor: pointer;
+                  margin-right: 16px;
+                "
+                (click)="saveEditMessage.emit(message)"
+              >
+                check
+              </span>
+            </div>
+          </div>
+          } @else {
+          <markdown
+            class="message-text"
+            [data]="message.text"
+            [ngStyle]="{
+                        'font-style': message.thought ? 'italic' : 'normal',
+                        color: message.thought ? '#9aa0a6' : 'white'
+                      }"
+          ></markdown>
+          } }
+        </div>
+        @if (message.renderedContent) {
+        <div>
+          <div [innerHTML]="renderGooglerSearch(message.renderedContent)"></div>
+        </div>
+        }
+      </div>
+      @if (message.executableCode) {
+      <code> {{ message.executableCode.code }} </code>
+      } @if (message.codeExecutionResult) {
+      <div>
+        <div>{{ i18n.outcomeLabel }}: {{ message.codeExecutionResult.outcome }}</div>
+        <div>{{ i18n.outputLabel }}: {{ message.codeExecutionResult.output }}</div>
+      </div>
+      } @if (message.inlineData) { @if (message.role === "bot") {
+      <div>
+        <div>
+          @switch (message.inlineData.mediaType) { @case (MediaType.IMAGE) {
+          <div class="generated-image-container">
+            <img
+              class="generated-image"
+              alt="image"
+              [src]="message.inlineData.data"
+              (click)="openViewImageDialog.emit(message.inlineData.data)"
+            />
+          </div>
+          } @case (MediaType.AUDIO) {
+          <div>
+            <app-audio-player [base64data]="message.inlineData.data"></app-audio-player>
+          </div>
+          } @case (MediaType.TEXT) {
+          <div>
+            <div class="html-artifact-container">
+              <mat-icon>description</mat-icon>
+              <button
+                class="link-style-button"
+                (click)="
+                                openBase64InNewTab.emit({
+                                  data: message.inlineData.data,
+                                  mimeType: message.inlineData.mimeType
+                                })
+                              "
+              >
+                {{ message.inlineData.name }}
+              </button>
+            </div>
+          </div>
+          } @default {
+          <div>
+            <button
+              class="link-style-button"
+              (click)="
+                              openBase64InNewTab.emit({
+                                data: message.inlineData.data,
+                                mimeType: message.inlineData.mimeType
+                              })
+                            "
+            >
+              {{ message.inlineData.name }}
+            </button>
+          </div>
+          } }
+        </div>
+      </div>
+      } @else {
+      <div>
+        @if (message.inlineData.mimeType.startsWith("image/")) {
+        <div>
+          <img
+            class="image-preview-chat"
+            alt="image"
+            [src]="message.inlineData.data"
+            (click)="openViewImageDialog.emit(message.inlineData.data)"
+          />
+        </div>
+        } @else {
+        <div class="attachment">
+          <mat-icon>insert_drive_file</mat-icon>
+          <a [href]="message.inlineData.data" download>{{ message.inlineData.displayName }}</a>
+        </div>
+        }
+      </div>
+      } } @if (message.failedMetric && message.evalStatus === 2) {
+      <div class="eval-compare-container">
+        <div class="actual-expected-compare-container">
+          @if (message.actualInvocationToolUses) {
+          <div class="actual-result">
+            <div class="eval-response-header header-actual">{{ i18n.actualToolUsesLabel }}</div>
+            <ngx-json-viewer [json]="message.actualInvocationToolUses"></ngx-json-viewer>
+          </div>
+          <div class="expected-result">
+            <div class="eval-response-header header-expected">{{ i18n.expectedToolUsesLabel }}</div>
+            <ngx-json-viewer [json]="message.expectedInvocationToolUses"></ngx-json-viewer>
+          </div>
+          } @else if (message.actualFinalResponse) {
+          <div class="actual-result">
+            <div class="eval-response-header header-actual">{{ i18n.actualResponseLabel }}</div>
+            <div>{{ message.actualFinalResponse }}</div>
+          </div>
+          <div class="expected-result">
+            <div class="eval-response-header header-expected">{{ i18n.expectedResponseLabel }}</div>
+            <div>{{ message.expectedFinalResponse }}</div>
+          </div>
+          }
+        </div>
+        @if (message.evalScore !== undefined && message.evalThreshold !== undefined) {
+        <div class="score-threshold-container">
+          <span class="header-actual">{{ i18n.matchScoreLabel }}: {{ message.evalScore }}</span>
+          <span class="header-expected">{{ i18n.thresholdLabel }}: {{ message.evalThreshold }}</span>
+        </div>
+        }
+      </div>
+      }
+    </mat-card>
+    } @if (message.functionCall) {
+    <button
+      mat-stroked-button
+      [ngClass]="{'function-event-button-highlight': shouldMessageHighlighted(i)}"
+      class="function-event-button"
+      (click)="clickEvent.emit(i)"
+    >
+      <mat-icon>bolt</mat-icon>
+      {{ message.functionCall.name }}
+    </button>
+    } @if (message.functionResponse) {
+    <button
+      mat-stroked-button
+      [ngClass]="{'function-event-button-highlight': shouldMessageHighlighted(i)}"
+      class="function-event-button"
+      (click)="clickEvent.emit(i)"
+    >
+      <mat-icon>check</mat-icon>
+      {{ message.functionResponse.name }}
+    </button>
+    }
+    <div
+      [ngClass]="{
+            'eval-pass': message.evalStatus === 1,
+            'eval-fail': message.evalStatus === 2
+          }"
+    >
+      <span class="material-symbols-outlined"
+        >{{ message.evalStatus === 1 ? "check" : message.evalStatus === 2 ? "close" : "" }}</span
+      >
+      <span>{{ message.evalStatus === 1 ? i18n.evalPassLabel : message.evalStatus === 2 ? i18n.evalFailLabel : "" }}</span>
+    </div>
+    @if (evalCase && message.role === "bot" && isEvalEditMode) { @if (message.text) {
+    <div>
+      <span
+        class="material-symbols-outlined eval-case-edit-button"
+        [ngClass]="{ hidden: isEvalCaseEditing }"
+        [matTooltip]="i18n.editEvalMessageTooltip"
+        (click)="editEvalCaseMessage.emit(message)"
+      >
+        edit
+      </span>
+      <span
+        class="material-symbols-outlined eval-case-edit-button"
+        [ngClass]="{ hidden: isEvalCaseEditing }"
+        [matTooltip]="i18n.deleteEvalMessageTooltip"
+        (click)="deleteEvalCaseMessage.emit({message: message, index: i})"
+      >
+        delete
+      </span>
+    </div>
+    } @else if (isEditFunctionArgsEnabled && message.functionCall) {
+    <div>
+      <span
+        class="material-symbols-outlined eval-case-edit-button"
+        [ngClass]="{ hidden: isEvalCaseEditing }"
+        [matTooltip]="i18n.editFunctionArgsTooltip"
+        (click)="editFunctionArgs.emit(message)"
+      >
+        edit
+      </span>
+    </div>
+    } } @if (message.role === "user") {
+    <button mat-mini-fab>
+      <mat-icon>person</mat-icon>
+    </button>
+    }
+  </div>
+  }
+</div>
+} @if (appName != "" && isChatMode) {
+<div class="chat-input">
+  <input type="file" multiple hidden (change)="fileSelect.emit($event)" #fileInput />
+  <mat-form-field class="input-field" appearance="outline">
+    @if ((selectedFiles.length && appName != "") || updatedSessionState) {
+    <div class="file-preview">
+      @for (file of selectedFiles; track file; let i = $index) {
+      <div>
+        @if (file.file.type.startsWith("image/")) {
+        <div class="image-container">
+          <img [src]="file.url" alt="preview" class="image-preview" />
+          <button mat-icon-button (click)="removeFile.emit(i)" class="delete-button">
+            <mat-icon color="warn">close</mat-icon>
+          </button>
+        </div>
+        } @else if (!file.file.type.startsWith("image/")) {
+        <div class="file-container">
+          <button mat-icon-button (click)="removeFile.emit(i)" class="delete-button">
+            <mat-icon color="warn">close</mat-icon>
+          </button>
+          <div class="file-info">
+            <mat-icon>insert_drive_file</mat-icon>
+            <span>{{ file.file.name }}</span>
+          </div>
+        </div>
+        }
+      </div>
+      } @if (updatedSessionState) {
+      <div class="file-container">
+        <button mat-icon-button (click)="removeStateUpdate.emit()" class="delete-button">
+          <mat-icon color="warn">close</mat-icon>
+        </button>
+        <div class="file-info">
+          <span>{{ i18n.updatedSessionStateChipLabel }}</span>
+        </div>
+      </div>
+      }
+    </div>
+    }
+    <textarea
+      class="chat-input-box"
+      matInput
+      cdkTextareaAutosize
+      cdkAutosizeMinRows="1"
+      cdkAutosizeMaxRows="10"
+      [ngModel]="userInput"
+      (ngModelChange)="userInputChange.emit($event)"
+      (keydown.enter)="sendMessage.emit($event)"
+      [placeholder]="i18n.typeMessagePlaceholder"
+      style="caret-color: white"
+    ></textarea>
+    <div class="chat-input-actions">
+      <div>
+        <button
+          mat-icon-button
+          (click)="fileInput.click()"
+          class="function-event-button"
+          [matTooltip]="i18n.uploadFileTooltip"
+        >
+          <mat-icon>attach_file</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="moreMenu"
+          class="function-event-button"
+          [matTooltip]="i18n.moreOptionsTooltip"
+        >
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #moreMenu="matMenu">
+          <span mat-menu-item (click)="updateState.emit()"> {{ i18n.updateStateMenuLabel }} </span>
+        </mat-menu>
+      </div>
+      <div>
+        <button
+          mat-icon-button
+          matSuffix
+          (click)="toggleAudioRecording.emit()"
+          [ngStyle]="{
+              'background-color': isAudioRecording ? 'rgb(234, 67, 53)' : 'rgb(51, 53, 55)'
+            }"
+          [matTooltip]="isAudioRecording ? i18n.turnOffMicTooltip : i18n.useMicTooltip"
+        >
+          <mat-icon>mic</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          matSuffix
+          (click)="toggleVideoRecording.emit()"
+          [ngStyle]="{
+              'background-color': isVideoRecording ? 'rgb(234, 67, 53)' : 'rgb(51, 53, 55)'
+            }"
+          [matTooltip]="isVideoRecording ? i18n.turnOffCamTooltip : i18n.useCamTooltip"
+        >
+          <mat-icon>videocam</mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-form-field>
+</div>
+}

@@ -15,12 +15,17 @@
  * limitations under the License.
  */
 
-import {Component, Input, OnChanges, SimpleChanges} from '@angular/core';
+import {Component, Input, OnChanges, SimpleChanges, Inject} from '@angular/core';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 
-import {DownloadService} from '../../core/services/download.service';
+import {DownloadService, DOWNLOAD_SERVICE} from '../../core/services/download.service';
 import {AudioPlayerComponent} from '../audio-player/audio-player.component';
 import {ViewImageDialogComponent} from '../view-image-dialog/view-image-dialog.component';
+import { MatSelect } from '@angular/material/select';
+import { FormsModule } from '@angular/forms';
+import { MatOption } from '@angular/material/core';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
 
 const DEFAULT_ARTIFACT_NAME = 'default_artifact_name';
 
@@ -126,10 +131,17 @@ export function openBase64InNewTab(dataUrl: string, mimeType: string) {
 }
 
 @Component({
-  selector: 'app-artifact-tab',
-  templateUrl: './artifact-tab.component.html',
-  styleUrl: './artifact-tab.component.scss',
-  standalone: false,
+    selector: 'app-artifact-tab',
+    templateUrl: './artifact-tab.component.html',
+    styleUrl: './artifact-tab.component.scss',
+    imports: [
+        MatSelect,
+        FormsModule,
+        MatOption,
+        MatButton,
+        MatIcon,
+        AudioPlayerComponent,
+    ],
 })
 export class ArtifactTabComponent implements OnChanges {
   @Input() artifacts: any[] = [];
@@ -142,7 +154,7 @@ export class ArtifactTabComponent implements OnChanges {
   protected openBase64InNewTab = openBase64InNewTab;
 
   constructor(
-      private downloadService: DownloadService,
+      @Inject(DOWNLOAD_SERVICE) private downloadService: DownloadService,
       private dialog: MatDialog,
   ) {}
 

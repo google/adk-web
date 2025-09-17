@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,17 +15,72 @@
  * limitations under the License.
  */
 
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-
-import {EvalTabComponent} from './eval-tab.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { EvalTabComponent } from './eval-tab.component';
+import { EVAL_SERVICE, EvalService } from '../../core/services/eval.service';
+import { SESSION_SERVICE, SessionService } from '../../core/services/session.service';
+import { of } from 'rxjs';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute } from '@angular/router';
+import {
+  FEATURE_FLAG_SERVICE,
+  FeatureFlagService,
+} from '../../core/services/feature-flag.service';
 
 describe('EvalTabComponent', () => {
   let component: EvalTabComponent;
   let fixture: ComponentFixture<EvalTabComponent>;
 
   beforeEach(async () => {
+    const evalService = jasmine.createSpyObj<EvalService>([
+      'getEvalSets',
+      'listEvalCases',
+      'runEval',
+      'getEvalCase',
+      'deleteEvalCase',
+      'listEvalResults',
+      'getEvalResult',
+    ]);
+    evalService.getEvalSets.and.returnValue(of([]));
+    evalService.listEvalCases.and.returnValue(of([]));
+    evalService.runEval.and.returnValue(of([]));
+    evalService.getEvalCase.and.returnValue(of({} as any));
+    evalService.deleteEvalCase.and.returnValue(of({} as any));
+    evalService.listEvalResults.and.returnValue(of([]));
+    evalService.getEvalResult.and.returnValue(of({} as any));
+
+    const sessionService = jasmine.createSpyObj<SessionService>([
+      'getSession',
+    ]);
+    sessionService.getSession.and.returnValue(of({} as any));
+
+    const featureFlagService = jasmine.createSpyObj<FeatureFlagService>([
+      'isImportSessionEnabled',
+      'isEditFunctionArgsEnabled',
+      'isSessionUrlEnabled',
+      'isA2ACardEnabled',
+    ]);
+    featureFlagService.isImportSessionEnabled.and.returnValue(of(false));
+    featureFlagService.isEditFunctionArgsEnabled.and.returnValue(of(false));
+    featureFlagService.isSessionUrlEnabled.and.returnValue(of(false));
+    featureFlagService.isA2ACardEnabled.and.returnValue(of(false));
+
     await TestBed.configureTestingModule({
-      imports: [EvalTabComponent],
+      imports: [MatDialogModule, EvalTabComponent, NoopAnimationsModule],
+      providers: [
+        { provide: MatDialog, useValue: jasmine.createSpyObj('MatDialog', ['open']) },
+        { provide: EVAL_SERVICE, useValue: evalService },
+        { provide: SESSION_SERVICE, useValue: sessionService },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { queryParams: {} },
+            queryParams: of({}),
+          },
+        },
+        { provide: FEATURE_FLAG_SERVICE, useValue: featureFlagService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EvalTabComponent);

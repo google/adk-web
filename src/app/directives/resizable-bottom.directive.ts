@@ -23,10 +23,7 @@ interface ResizingEvent {
   startingHeight: number;
 }
 
-@Directive({
-  selector: '[appResizableBottomPanel]',
-  standalone: false,
-})
+@Directive({ selector: '[appResizableBottomPanel]', })
 export class ResizableBottomDirective implements AfterViewInit {
   private readonly bottomMinHeight = 310;
   private bottomMaxHeight;

@@ -19,13 +19,12 @@ import {AfterViewInit, Component, ElementRef, Input} from '@angular/core';
 import {createJSONEditor, Mode} from 'vanilla-jsoneditor';
 
 @Component({
-  selector: 'app-json-editor',
-  templateUrl: './json-editor.component.html',
-  styleUrls: ['./json-editor.component.scss'],
-  standalone: false,
+    selector: 'app-json-editor',
+    templateUrl: './json-editor.component.html',
+    styleUrls: ['./json-editor.component.scss'],
 })
 export class JsonEditorComponent implements AfterViewInit {
-  @Input() jsonString: any;
+  @Input({ required: true }) jsonString: any;
 
   private editor: any = null;
 

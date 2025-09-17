@@ -15,11 +15,15 @@
  * limitations under the License.
  */
 import {Component, Input, OnChanges, OnInit, SimpleChange, SimpleChanges} from '@angular/core';
+import { MatDialogTitle } from '@angular/material/dialog';
+import { MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
+import { TraceTreeComponent } from './trace-tree/trace-tree.component';
+import { KeyValuePipe } from '@angular/common';
 @Component({
-  selector: 'app-trace-tab',
-  templateUrl: './trace-tab.component.html',
-  styleUrl: './trace-tab.component.scss',
-  standalone: false
+    selector: 'app-trace-tab',
+    templateUrl: './trace-tab.component.html',
+    styleUrl: './trace-tab.component.scss',
+    imports: [MatDialogTitle, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, TraceTreeComponent, KeyValuePipe]
 })
 
 export class TraceTabComponent implements OnInit, OnChanges {

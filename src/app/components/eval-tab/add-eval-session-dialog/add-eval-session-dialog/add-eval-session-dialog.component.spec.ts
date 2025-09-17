@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,17 +15,42 @@
  * limitations under the License.
  */
 
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-
-import {AddEvalSessionDialogComponent} from './add-eval-session-dialog.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
+import { AddEvalSessionDialogComponent } from './add-eval-session-dialog.component';
+import { EVAL_SERVICE, EvalService } from '../../../../core/services/eval.service';
+import { of } from 'rxjs';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('AddEvalSessionDialogComponent', () => {
   let component: AddEvalSessionDialogComponent;
   let fixture: ComponentFixture<AddEvalSessionDialogComponent>;
+  const mockDialogRef = {
+    close: jasmine.createSpy('close'),
+  };
 
   beforeEach(async () => {
+    const evalService = jasmine.createSpyObj<EvalService>(['addCurrentSession']);
+    evalService.addCurrentSession.and.returnValue(of({}));
+
     await TestBed.configureTestingModule({
-      imports: [AddEvalSessionDialogComponent],
+      imports: [
+        MatDialogModule,
+        AddEvalSessionDialogComponent,
+        NoopAnimationsModule,
+      ],
+      providers: [
+        { provide: MatDialogRef, useValue: mockDialogRef },
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {},
+        },
+        { provide: EVAL_SERVICE, useValue: evalService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AddEvalSessionDialogComponent);

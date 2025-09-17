@@ -18,10 +18,9 @@
 import {Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild} from '@angular/core';
 
 @Component({
-  selector: 'app-audio-player',
-  templateUrl: './audio-player.component.html',
-  styleUrls: ['./audio-player.component.scss'],
-  standalone: false,
+    selector: 'app-audio-player',
+    templateUrl: './audio-player.component.html',
+    styleUrls: ['./audio-player.component.scss'],
 })
 export class AudioPlayerComponent implements OnChanges {
   @Input() base64data: string = '';

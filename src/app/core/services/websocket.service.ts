@@ -15,10 +15,12 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
+import {Injectable, InjectionToken} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {webSocket, WebSocketSubject} from 'rxjs/webSocket';
 import {LiveRequest} from '../models/LiveRequest';
+
+export const WEBSOCKET_SERVICE = new InjectionToken<WebSocketService>('WebSocketService');
 
 @Injectable({
   providedIn: 'root',

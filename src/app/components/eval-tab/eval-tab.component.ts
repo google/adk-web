@@ -16,30 +16,28 @@
  */
 
 import {SelectionModel} from '@angular/cdk/collections';
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, QueryList, signal, SimpleChanges, ViewChildren} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, QueryList, signal, SimpleChanges, ViewChildren, Inject} from '@angular/core';
 import {MatCheckbox} from '@angular/material/checkbox';
 import {MatDialog} from '@angular/material/dialog';
-import {MatTableDataSource} from '@angular/material/table';
+import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
 import {BehaviorSubject, of} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 
-import {DEFAULT_EVAL_METRICS, EvalMetric} from '../../core/models/EvalMetric';
+import {DEFAULT_EVAL_METRICS, EvalMetric, EvalCase} from '../../core/models/Eval';
 import {Session} from '../../core/models/Session';
 import {Invocation} from '../../core/models/types';
-import {EvalService} from '../../core/services/eval.service';
-import {FeatureFlagService} from '../../core/services/feature-flag.service';
-import {SessionService} from '../../core/services/session.service';
+import {EvalService, EVAL_SERVICE} from '../../core/services/eval.service';
+import {FeatureFlagService, FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
+import {SessionService, SESSION_SERVICE} from '../../core/services/session.service';
 
 import {AddEvalSessionDialogComponent} from './add-eval-session-dialog/add-eval-session-dialog/add-eval-session-dialog.component';
 import {NewEvalSetDialogComponentComponent} from './new-eval-set-dialog/new-eval-set-dialog-component/new-eval-set-dialog-component.component';
 import {RunEvalConfigDialogComponent} from './run-eval-config-dialog/run-eval-config-dialog.component';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { NgClass } from '@angular/common';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
-export interface EvalCase {
-  evalId: string;
-  conversation: Invocation[];
-  sessionInput: any;
-  creationTimestamp: number;
-}
 
 interface EvaluationResult {
   setId: string;
@@ -78,11 +76,27 @@ interface AppEvaluationResult {
 
 
 @Component({
-  selector: 'app-eval-tab',
-  templateUrl: './eval-tab.component.html',
-  styleUrl: './eval-tab.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
+    selector: 'app-eval-tab',
+    templateUrl: './eval-tab.component.html',
+    styleUrl: './eval-tab.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatIcon,
+        MatTooltip,
+        MatTable,
+        MatColumnDef,
+        MatHeaderCellDef,
+        MatHeaderCell,
+        MatCheckbox,
+        MatCellDef,
+        MatCell,
+        NgClass,
+        MatHeaderRowDef,
+        MatHeaderRow,
+        MatRowDef,
+        MatRow,
+        MatProgressSpinner,
+    ],
 })
 export class EvalTabComponent implements OnInit, OnChanges {
   @ViewChildren(MatCheckbox) checkboxes!: QueryList<MatCheckbox>;
@@ -123,8 +137,8 @@ export class EvalTabComponent implements OnInit, OnChanges {
   protected appEvaluationResults: AppEvaluationResult = {};
 
   constructor(
-      private evalService: EvalService,
-      private sessionService: SessionService,
+      @Inject(EVAL_SERVICE) private evalService: EvalService,
+      @Inject(SESSION_SERVICE) private sessionService: SessionService,
   ) {
     this.evalCasesSubject.subscribe((evalCases: string[]) => {
       if (!this.selectedEvalCase() && this.deletedEvalCaseIndex >= 0 &&

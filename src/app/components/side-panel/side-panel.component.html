@@ -1,0 +1,130 @@
+<div style="margin-top: 20px; margin-left: 20px; display: flex">
+  <div style="width: 100%">
+    <div class="drawer-header">
+      <div class="drawer-logo">
+        <img src="assets/ADK-512-color.svg" width="32px" height="32px" />
+        {{ i18n.agentDevelopmentKitLabel }}
+      </div>
+      <span
+        class="material-symbols-outlined"
+        style="color: #c4c7c5; cursor: pointer; margin-right: 15px"
+        matTooltip="{{ i18n.collapsePanelTooltip }}"
+        (click)="closePanel.emit()"
+        >left_panel_close</span
+      >
+    </div>
+  </div>
+</div>
+@if (appName != "" && showSidePanel) {
+  <div class="tabs-container">
+    <mat-tab-group (selectedTabChange)="tabChange.emit($event)">
+      <mat-tab class="tabs-header">
+        <ng-template mat-tab-label>
+          <span class="tab-label">{{ i18n.traceTabLabel }}</span>
+        </ng-template>
+        <app-trace-tab [traceData]="traceData"></app-trace-tab>
+      </mat-tab>
+      <mat-tab class="tabs-header">
+        <ng-template mat-tab-label>
+          <span class="tab-label">{{ i18n.eventsTabLabel }}</span>
+        </ng-template>
+        <app-event-tab
+          [eventsMap]="eventData"
+          [traceData]="traceData"
+          (selectedEvent)="eventSelected.emit($event)"
+        ></app-event-tab>
+      </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label">{{ i18n.stateTabLabel }}</span>
+        </ng-template>
+        <app-state-tab [sessionState]="currentSessionState"></app-state-tab>
+      </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label">{{ i18n.artifactsTabLabel }}</span>
+        </ng-template>
+        <app-artifact-tab [artifacts]="artifacts"> </app-artifact-tab>
+      </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label">{{ i18n.sessionsTabLabel }}</span>
+        </ng-template>
+        <app-session-tab
+          [userId]="userId"
+          [appName]="appName"
+          [sessionId]="sessionId"
+          (sessionSelected)="sessionSelected.emit($event)"
+          (sessionReloaded)="sessionReloaded.emit($event)"
+        >
+        </app-session-tab>
+      </mat-tab>
+      @if (shouldShowEvalTab) {
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <span class="tab-label">{{ i18n.evalTabLabel }}</span>
+          </ng-template>
+          <app-eval-tab
+            [appName]="appName"
+            [userId]="userId"
+            [sessionId]="sessionId"
+            (shouldShowTab)="evalTabVisibilityChange.emit($event)"
+            (sessionSelected)="sessionSelected.emit($event)"
+            (evalCaseSelected)="evalCaseSelected.emit($event)"
+            (evalSetIdSelected)="evalSetIdSelected.emit($event)"
+            (shouldReturnToSession)="returnToSession.emit($event)"
+            (evalNotInstalledMsg)="evalNotInstalled.emit($event)"
+          ></app-eval-tab>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  </div>
+}
+@if (this.selectedEvent && showSidePanel) {
+  <div class="details-panel-container">
+    <div class="details-content">
+      <div style="display: flex; justify-content: flex-end; margin-top: 10px">
+        <mat-paginator
+          class="event-paginator"
+          [length]="eventData.size"
+          [pageSize]="1"
+          [pageIndex]="selectedEventIndex"
+          (page)="page.emit($event)"
+          [attr.aria-label]="i18n.selectEventAriaLabel"
+        >
+        </mat-paginator>
+        <button mat-mini-fab>
+          <mat-icon (click)="closeSelectedEvent.emit()">close</mat-icon>
+        </button>
+      </div>
+    </div>
+    <div>
+      <mat-tab-group>
+        <mat-tab label="{{ i18n.eventDetailsTabLabel }}">
+          <div class="event-graph-container">
+            @if (renderedEventGraph) {
+              <div
+                [innerHtml]="renderedEventGraph"
+                (click)="openImageDialog.emit(rawSvgString)"
+              ></div>
+            }
+          </div>
+          <div class="json-viewer-container">
+            <ngx-json-viewer [json]="selectedEvent"></ngx-json-viewer>
+          </div>
+        </mat-tab>
+        <mat-tab label="{{ i18n.requestDetailsTabLabel }}">
+          <div class="json-viewer-container">
+            <ngx-json-viewer [json]="llmRequest"></ngx-json-viewer>
+          </div>
+        </mat-tab>
+        <mat-tab label="{{ i18n.responseDetailsTabLabel }}">
+          <div class="json-viewer-container">
+            <ngx-json-viewer [json]="llmResponse"></ngx-json-viewer>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+  </div>
+}
+<div class="resize-handler"></div>

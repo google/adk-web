@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +16,13 @@
  */
 
 import {Component, Input, OnInit} from '@angular/core';
+import { NgxJsonViewerModule } from 'ngx-json-viewer';
 
 @Component({
-  selector: 'app-state-tab',
-  templateUrl: './state-tab.component.html',
-  styleUrl: './state-tab.component.scss',
-  standalone: false,
+    selector: 'app-state-tab',
+    templateUrl: './state-tab.component.html',
+    styleUrl: './state-tab.component.scss',
+    imports: [NgxJsonViewerModule],
 })
 export class StateTabComponent {
   @Input() sessionState: any = {};

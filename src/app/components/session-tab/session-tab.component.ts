@@ -15,17 +15,18 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { Subject, switchMap } from 'rxjs';
-import { Session } from '../../core/models/Session';
-import { SessionService } from '../../core/services/session.service';
+import {Component, EventEmitter, Input, OnInit, Output, Inject, OnChanges, SimpleChanges} from '@angular/core';
+import {MatDialog} from '@angular/material/dialog';
+import {Subject, switchMap} from 'rxjs';
+import {Session} from '../../core/models/Session';
+import {SessionService, SESSION_SERVICE} from '../../core/services/session.service';
+import { NgClass } from '@angular/common';
 
 @Component({
-  selector: 'app-session-tab',
-  templateUrl: './session-tab.component.html',
-  styleUrl: './session-tab.component.scss',
-  standalone: false,
+    selector: 'app-session-tab',
+    templateUrl: './session-tab.component.html',
+    styleUrl: './session-tab.component.scss',
+    imports: [NgClass],
 })
 export class SessionTabComponent implements OnInit, OnChanges {
   @Input() userId: string = '';
@@ -40,23 +41,23 @@ export class SessionTabComponent implements OnInit, OnChanges {
   private refreshSessionsSubject = new Subject<void>();
 
   constructor(
-    private sessionService: SessionService,
+    @Inject(SESSION_SERVICE) private sessionService: SessionService,
     private dialog: MatDialog,
   ) {
     this.refreshSessionsSubject
-      .pipe(
-        switchMap(
-          () =>
-            this.sessionService.listSessions(this.userId, this.appName),
-        ),
-      )
-      .subscribe((res) => {
-        res = res.sort(
-          (a: any, b: any) =>
-            Number(b.lastUpdateTime) - Number(a.lastUpdateTime),
-        );
-        this.sessionList = res;
-      });
+        .pipe(
+            switchMap(
+                () =>
+                    this.sessionService.listSessions(this.userId, this.appName),
+                ),
+            )
+        .subscribe((res) => {
+          res = res.sort(
+              (a: any, b: any) =>
+                  Number(b.lastUpdateTime) - Number(a.lastUpdateTime),
+          );
+          this.sessionList = res;
+        });
   }
 
   ngOnInit(): void {
@@ -66,13 +67,8 @@ export class SessionTabComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // appName 또는 userId가 변경되면 세션 목록 새로고침
     if ((changes['appName'] && !changes['appName'].firstChange) ||
-      (changes['userId'] && !changes['userId'].firstChange)) {
-      console.log('App or user changed, refreshing sessions:', {
-        appName: this.appName,
-        userId: this.userId
-      });
+        (changes['userId'] && !changes['userId'].firstChange)) {
       this.refreshSessionsSubject.next();
     }
   }

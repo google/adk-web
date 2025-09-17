@@ -16,7 +16,9 @@
  */
 
 import { Component, Inject, OnInit } from "@angular/core";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from "@angular/material/dialog";
+import { CdkScrollable } from "@angular/cdk/scrolling";
+import { MatButton } from "@angular/material/button";
 
 export interface Span {
   name: string;
@@ -42,10 +44,10 @@ interface TimeTick {
 }
 
 @Component({
-  selector: 'app-trace-chart',
-  templateUrl: './trace-chart.component.html',
-  styleUrl: './trace-chart.component.scss',
-  standalone: false
+    selector: 'app-trace-chart',
+    templateUrl: './trace-chart.component.html',
+    styleUrl: './trace-chart.component.scss',
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatDialogActions, MatButton, MatDialogClose]
 })
 export class TraceChartComponent implements OnInit {
   tree: Span[] = [];
