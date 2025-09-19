@@ -15,24 +15,22 @@
  * limitations under the License.
  */
 
-// TODO: Replace with genai TS types when they're available.
-export interface Blob {
-  data: string;
+import {Injectable, InjectionToken} from '@angular/core';
+import {instance} from '@viz-js/viz';
+import {setAnchorHref} from 'safevalues/dom';
+
+export const GRAPH_SERVICE = new InjectionToken<GraphService>('GraphService');
+
+@Injectable({
+  providedIn: 'root',
+})
+export class GraphService {
+  async render(graphSrc: string): Promise<string> {
+    const options = {
+      format: 'svg',
+      engine: 'dot',
+    };
+    const viz = await instance();
+    return viz.renderString(graphSrc, options);
+  }
 }
-export interface Part {
-  text?: string;
-  inlineData?: Blob;
-}
-export interface GenAiContent {
-  role: string;
-  parts: Part[];
-}
-export interface LlmRequest {
-  contents: GenAiContent[];
-}
-export interface LlmResponse {
-  content: GenAiContent;
-  error?: string;
-  errorMessage?: string;
-}
-export interface Event extends LlmResponse {}

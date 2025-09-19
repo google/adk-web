@@ -15,24 +15,12 @@
  * limitations under the License.
  */
 
-// TODO: Replace with genai TS types when they're available.
-export interface Blob {
-  data: string;
+import {Injectable} from '@angular/core';
+
+import {GraphService} from '../graph.service';
+
+@Injectable()
+export class MockGraphService implements GraphService {
+  render = jasmine.createSpy('render').and.returnValue(
+      Promise.resolve('<svg></svg>'));
 }
-export interface Part {
-  text?: string;
-  inlineData?: Blob;
-}
-export interface GenAiContent {
-  role: string;
-  parts: Part[];
-}
-export interface LlmRequest {
-  contents: GenAiContent[];
-}
-export interface LlmResponse {
-  content: GenAiContent;
-  error?: string;
-  errorMessage?: string;
-}
-export interface Event extends LlmResponse {}

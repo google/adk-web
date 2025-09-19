@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {Component, Input, OnChanges, SimpleChanges, Inject} from '@angular/core';
+import {Component, input, OnChanges, SimpleChanges, Inject} from '@angular/core';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 
 import {DownloadService, DOWNLOAD_SERVICE} from '../../core/services/download.service';
@@ -116,7 +116,6 @@ export function openBase64InNewTab(dataUrl: string, mimeType: string) {
     const blob = new Blob([byteArray], {type: mimeType});
 
     const blobUrl = URL.createObjectURL(blob);
-
     const newWindow = window.open(blobUrl, '_blank');
     if (newWindow) {
       newWindow.focus();
@@ -144,7 +143,7 @@ export function openBase64InNewTab(dataUrl: string, mimeType: string) {
     ],
 })
 export class ArtifactTabComponent implements OnChanges {
-  @Input() artifacts: any[] = [];
+  artifacts = input<any[]>([]);
 
   selectedArtifacts: any[] = [];
 
@@ -183,11 +182,11 @@ export class ArtifactTabComponent implements OnChanges {
   }
 
   protected getDistinctArtifactIds() {
-    return [...new Set(this.artifacts.map((artifact) => artifact.id))];
+    return [...new Set(this.artifacts().map((artifact) => artifact.id))];
   }
 
   protected getSortedArtifactsFromId(artifactId: string) {
-    return this.artifacts.filter((artifact) => artifact.id === artifactId)
+    return this.artifacts().filter((artifact) => artifact.id === artifactId)
         .sort((a, b) => {
           return b.versionId - a.versionId;
         });

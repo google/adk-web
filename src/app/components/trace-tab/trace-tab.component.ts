@@ -19,6 +19,8 @@ import { MatDialogTitle } from '@angular/material/dialog';
 import { MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
 import { TraceTreeComponent } from './trace-tree/trace-tree.component';
 import { KeyValuePipe } from '@angular/common';
+import {LlmRequest} from '../../core/models/types';
+
 @Component({
     selector: 'app-trace-tab',
     templateUrl: './trace-tab.component.html',
@@ -69,10 +71,10 @@ export class TraceTabComponent implements OnInit, OnChanges {
         item => item.attributes !== undefined &&
             'gcp.vertex.agent.invocation_id' in item.attributes)
     const requestJson =
-        JSON.parse(eventItem.attributes['gcp.vertex.agent.llm_request'])
+        JSON.parse(eventItem.attributes['gcp.vertex.agent.llm_request']) as LlmRequest
     const userContent =
         requestJson.contents.filter((c: any) => c.role == 'user').at(-1)
-    return userContent.parts[0]?.text ?? '[attachment]';
+    return userContent?.parts[0]?.text ?? '[attachment]';
   }
 
   findInvocIdFromTraceId(traceId: string) {

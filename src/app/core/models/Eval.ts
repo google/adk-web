@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import {Invocation} from './types';
-
 /**
  * @interface EvalMetric
  * @description Represents a single evaluation metric and its associated
@@ -37,6 +35,24 @@ export const DEFAULT_EVAL_METRICS: EvalMetric[] = [
     threshold: 0.7,
   }
 ];
+
+export interface Invocation {
+  invocationId: string;
+  userContent: Content;
+  finalResponse?: Content;
+  intermediateData?: IntermediateData;
+  creationTimestamp: number;
+}
+
+export interface Content {
+  parts?: any[];
+  role?: string|null;
+}
+
+export interface IntermediateData {
+  toolUses: any[];
+  intermediateResponses: any[];
+}
 
 export interface EvalCase {
   evalId: string;

@@ -16,7 +16,7 @@
  */
 
 import {SelectionModel} from '@angular/cdk/collections';
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, QueryList, signal, SimpleChanges, ViewChildren, Inject} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, input, OnChanges, OnInit, output, signal, SimpleChanges, viewChildren, Inject} from '@angular/core';
 import {MatCheckbox} from '@angular/material/checkbox';
 import {MatDialog} from '@angular/material/dialog';
 import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
@@ -25,7 +25,7 @@ import {catchError} from 'rxjs/operators';
 
 import {DEFAULT_EVAL_METRICS, EvalMetric, EvalCase} from '../../core/models/Eval';
 import {Session} from '../../core/models/Session';
-import {Invocation} from '../../core/models/types';
+import {Invocation} from '../../core/models/Eval';
 import {EvalService, EVAL_SERVICE} from '../../core/services/eval.service';
 import {FeatureFlagService, FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
 import {SessionService, SESSION_SERVICE} from '../../core/services/session.service';
@@ -99,16 +99,16 @@ interface AppEvaluationResult {
     ],
 })
 export class EvalTabComponent implements OnInit, OnChanges {
-  @ViewChildren(MatCheckbox) checkboxes!: QueryList<MatCheckbox>;
-  @Input() appName: string = '';
-  @Input() userId: string = '';
-  @Input() sessionId: string = '';
-  @Output() readonly sessionSelected = new EventEmitter<Session>();
-  @Output() readonly shouldShowTab = new EventEmitter<boolean>();
-  @Output() readonly evalNotInstalledMsg = new EventEmitter<string>();
-  @Output() readonly evalCaseSelected = new EventEmitter<EvalCase>();
-  @Output() readonly evalSetIdSelected = new EventEmitter<string>();
-  @Output() readonly shouldReturnToSession = new EventEmitter<boolean>();
+  checkboxes = viewChildren(MatCheckbox);
+  appName = input<string>('');
+  userId = input<string>('');
+  sessionId = input<string>('');
+  readonly sessionSelected = output<Session>();
+  readonly shouldShowTab = output<boolean>();
+  readonly evalNotInstalledMsg = output<string>();
+  readonly evalCaseSelected = output<EvalCase>();
+  readonly evalSetIdSelected = output<string>();
+  readonly shouldReturnToSession = output<boolean>();
 
   private readonly evalCasesSubject = new BehaviorSubject<string[]>([]);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
@@ -170,8 +170,8 @@ export class EvalTabComponent implements OnInit, OnChanges {
   }
 
   getEvalSet() {
-    if (this.appName != '') {
-      this.evalService.getEvalSets(this.appName)
+    if (this.appName() !== '') {
+      this.evalService.getEvalSets(this.appName())
           .pipe(catchError((error) => {
             if (error.status === 404 && error.statusText === 'Not Found') {
               this.shouldShowTab.emit(false);
@@ -192,7 +192,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
   openNewEvalSetDialog() {
     const dialogRef = this.dialog.open(NewEvalSetDialogComponentComponent, {
       width: '600px',
-      data: {appName: this.appName},
+      data: {appName: this.appName()},
     });
 
     dialogRef.afterClosed().subscribe((needRefresh) => {
@@ -206,9 +206,9 @@ export class EvalTabComponent implements OnInit, OnChanges {
     const dialogRef = this.dialog.open(AddEvalSessionDialogComponent, {
       width: '600px',
       data: {
-        appName: this.appName,
-        userId: this.userId,
-        sessionId: this.sessionId,
+        appName: this.appName(),
+        userId: this.userId(),
+        sessionId: this.sessionId(),
         evalSetId: this.selectedEvalSet,
       },
     });
@@ -222,7 +222,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
 
   listEvalCases() {
     this.evalCases = [];
-    this.evalService.listEvalCases(this.appName, this.selectedEvalSet)
+    this.evalService.listEvalCases(this.appName(), this.selectedEvalSet)
         .subscribe((res) => {
           this.evalCases = res;
           this.dataSource = new MatTableDataSource<string>(this.evalCases);
@@ -240,7 +240,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
     }
     this.evalService
         .runEval(
-            this.appName,
+            this.appName(),
             this.selectedEvalSet,
             this.selection.selected,
             this.evalMetrics,
@@ -376,7 +376,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
         this.currentEvalResultBySet.get(this.selectedEvalSet)
             ?.filter((c) => c.evalId == evalId)[0];
     const sessionId = evalCaseResult!.sessionId;
-    this.sessionService.getSession(this.userId, this.appName, sessionId)
+    this.sessionService.getSession(this.userId(), this.appName(), sessionId)
         .subscribe((res) => {
           this.addEvalCaseResultToEvents(res, evalCaseResult!);
           const session = this.fromApiResultToSession(res);
@@ -390,7 +390,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
   }
 
   protected getEvalHistoryOfCurrentSet() {
-    return this.appEvaluationResults[this.appName][this.selectedEvalSet];
+    return this.appEvaluationResults[this.appName()][this.selectedEvalSet];
   }
 
   protected getEvalHistoryOfCurrentSetSorted(): any[] {
@@ -467,7 +467,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
   }
 
   protected getEvalCase(element: any) {
-    this.evalService.getEvalCase(this.appName, this.selectedEvalSet, element)
+    this.evalService.getEvalCase(this.appName(), this.selectedEvalSet, element)
         .subscribe((res) => {
           this.selectedEvalCase.set(res);
           this.evalCaseSelected.emit(res);
@@ -485,7 +485,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
 
   deleteEvalCase(evalCaseId: string) {
     this.evalService
-        .deleteEvalCase(this.appName, this.selectedEvalSet, evalCaseId)
+        .deleteEvalCase(this.appName(), this.selectedEvalSet, evalCaseId)
         .subscribe((res) => {
           this.deletedEvalCaseIndex = this.evalCases.indexOf(evalCaseId);
           this.selectedEvalCase.set(null);
@@ -494,7 +494,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
   }
 
   protected getEvaluationResult() {
-    this.evalService.listEvalResults(this.appName)
+    this.evalService.listEvalResults(this.appName())
         .pipe(catchError((error) => {
           if (error.status === 404 && error.statusText === 'Not Found') {
             this.shouldShowTab.emit(false);
@@ -504,21 +504,21 @@ export class EvalTabComponent implements OnInit, OnChanges {
         }))
         .subscribe((res) => {
           for (const evalResultId of res) {
-            this.evalService.getEvalResult(this.appName, evalResultId)
+            this.evalService.getEvalResult(this.appName(), evalResultId)
                 .subscribe((res) => {
-                  if (!this.appEvaluationResults[this.appName]) {
-                    this.appEvaluationResults[this.appName] = {};
+                  if (!this.appEvaluationResults[this.appName()]) {
+                    this.appEvaluationResults[this.appName()] = {};
                   }
 
-                  if (!this.appEvaluationResults[this.appName][res.evalSetId]) {
-                    this.appEvaluationResults[this.appName][res.evalSetId] = {};
+                  if (!this.appEvaluationResults[this.appName()][res.evalSetId]) {
+                    this.appEvaluationResults[this.appName()][res.evalSetId] = {};
                   }
 
                   const timeStamp = res.creationTimestamp;
 
-                  if (!this.appEvaluationResults[this.appName][res.evalSetId]
+                  if (!this.appEvaluationResults[this.appName()][res.evalSetId]
                                                 [timeStamp]) {
-                    this.appEvaluationResults[this.appName][res.evalSetId][timeStamp] =
+                    this.appEvaluationResults[this.appName()][res.evalSetId][timeStamp] =
                         {isToggled: false, evaluationResults: []};
                   }
 
@@ -541,7 +541,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
                         }),
                   };
 
-                  this.appEvaluationResults[this.appName][res.evalSetId][timeStamp] =
+                  this.appEvaluationResults[this.appName()][res.evalSetId][timeStamp] =
                       uiEvaluationResult;
                 });
           }

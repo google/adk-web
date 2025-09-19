@@ -27,16 +27,6 @@
   background-color: #131314;
 }
 
-.generated-image-container {
-  max-width: 400px;
-}
-
-.generated-image {
-  max-width: 100%;
-  min-width: 40px;
-  border-radius: 8px;
-}
-
 .chat-container {
   width: 100%;
   height: 100%;
@@ -51,30 +41,6 @@
   color: white;
 }
 
-.html-artifact-container {
-  width: 100%;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.drawer-header {
-  width: 100%;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-
-  .mat-icon {
-    width: 36px;
-    height: 36px;
-    color: #bdc1c6;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
 .chat-card {
   display: flex;
   flex-direction: column;
@@ -83,6 +49,10 @@
   min-height: 12%;
   box-shadow: none;
   background-color: #131314;
+}
+
+.function-event-button .mdc-button__label {
+  font-family: 'Google Sans Mono', monospace;
 }
 
 .loading-bar {
@@ -246,51 +216,6 @@
   margin-right: 20px;
 }
 
-.chat-input {
-  display: flex;
-  padding: 10px;
-  width: 60%;
-  margin: 0 auto;
-}
-
-.hidden {
-  visibility: hidden;
-}
-
-.input-field {
-  flex-grow: 1;
-
-  textarea {
-    color: white;
-    border: none;
-    padding: 10px;
-    box-sizing: content-box;
-
-    &::placeholder {
-      color: #8e918f;
-    }
-  }
-
-  button {
-    color: white;
-    background-color: rgb(51, 53, 55);
-  }
-}
-
-.chat-input-actions {
-  width: 106%;
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 100%;
-
-  button {
-    margin-left: 10px;
-    margin-right: 10px;
-  }
-}
-
 .fab-button {
   position: fixed;
   bottom: 200px;
@@ -310,15 +235,6 @@
   border-radius: 0;
 }
 
-.tabs-container {
-  width: 100%;
-  margin-top: 20px;
-}
-
-.tab-label {
-  font-size: 14px;
-}
-
 .file-preview {
   display: flex;
   flex-wrap: wrap;
@@ -334,23 +250,6 @@
   background: #eee;
   padding: 5px;
   border-radius: 4px;
-}
-
-.image-preview {
-  width: 40px;
-  height: 40px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.image-preview-chat {
-  max-width: 90%;
-  max-height: 70vh;
-  width: auto;
-  height: auto;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: transform 0.2s ease-in-out;
 }
 
 button {
@@ -390,14 +289,6 @@ button {
   background-color: #8ab4f8;
 }
 
-:host ::ng-deep .message-text {
-  p {
-    white-space: pre-line;
-    word-break: break-word;
-    overflow-wrap: break-word;
-  }
-}
-
 :host ::ng-deep .mdc-linear-progress__buffer-dots {
   background: white;
 }
@@ -408,11 +299,6 @@ button {
 
 :host ::ng-deep .mat-mdc-text-field-wrapper {
   border: 1px solid #8e918f;
-}
-
-:host ::ng-deep .input-field .mat-mdc-text-field-wrapper {
-  border: 1px solid #8e918f;
-  border-radius: 16px;
 }
 
 :host ::ng-deep .mdc-notched-outline__leading,
@@ -429,28 +315,8 @@ button {
   color: lightgray !important;
 }
 
-:host ::ng-deep .mat-mdc-mini-fab {
-  background-color: white;
-  mat-icon {
-    color: black;
-  }
-}
-
 .mat-mdc-select-placeholder {
   margin-left: 20px;
-}
-
-.resize-handler {
-  background: #5f6368;
-  width: 4px;
-  border-radius: 4px;
-  position: absolute;
-  display: block;
-  height: 20%;
-  top: 40%;
-  right: 0;
-  z-index: 9999;
-  cursor: ew-resize;
 }
 
 .bottom-resize-handler {
@@ -508,41 +374,6 @@ button {
   );
 }
 
-.json-viewer-container {
-  margin: 10px;
-}
-
-.event-paginator {
-  margin-top: -8px;
-  margin-right: auto;
-  background-color: inherit;
-  display: flex;
-  justify-content: center;
-}
-
-:host ::ng-deep .mat-mdc-paginator-page-size {
-  display: none !important;
-}
-
-.details-panel-container {
-  position: absolute;
-  width: 100%;
-  height: 98%;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #242424;
-  display: inline-block;
-  justify-content: center;
-  align-items: center;
-  z-index: 10;
-}
-
-.details-content {
-  color: white;
-  font-size: 14px;
-}
-
 .adk-checkbox {
   position: fixed;
   bottom: 0;
@@ -550,17 +381,6 @@ button {
   right: 0;
   margin-bottom: 20px;
   margin-left: 20px;
-}
-
-.drawer-header {
-  display: flex;
-  justify-content: space-between;
-  @include mat.button-overrides(
-    (
-      filled-container-color: #89b4f8,
-      filled-label-text-color: black,
-    )
-  );
 }
 
 .chat-toolbar {
@@ -575,11 +395,6 @@ button {
 
 .chat-toolbar.edit-mode {
   background: #44c2651a;
-}
-
-.attachment {
-  display: flex;
-  align-items: center;
 }
 
 .toolbar-actions {
@@ -646,123 +461,6 @@ button {
       with-icon-handle-size: 20px,
     )
   );
-}
-
-.image-container {
-  position: relative;
-  display: inline-block;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.image-preview {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 12px;
-  width: 80px;
-  height: 80px;
-}
-
-.delete-button {
-  position: absolute;
-  top: 1px;
-  right: 1px;
-  background-color: rgba(0, 0, 0, 0.7);
-  border: none;
-  border-radius: 50%;
-  padding: 8px;
-  cursor: pointer;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 0px;
-  scale: 0.7;
-}
-
-.delete-button mat-icon {
-  font-size: 20px;
-}
-
-.file-container {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  height: 80px;
-  background-color: #1e1e1e;
-  border-radius: 12px;
-}
-
-.file-info {
-  margin-right: 60px;
-  padding-top: 20px;
-  padding-left: 16px;
-}
-
-.thought-chip {
-  border-radius: 5px;
-  background-color: #8ab4f8;
-  width: 80px;
-  text-align: center;
-  margin-top: 5px;
-}
-
-.event-graph-container {
-  margin-top: 16px;
-  margin-bottom: 16px;
-  display: flex;
-  justify-content: center;
-  max-height: 33%;
-  cursor: pointer;
-}
-
-.event-graph-container ::ng-deep svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: contain;
-}
-
-.event-graph-container ::ng-deep svg text {
-  font-family: 'Google Sans Mono', monospace;
-  font-size: 11px;
-}
-
-:host ::ng-deep pre {
-  white-space: pre-wrap;
-  word-break: break-word;
-  overflow-x: auto;
-  max-width: 100%;
-}
-
-.link-style-button {
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  color: #007bff !important;
-  text-decoration: underline;
-  cursor: pointer;
-  outline: none;
-  font-size: 14px;
-}
-
-.drawer-logo {
-  margin-left: 9px;
-  display: flex;
-  align-items: center;
-
-  img {
-    margin-right: 9px;
-  }
-
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 24px;
-  letter-spacing: 0.1px;
 }
 
 ::ng-deep .mat-drawer-content {

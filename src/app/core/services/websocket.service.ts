@@ -18,7 +18,9 @@
 import {Injectable, InjectionToken} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {webSocket, WebSocketSubject} from 'rxjs/webSocket';
+
 import {LiveRequest} from '../models/LiveRequest';
+import {Event} from '../models/types';
 
 export const WEBSOCKET_SERVICE = new InjectionToken<WebSocketService>('WebSocketService');
 
@@ -91,7 +93,7 @@ export class WebSocketService {
   }
 
   private handleIncomingAudio(message: any) {
-    const msg = JSON.parse(message);
+    const msg = JSON.parse(message) as Event;
     if (
       msg['content'] &&
       msg['content']['parts'] &&

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {Component, Inject, OnInit, ViewChild} from '@angular/core';
+import {Component, Inject, OnInit, viewChild} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
 
 import {JsonEditorComponent} from '../json-editor/json-editor.component';
@@ -43,7 +43,7 @@ export interface EditJsonData {
     ],
 })
 export class EditJsonDialogComponent implements OnInit {
-  @ViewChild(JsonEditorComponent) jsonEditorComponent!: JsonEditorComponent;
+  jsonEditorComponent = viewChild(JsonEditorComponent);
   protected jsonString = '';
   protected functionName = '';
 
@@ -58,7 +58,7 @@ export class EditJsonDialogComponent implements OnInit {
 
   onSave(): void {
     try {
-      this.jsonString = this.jsonEditorComponent.getJsonString();
+      this.jsonString = this.jsonEditorComponent()!.getJsonString();
       const parsedArgs = JSON.parse(this.jsonString);
       this.dialogRef.close(parsedArgs);
     } catch (e) {

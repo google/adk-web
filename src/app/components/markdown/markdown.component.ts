@@ -15,24 +15,28 @@
  * limitations under the License.
  */
 
-// TODO: Replace with genai TS types when they're available.
-export interface Blob {
-  data: string;
+import {CommonModule} from '@angular/common';
+import {Component, Input} from '@angular/core';
+
+import {MarkdownModule, provideMarkdown} from 'ngx-markdown';
+
+/**
+ * Renders markdown text.
+ */
+@Component({
+  selector: 'app-markdown',
+  templateUrl: './markdown.component.html',
+  styleUrls: ['./markdown.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    MarkdownModule,
+  ],
+  providers: [
+    provideMarkdown(),
+  ],
+})
+export class MarkdownComponent {
+  @Input() text = '';
+  @Input() thought = false;
 }
-export interface Part {
-  text?: string;
-  inlineData?: Blob;
-}
-export interface GenAiContent {
-  role: string;
-  parts: Part[];
-}
-export interface LlmRequest {
-  contents: GenAiContent[];
-}
-export interface LlmResponse {
-  content: GenAiContent;
-  error?: string;
-  errorMessage?: string;
-}
-export interface Event extends LlmResponse {}

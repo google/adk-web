@@ -15,24 +15,12 @@
  * limitations under the License.
  */
 
-// TODO: Replace with genai TS types when they're available.
-export interface Blob {
-  data: string;
+import {Injectable} from '@angular/core';
+
+import {DownloadService} from '../download.service';
+
+@Injectable()
+export class MockDownloadService implements Partial<DownloadService> {
+  downloadBase64Data = jasmine.createSpy('downloadBase64Data');
+  downloadObjectAsJson = jasmine.createSpy('downloadObjectAsJson');
 }
-export interface Part {
-  text?: string;
-  inlineData?: Blob;
-}
-export interface GenAiContent {
-  role: string;
-  parts: Part[];
-}
-export interface LlmRequest {
-  contents: GenAiContent[];
-}
-export interface LlmResponse {
-  content: GenAiContent;
-  error?: string;
-  errorMessage?: string;
-}
-export interface Event extends LlmResponse {}

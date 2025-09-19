@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild} from '@angular/core';
+import {Component, ElementRef, input, OnChanges, SimpleChanges, viewChild} from '@angular/core';
 
 @Component({
     selector: 'app-audio-player',
@@ -23,16 +23,16 @@ import {Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild} from 
     styleUrls: ['./audio-player.component.scss'],
 })
 export class AudioPlayerComponent implements OnChanges {
-  @Input() base64data: string = '';
-  @ViewChild('audioPlayer') audioPlayerRef!: ElementRef<HTMLAudioElement>;
+  base64data = input<string>('');
+  audioPlayerRef = viewChild<ElementRef<HTMLAudioElement>>('audioPlayer');
 
   audioSrc: string = '';
 
   constructor() {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['base64data'] && this.base64data) {
-      this.setAudioSource(this.base64data);
+    if (changes['base64data'] && this.base64data()) {
+      this.setAudioSource(this.base64data());
     }
   }
 
@@ -48,29 +48,29 @@ export class AudioPlayerComponent implements OnChanges {
     }
 
     // If the audio element is already rendered, load the new source
-    if (this.audioPlayerRef && this.audioPlayerRef.nativeElement) {
-      this.audioPlayerRef.nativeElement.load();  // Reload the audio element
+    if (this.audioPlayerRef() && this.audioPlayerRef()!.nativeElement) {
+      this.audioPlayerRef()!.nativeElement.load();  // Reload the audio element
     }
   }
 
   // Optional: Methods to control playback from parent component (e.g., a play
   // button)
   play(): void {
-    if (this.audioPlayerRef && this.audioPlayerRef.nativeElement) {
-      this.audioPlayerRef.nativeElement.play();
+    if (this.audioPlayerRef() && this.audioPlayerRef()!.nativeElement) {
+      this.audioPlayerRef()!.nativeElement.play();
     }
   }
 
   pause(): void {
-    if (this.audioPlayerRef && this.audioPlayerRef.nativeElement) {
-      this.audioPlayerRef.nativeElement.pause();
+    if (this.audioPlayerRef() && this.audioPlayerRef()!.nativeElement) {
+      this.audioPlayerRef()!.nativeElement.pause();
     }
   }
 
   stop(): void {
-    if (this.audioPlayerRef && this.audioPlayerRef.nativeElement) {
-      this.audioPlayerRef.nativeElement.pause();
-      this.audioPlayerRef.nativeElement.currentTime = 0;
+    if (this.audioPlayerRef() && this.audioPlayerRef()!.nativeElement) {
+      this.audioPlayerRef()!.nativeElement.pause();
+      this.audioPlayerRef()!.nativeElement.currentTime = 0;
     }
   }
 }

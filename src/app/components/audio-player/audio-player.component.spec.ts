@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {ElementRef, SimpleChange} from '@angular/core';
+import {ElementRef, signal} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 
@@ -51,10 +51,10 @@ describe('AudioPlayerComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(AudioPlayerComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
     // Manually assign the mock element to the component's audioPlayerRef after
     // initialization.
-    component.audioPlayerRef = new ElementRef(mockAudioElement as any);
+    (component as any).audioPlayerRef = signal(new ElementRef(mockAudioElement as any));
+    fixture.detectChanges();
   });
 
   it('should create', () => {
@@ -64,10 +64,7 @@ describe('AudioPlayerComponent', () => {
   // Test case 1: Input without 'data:' prefix
   it('should prepend "data:audio/mpeg;base64," prefix if missing', () => {
     const rawBase64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    component.base64data = rawBase64;
-    component.ngOnChanges({
-      base64data: new SimpleChange(null, component.base64data, true)
-    });
+    fixture.componentRef.setInput('base64data', rawBase64);
     fixture.detectChanges();
 
     expect(component.audioSrc).toBe(
@@ -79,10 +76,7 @@ describe('AudioPlayerComponent', () => {
   // Test case 2: Input with 'data:' prefix
   it('should use base64 data as-is if "data:" prefix is present', () => {
     const prefixedBase64 = 'data:audio/wav;base64,1234567890';
-    component.base64data = prefixedBase64;
-    component.ngOnChanges({
-      base64data: new SimpleChange(null, component.base64data, true)
-    });
+    fixture.componentRef.setInput('base64data', prefixedBase64);
     fixture.detectChanges();
 
     expect(component.audioSrc).toBe(prefixedBase64);
@@ -91,10 +85,7 @@ describe('AudioPlayerComponent', () => {
 
   // Test case 3: Input is empty or null initially
   it('should not set audioSrc if base64data is empty', () => {
-    component.base64data = ''; // Ensure it's empty
-    component.ngOnChanges({
-      base64data: new SimpleChange(null, component.base64data, true)
-    });
+    fixture.componentRef.setInput('base64data', ''); // Ensure it's empty
     fixture.detectChanges();
 
     expect(component.audioSrc).toBe('');
@@ -103,7 +94,7 @@ describe('AudioPlayerComponent', () => {
 
   // Test case 4: Play method
   it('should call play() on the native audio element when play() is invoked', () => {
-    component.base64data = 'test_base64';
+    fixture.componentRef.setInput('base64data', 'test_base64');
     fixture.detectChanges(); // Update audioSrc and load
     mockAudioElement.load.calls.reset(); // Reset load spy for this test to focus on play
 
@@ -113,7 +104,7 @@ describe('AudioPlayerComponent', () => {
 
   // Test case 5: Pause method
   it('should call pause() on the native audio element when pause() is invoked', () => {
-    component.base64data = 'test_base64';
+    fixture.componentRef.setInput('base64data', 'test_base64');
     fixture.detectChanges();
     mockAudioElement.load.calls.reset();
 
@@ -123,7 +114,7 @@ describe('AudioPlayerComponent', () => {
 
   // Test case 6: Stop method
   it('should call pause() and reset currentTime to 0 on the native audio element when stop() is invoked', () => {
-    component.base64data = 'test_base64';
+    fixture.componentRef.setInput('base64data', 'test_base64');
     fixture.detectChanges();
     mockAudioElement.load.calls.reset();
 
@@ -136,7 +127,7 @@ describe('AudioPlayerComponent', () => {
 
   // Test case 7: ensure audioPlayerRef is accessible after init
   it('should have audioPlayerRef defined after initialization', () => {
-    expect(component.audioPlayerRef).toBeDefined();
-    expect(component.audioPlayerRef.nativeElement).toBe(mockAudioElement as any);
+    expect(component.audioPlayerRef()).toBeDefined();
+    expect(component.audioPlayerRef()!.nativeElement).toBe(mockAudioElement as any);
   });
 });

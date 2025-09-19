@@ -15,51 +15,54 @@
  * limitations under the License.
  */
 
+import {HttpClientModule} from '@angular/common/http';
+import {importProvidersFrom} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {MatButtonModule} from '@angular/material/button';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {bootstrapApplication, BrowserModule} from '@angular/platform-browser';
+import {provideAnimations} from '@angular/platform-browser/animations';
 
-import { SESSION_SERVICE, SessionService } from './app/core/services/session.service';
-import { AGENT_SERVICE, AgentService } from './app/core/services/agent.service';
-import { WEBSOCKET_SERVICE, WebSocketService } from './app/core/services/websocket.service';
-import { AUDIO_SERVICE, AudioService } from './app/core/services/audio.service';
-import { VIDEO_SERVICE, VideoService } from './app/core/services/video.service';
-import { SCREEN_SHARING_SERVICE, ScreenSharingService } from './app/core/services/screensharing.service';
-import { EVENT_SERVICE, EventService } from './app/core/services/event.service';
-import { EVAL_SERVICE, EvalService } from './app/core/services/eval.service';
-import { ARTIFACT_SERVICE, ArtifactService } from './app/core/services/artifact.service';
-import { DOWNLOAD_SERVICE, DownloadService } from './app/core/services/download.service';
-import { TRACE_SERVICE, TraceService } from './app/core/services/trace.service';
-import { FEATURE_FLAG_SERVICE, FeatureFlagService } from './app/core/services/feature-flag.service';
-import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
-import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
-import { AppRoutingModule } from './app/app-routing.module';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatButtonModule } from '@angular/material/button';
-import { provideAnimations } from '@angular/platform-browser/animations';
-import { AppComponent } from './app/app.component';
-import { importProvidersFrom } from '@angular/core';
+import {AppRoutingModule} from './app/app-routing.module';
+import {AppComponent} from './app/app.component';
+import {AGENT_SERVICE, AgentService} from './app/core/services/agent.service';
+import {ARTIFACT_SERVICE, ArtifactService} from './app/core/services/artifact.service';
+import {AUDIO_SERVICE, AudioService} from './app/core/services/audio.service';
+import {DOWNLOAD_SERVICE, DownloadService} from './app/core/services/download.service';
+import {EVAL_SERVICE, EvalService} from './app/core/services/eval.service';
+import {EVENT_SERVICE, EventService} from './app/core/services/event.service';
+import {FEATURE_FLAG_SERVICE, FeatureFlagService} from './app/core/services/feature-flag.service';
+import {GRAPH_SERVICE, GraphService} from './app/core/services/graph.service';
+import {SESSION_SERVICE, SessionService} from './app/core/services/session.service';
+import {TRACE_SERVICE, TraceService} from './app/core/services/trace.service';
+import {VIDEO_SERVICE, VideoService} from './app/core/services/video.service';
+import {SCREEN_SHARING_SERVICE, ScreenSharingService} from './app/core/services/screensharing.service';
+import {WEBSOCKET_SERVICE, WebSocketService} from './app/core/services/websocket.service';
 
 fetch('./assets/config/runtime-config.json')
   .then((response) => response.json())
   .then((config) => {
     (window as any)['runtimeConfig'] = config;
     bootstrapApplication(AppComponent, {
-    providers: [
-        importProvidersFrom(BrowserModule, FormsModule, HttpClientModule, AppRoutingModule, MatInputModule, MatFormFieldModule, MatButtonModule),
-        { provide: SESSION_SERVICE, useClass: SessionService },
-        { provide: AGENT_SERVICE, useClass: AgentService },
-        { provide: WEBSOCKET_SERVICE, useClass: WebSocketService },
-        { provide: AUDIO_SERVICE, useClass: AudioService },
-        { provide: VIDEO_SERVICE, useClass: VideoService },
-        { provide: SCREEN_SHARING_SERVICE, useClass: ScreenSharingService },
-        { provide: EVENT_SERVICE, useClass: EventService },
-        { provide: EVAL_SERVICE, useClass: EvalService },
-        { provide: ARTIFACT_SERVICE, useClass: ArtifactService },
-        { provide: DOWNLOAD_SERVICE, useClass: DownloadService },
-        { provide: TRACE_SERVICE, useClass: TraceService },
-        { provide: FEATURE_FLAG_SERVICE, useClass: FeatureFlagService },
+      providers: [
+        importProvidersFrom(
+            BrowserModule, FormsModule, HttpClientModule, AppRoutingModule,
+            MatInputModule, MatFormFieldModule, MatButtonModule),
+        {provide: SESSION_SERVICE, useClass: SessionService},
+        {provide: AGENT_SERVICE, useClass: AgentService},
+        {provide: WEBSOCKET_SERVICE, useClass: WebSocketService},
+        {provide: AUDIO_SERVICE, useClass: AudioService},
+        {provide: VIDEO_SERVICE, useClass: VideoService},
+        {provide: SCREEN_SHARING_SERVICE, useClass: ScreenSharingService},
+        {provide: EVENT_SERVICE, useClass: EventService},
+        {provide: EVAL_SERVICE, useClass: EvalService},
+        {provide: ARTIFACT_SERVICE, useClass: ArtifactService},
+        {provide: DOWNLOAD_SERVICE, useClass: DownloadService},
+        {provide: TRACE_SERVICE, useClass: TraceService},
+        {provide: FEATURE_FLAG_SERVICE, useClass: FeatureFlagService},
+        {provide: GRAPH_SERVICE, useClass: GraphService},
         provideAnimations(),
-    ]
-})
-      .catch((err) => console.error(err));
+      ]
+    }).catch((err) => console.error(err));
   });

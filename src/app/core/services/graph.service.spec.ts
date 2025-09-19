@@ -15,24 +15,19 @@
  * limitations under the License.
  */
 
-// TODO: Replace with genai TS types when they're available.
-export interface Blob {
-  data: string;
-}
-export interface Part {
-  text?: string;
-  inlineData?: Blob;
-}
-export interface GenAiContent {
-  role: string;
-  parts: Part[];
-}
-export interface LlmRequest {
-  contents: GenAiContent[];
-}
-export interface LlmResponse {
-  content: GenAiContent;
-  error?: string;
-  errorMessage?: string;
-}
-export interface Event extends LlmResponse {}
+import {GraphService} from './graph.service';
+
+const GRAPH_SRC = 'digraph {a}';
+
+describe('GraphService', () => {
+  let service: GraphService;
+
+  beforeEach(() => {
+    service = new GraphService();
+  });
+
+  it('should render a graph', async () => {
+    const svg = await service.render(GRAPH_SRC);
+    expect(svg).toContain('<title>a</title>');
+  });
+});

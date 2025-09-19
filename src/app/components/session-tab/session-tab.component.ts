@@ -17,7 +17,8 @@
 
 import {Component, EventEmitter, Input, OnInit, Output, Inject} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
-import {Subject, switchMap} from 'rxjs';
+import {Subject} from 'rxjs';
+import {switchMap} from 'rxjs/operators';
 import {Session} from '../../core/models/Session';
 import {SessionService, SESSION_SERVICE} from '../../core/services/session.service';
 import { NgClass } from '@angular/common';

@@ -1,4 +1,3 @@
-
 # Agent Development Kit Web UI (ADK WEB)
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -20,18 +19,17 @@
 
 Agent Development Kit (ADK) is a flexible and modular framework for developing and deploying AI agents. While optimized for Gemini and the Google ecosystem, ADK is model-agnostic, deployment-agnostic, and is built for compatibility with other frameworks. ADK was designed to make agent development feel more like software development, to make it easier for developers to create, deploy, and orchestrate agentic architectures that range from simple tasks to complex workflows.
 
-Adk web is the built-in dev UI that comes along with adk for easier development and debug.
-
+ADK web is the built-in dev UI that comes along with adk for easier development and debug.
 
 ## ✨ Prerequisite
 
-- **Install [Angular CLI](https://angular.dev/tools/cli)**
+- **Install [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)**
 
 - **Install [NodeJs](https://nodejs.org/en)**
 
-- **Install [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)**
+- **Install [Angular CLI](https://angular.dev/tools/cli)**
 
-- **Install [google-adk (Python)](https://github.com/google/adk-python)**
+- **Install [google-adk (Python)](https://github.com/google/adk-python)** 
 
 - **Install [google-adk (Java)](https://github.com/google/adk-java/)**
 
@@ -68,10 +66,10 @@ If you see `adk command not found`, then be sure to install `google-adk` (or rem
 
 Go to `localhost:4200` and start developing!
 
-
 ## 🤝 Contributing
 
 We welcome contributions from the community! Whether it's bug reports, feature requests, documentation improvements, or code contributions, please see our
+
 - [General contribution guideline and flow](https://google.github.io/adk-docs/contributing-guide/#questions).
 - Then if you want to contribute code, please read [Code Contributing Guidelines](./CONTRIBUTING.md) to get started.
 
