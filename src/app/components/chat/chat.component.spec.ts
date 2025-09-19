@@ -46,9 +46,11 @@ import {MockGraphService} from '../../core/services/testing/mock-graph.service';
 import {MockSessionService} from '../../core/services/testing/mock-session.service';
 import {MockTraceService} from '../../core/services/testing/mock-trace.service';
 import {MockVideoService} from '../../core/services/testing/mock-video.service';
+import {MockScreenSharingService} from '../../core/services/testing/mock-screensharing.service';
 import {MockWebSocketService} from '../../core/services/testing/mock-websocket.service';
 import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
 import {VIDEO_SERVICE, VideoService} from '../../core/services/video.service';
+import {SCREEN_SHARING_SERVICE, ScreenSharingService,} from '../../core/services/screensharing.service';
 import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/websocket.service';
 import {Component} from '@angular/core';
 
@@ -99,6 +101,7 @@ describe('ChatComponent', () => {
   let mockAudioService: MockAudioService;
   let mockWebSocketService: MockWebSocketService;
   let mockVideoService: MockVideoService;
+  let mockScreenSharingService: MockScreenSharingService;
   let mockEventService: MockEventService;
   let mockDownloadService: MockDownloadService;
   let mockEvalService: MockEvalService;
@@ -118,6 +121,7 @@ describe('ChatComponent', () => {
     mockAudioService = new MockAudioService();
     mockWebSocketService = new MockWebSocketService();
     mockVideoService = new MockVideoService();
+    mockScreenSharingService = new MockScreenSharingService();
     mockEventService = new MockEventService();
     mockDownloadService = new MockDownloadService();
     mockEvalService = new MockEvalService();
@@ -179,6 +183,7 @@ describe('ChatComponent', () => {
             {provide: AUDIO_SERVICE, useValue: mockAudioService},
             {provide: WEBSOCKET_SERVICE, useValue: mockWebSocketService},
             {provide: VIDEO_SERVICE, useValue: mockVideoService},
+            {provide: SCREEN_SHARING_SERVICE, useValue: mockScreenSharingService},
             {provide: EVENT_SERVICE, useValue: mockEventService},
             {provide: DOWNLOAD_SERVICE, useValue: mockDownloadService},
             {provide: EVAL_SERVICE, useValue: mockEvalService},

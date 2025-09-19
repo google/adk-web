@@ -237,6 +237,7 @@
             [MediaType]="MediaType"
             [isAudioRecording]="isAudioRecording"
             [isVideoRecording]="isVideoRecording"
+            [isScreenSharing]="isScreenSharing"
             [hoveredEventMessageIndices]="hoveredEventMessageIndices"
             (clickEvent)="clickEvent($event)"
             (handleKeydown)="handleKeydown($event.event, $event.message)"
@@ -254,6 +255,7 @@
             (updateState)="updateState()"
             (toggleAudioRecording)="toggleAudioRecording()"
             (toggleVideoRecording)="toggleVideoRecording()"
+            (toggleScreenSharing)="toggleScreenSharing()"
         ></app-chat-panel>
       }
     </mat-card>
