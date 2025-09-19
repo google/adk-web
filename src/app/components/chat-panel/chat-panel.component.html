@@ -17,6 +17,7 @@
 @if (appName != "") {
 <div #autoScroll class="chat-messages">
   <div #videoContainer></div>
+  <div #screenSharingContainer></div>
   @for (message of messages; track message; let i = $index) {
   <div
     [ngClass]="{
