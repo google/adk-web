@@ -14,29 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface Span {
-  name: string;
-  start_time: number;
-  end_time: number;
-  span_id: string;
-  parent_span_id?: string;
-  trace_id: string;
-  attributes?: any;
-  children?: Span[];
-  invoc_id?: string;
-  // For backward compatibility.
-  'gcp.vertex.agent.llm_request'?: string;
-  'gcp.vertex.agent.llm_response'?: string;
-}
 
-export interface SpanNode extends Span {
-  children: SpanNode[];
-  depth: number;
-  duration: number;
-  id: string;  // Using span_id as string ID
-}
+import {Pipe, PipeTransform} from '@angular/core';
+import {Span} from '../../core/models/Trace';
 
-export interface TimeTick {
-  position: number;
-  label: string;
+@Pipe({
+  name: 'invocId',
+  standalone: true,
+})
+export class InvocIdPipe implements PipeTransform {
+  transform(spans: Span[] | undefined | null): string | undefined {
+    if (!spans) {
+      return undefined;
+    }
+    return spans.find(
+      (item) =>
+        item.attributes !== undefined &&
+        'gcp.vertex.agent.invocation_id' in item.attributes,
+    )?.attributes['gcp.vertex.agent.invocation_id'];
+  }
 }
