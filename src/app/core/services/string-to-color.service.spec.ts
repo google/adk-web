@@ -15,28 +15,11 @@
  * limitations under the License.
  */
 
-import {CommonModule} from '@angular/common';
-import {Component, Input, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import {StringToColorServiceImpl} from './string-to-color.service';
 
-import {MarkdownModule, provideMarkdown} from 'ngx-markdown';
-
-/**
- * Renders markdown text.
- */
-@Component({
-  selector: 'app-markdown',
-  templateUrl: './markdown.component.html',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MarkdownModule,
-  ],
-  providers: [
-    provideMarkdown(),
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-})
-export class MarkdownComponent {
-  @Input() text = '';
-  @Input() thought = false;
-}
+describe('StringToColorService', () => {
+  it(`should convert an arbitrary string into a color code like '#aabbcc'`, () => {
+    const service = new StringToColorServiceImpl();
+    expect(service.stc('test')).toMatch(/^#[0-9a-f]{6,8}$/i);
+  });
+});

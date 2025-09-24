@@ -20,6 +20,7 @@ import {Injectable, NgZone, InjectionToken} from '@angular/core';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {URLUtil} from '../../../utils/url-util';
 import {AgentRunRequest} from '../models/AgentRunRequest';
+import {LlmResponse} from '../models/types';
 
 export const AGENT_SERVICE = new InjectionToken<AgentService>('AgentService');
 
@@ -49,10 +50,10 @@ export class AgentService {
     return this.isLoading;
   }
 
-  runSse(req: AgentRunRequest) {
+  runSse(req: AgentRunRequest): Observable<LlmResponse> {
     const url = this.apiServerDomain + `/run_sse`;
     this.isLoading.next(true);
-    return new Observable<string>((observer) => {
+    return new Observable<LlmResponse>((observer) => {
       const self = this;
       fetch(url, {
         method: 'POST',
@@ -82,8 +83,8 @@ export class AgentService {
                         (line) => line.startsWith('data:'));
                     lines.forEach((line) => {
                       const data = line.replace(/^data:\s*/, '');
-                      JSON.parse(data);
-                      self.zone.run(() => observer.next(data));
+                      const llmResponse = JSON.parse(data) as LlmResponse;
+                      self.zone.run(() => observer.next(llmResponse));
                     });
                     lastData = '';
                   } catch (e) {

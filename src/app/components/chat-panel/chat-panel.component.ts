@@ -29,9 +29,9 @@ import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {NgxJsonViewerModule} from 'ngx-json-viewer';
-import stc from 'string-to-color';
 
 import type {EvalCase} from '../../core/models/Eval';
+import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
 import {MediaType,} from '../artifact-tab/artifact-tab.component';
 import {AudioPlayerComponent} from '../audio-player/audio-player.component';
 import {MarkdownComponent} from '../markdown/markdown.component';
@@ -104,6 +104,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   scrollInterrupted = false;
   private previousMessageCount = 0;
   protected readonly i18n = inject(ChatPanelMessagesInjectionToken);
+  private readonly stringToColorService = inject(STRING_TO_COLOR_SERVICE);
 
   constructor(
       private sanitizer: DomSanitizer,
@@ -156,7 +157,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   customIconColorClass(i: number) {
     const agentName = this.getAgentNameFromEvent(i);
     return agentName !== ROOT_AGENT ?
-        `custom-icon-color-${stc(agentName).replace('#', '')}` :
+        `custom-icon-color-${this.stringToColorService.stc(agentName).replace('#', '')}` :
         '';
   }
 

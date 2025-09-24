@@ -14,10 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {SAFE_VALUES_SERVICE} from './interfaces/safevalues';
 
-import {Injectable, InjectionToken} from '@angular/core';
-import {objectUrlFromSafeSource} from 'safevalues/dom';
-import {setAnchorHref} from 'safevalues/dom';
+import {Injectable, InjectionToken, inject} from '@angular/core';
 
 export const DOWNLOAD_SERVICE = new InjectionToken<DownloadService>('DownloadService');
 
@@ -25,10 +24,12 @@ export const DOWNLOAD_SERVICE = new InjectionToken<DownloadService>('DownloadSer
   providedIn: 'root',
 })
 export class DownloadService {
+  private readonly safeValuesService = inject(SAFE_VALUES_SERVICE);
+
   downloadBase64Data(data: string, mimeType: string, fileName = 'image.png') {
     try {
       const a = document.createElement('a');
-      a.href = data;
+      this.safeValuesService.setAnchorHref(a, data);
       a.download = fileName;
 
       document.body.appendChild(a);
@@ -45,10 +46,10 @@ export class DownloadService {
 
     const blob = new Blob([jsonString], {type: 'application/octet-stream'});
 
-    const url = objectUrlFromSafeSource(blob);
+    const url = this.safeValuesService.createObjectUrl(blob);
 
     const a = document.createElement('a');
-    setAnchorHref(a, url);
+    this.safeValuesService.setAnchorHref(a, url);
     a.download = filename;
 
     document.body.appendChild(a);

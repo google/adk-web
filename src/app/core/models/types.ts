@@ -15,13 +15,30 @@
  * limitations under the License.
  */
 
+// ADK Event types, see: https://github.com/google/adk-python/blob/632bf8b0bcf18ff4e4505e4e5f4c626510f366a2/src/google/adk/events/event.py#L30
 // TODO: Replace with genai TS types when they're available.
 export interface Blob {
+  mimeType?: string;
   data: string;
+}
+export interface FunctionCall {
+  name: string;
+  args: {[key: string]: any};
+}
+export interface FunctionResponse {
+  name: string;
+  response: {[key: string]: any};
+}
+export interface FileData {
+  mimeType: string;
+  fileUri: string;
 }
 export interface Part {
   text?: string;
   inlineData?: Blob;
+  functionCall?: FunctionCall;
+  functionResponse?: FunctionResponse;
+  fileData?: FileData;
 }
 export interface GenAiContent {
   role: string;
@@ -31,8 +48,10 @@ export interface LlmRequest {
   contents: GenAiContent[];
 }
 export interface LlmResponse {
+  id?: number;
   content: GenAiContent;
   error?: string;
   errorMessage?: string;
+  longRunningToolIds?: string[];
 }
 export interface Event extends LlmResponse {}

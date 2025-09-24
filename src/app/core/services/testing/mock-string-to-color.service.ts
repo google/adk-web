@@ -15,28 +15,11 @@
  * limitations under the License.
  */
 
-import {CommonModule} from '@angular/common';
-import {Component, Input, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import {Injectable} from '@angular/core';
+import {StringToColorService} from '../interfaces/string-to-color';
 
-import {MarkdownModule, provideMarkdown} from 'ngx-markdown';
-
-/**
- * Renders markdown text.
- */
-@Component({
-  selector: 'app-markdown',
-  templateUrl: './markdown.component.html',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MarkdownModule,
-  ],
-  providers: [
-    provideMarkdown(),
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-})
-export class MarkdownComponent {
-  @Input() text = '';
-  @Input() thought = false;
+/** Mock implementation of StringToColorService. */
+@Injectable()
+export class MockStringToColorService implements StringToColorService {
+  stc = jasmine.createSpy('stc');
 }

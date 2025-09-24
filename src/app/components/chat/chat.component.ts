@@ -39,8 +39,6 @@ import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
 import {NgxJsonViewerModule} from 'ngx-json-viewer';
 import {BehaviorSubject, combineLatest, Observable, of} from 'rxjs';
 import {catchError, distinctUntilChanged, filter, map, shareReplay, switchMap, take, tap} from 'rxjs/operators';
-import stc from 'string-to-color';
-import {windowOpen} from 'safevalues/dom';
 
 import {URLUtil} from '../../../utils/url-util';
 import {AgentRunRequest} from '../../core/models/AgentRunRequest';
@@ -56,13 +54,15 @@ import {EVENT_SERVICE, EventService} from '../../core/services/event.service';
 import {FEATURE_FLAG_SERVICE, FeatureFlagService} from '../../core/services/feature-flag.service';
 import {GRAPH_SERVICE, GraphService} from '../../core/services/graph.service';
 import {SCREEN_SHARING_SERVICE, ScreenSharingService} from '../../core/services/screensharing.service';
+import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
+import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
 import {SESSION_SERVICE, SessionService} from '../../core/services/session.service';
 import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
 import {VIDEO_SERVICE, VideoService} from '../../core/services/video.service';
 import {WEBSOCKET_SERVICE, WebSocketService} from '../../core/services/websocket.service';
 import {ResizableBottomDirective} from '../../directives/resizable-bottom.directive';
 import {ResizableDrawerDirective} from '../../directives/resizable-drawer.directive';
-import {ArtifactTabComponent, getMediaTypeFromMimetype, MediaType, openBase64InNewTab} from '../artifact-tab/artifact-tab.component';
+import {ArtifactTabComponent, getMediaTypeFromMimetype, MediaType} from '../artifact-tab/artifact-tab.component';
 import {AudioPlayerComponent} from '../audio-player/audio-player.component';
 import {ChatPanelComponent} from '../chat-panel/chat-panel.component';
 import {EditJsonDialogComponent} from '../edit-json-dialog/edit-json-dialog.component';
@@ -212,7 +212,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedFiles: { file: File; url: string }[] = [];
   private previousMessageCount = 0;
 
-  protected openBase64InNewTab = openBase64InNewTab;
   protected MediaType = MediaType;
 
   // Sync query params with value from agent picker.
@@ -223,6 +222,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   });
 
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly stringToColorService = inject(STRING_TO_COLOR_SERVICE);
+  private readonly safeValuesService = inject(SAFE_VALUES_SERVICE);
+  protected openBase64InNewTab = this.safeValuesService.openBase64InNewTab;
 
   // Load apps
   protected isLoadingApps: WritableSignal<boolean> = signal(false);
@@ -456,12 +458,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     let index = this.eventMessageIndexArray.length - 1;
     this.streamingTextMessage = null;
     this.agentService.runSse(req).subscribe({
-      next: async (chunk) => {
-        if (chunk.startsWith('{"error"')) {
-          this.openSnackBar(chunk, 'OK');
-          return;
-        }
-        const chunkJson = JSON.parse(chunk) as LlmResponse;
+      next: async (chunkJson: LlmResponse) => {
         if (chunkJson.error) {
           this.openSnackBar(chunkJson.error, 'OK');
           return;
@@ -477,7 +474,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         this.changeDetectorRef.detectChanges();
       },
-      error: (err) => console.error('SSE error:', err),
+      error: (err) => {
+        console.error('Send message error:', err);
+        this.openSnackBar(err, 'OK');
+      },
       complete: () => {
         this.streamingTextMessage = null;
         this.sessionTab()?.reloadSession(this.sessionId);
@@ -859,8 +859,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     let response: any[] = [];
     this.agentService.runSse(authResponse).subscribe({
-      next: async (chunk) => {
-        const chunkJson = JSON.parse(chunk);
+      next: async (chunkJson) => {
         response.push(chunkJson);
       },
       error: (err) => console.error('SSE error:', err),
@@ -909,7 +908,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   createAgentIconColorClass(agentName: string) {
-    const agentIconColor = stc(agentName);
+    const agentIconColor = this.stringToColorService.stc(agentName);
 
     const agentIconColorClass =
         `custom-icon-color-${agentIconColor.replace('#', '')}`;
@@ -1092,12 +1091,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private openOAuthPopup(url: string): Promise<any> {
     return new Promise((resolve, reject) => {
       // Open OAuth popup
-      const popup = windowOpen(
-        window,
-        url,
-        'oauthPopup',
-        'width=600,height=700',
-      );
+      const popup = this.safeValuesService.windowOpen(
+          window, url, 'oauthPopup', 'width=600,height=700');
 
       if (!popup) {
         reject('Popup blocked!');
@@ -1407,7 +1402,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     if (input.files) {
       for (let i = 0; i < input.files.length; i++) {
         const file = input.files[i];
-        const url = URL.createObjectURL(file);
+        const url = this.safeValuesService.createObjectUrl(file);
         this.selectedFiles.push({ file, url });
       }
     }
@@ -1585,11 +1580,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openLink(url: string) {
-    windowOpen(
-      window,
-      url,
-      '_blank'
-    );
+    this.safeValuesService.windowOpen(window, url, '_blank');
   }
 
   openViewImageDialog(imageData: string | null) {

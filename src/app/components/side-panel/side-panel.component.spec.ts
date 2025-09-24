@@ -33,8 +33,10 @@ import {DOWNLOAD_SERVICE, DownloadService,} from '../../core/services/download.s
 import {EVAL_SERVICE, EvalService} from '../../core/services/eval.service';
 import {EVENT_SERVICE, EventService} from '../../core/services/event.service';
 import {FEATURE_FLAG_SERVICE, FeatureFlagService,} from '../../core/services/feature-flag.service';
+import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {SESSION_SERVICE, SessionService,} from '../../core/services/session.service';
 import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
+import {MockSafeValuesService} from '../../core/services/testing/mock-safevalues.service';
 import {VIDEO_SERVICE, VideoService} from '../../core/services/video.service';
 import {SCREEN_SHARING_SERVICE, ScreenSharingService} from '../../core/services/screensharing.service';
 import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/websocket.service';
@@ -181,6 +183,7 @@ describe('SidePanelComponent', () => {
             {provide: Router, useValue: mockRouter},
             {provide: ActivatedRoute, useValue: mockActivatedRoute},
             {provide: Location, useValue: mockLocation},
+            {provide: SAFE_VALUES_SERVICE, useClass: MockSafeValuesService},
           ],
         })
         .compileComponents();

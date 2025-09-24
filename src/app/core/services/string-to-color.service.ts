@@ -15,28 +15,20 @@
  * limitations under the License.
  */
 
-import {CommonModule} from '@angular/common';
-import {Component, Input, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import {Injectable, InjectionToken} from '@angular/core';
+import stc from 'string-to-color';
 
-import {MarkdownModule, provideMarkdown} from 'ngx-markdown';
+import {StringToColorService} from './interfaces/string-to-color';
 
 /**
- * Renders markdown text.
+ * Service to convert a string to a color.
  */
-@Component({
-  selector: 'app-markdown',
-  templateUrl: './markdown.component.html',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MarkdownModule,
-  ],
-  providers: [
-    provideMarkdown(),
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-})
-export class MarkdownComponent {
-  @Input() text = '';
-  @Input() thought = false;
+@Injectable({providedIn: 'root'})
+export class StringToColorServiceImpl implements StringToColorService {
+  /**
+   * Converts a string to a color, e.g. 'my string' -> '#8c8526ff'.
+   */
+  stc(str: string): string {
+    return stc(str);
+  }
 }

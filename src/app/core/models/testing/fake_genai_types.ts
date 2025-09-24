@@ -15,28 +15,20 @@
  * limitations under the License.
  */
 
-import {CommonModule} from '@angular/common';
-import {Component, Input, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
-
-import {MarkdownModule, provideMarkdown} from 'ngx-markdown';
-
 /**
- * Renders markdown text.
+ * @fileoverview Fake implementations of the GenAI types.
  */
-@Component({
-  selector: 'app-markdown',
-  templateUrl: './markdown.component.html',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MarkdownModule,
-  ],
-  providers: [
-    provideMarkdown(),
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-})
-export class MarkdownComponent {
-  @Input() text = '';
-  @Input() thought = false;
+
+import {LlmResponse} from '../types';
+
+export function createFakeLlmResponse(
+  response: Partial<LlmResponse> = {},
+): LlmResponse {
+  return {
+    content: {
+      role: 'model',
+      parts: [{text: 'fake response'}],
+    },
+    ...response,
+  };
 }

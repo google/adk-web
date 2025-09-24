@@ -20,6 +20,8 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ArtifactTabComponent } from './artifact-tab.component';
 import { DOWNLOAD_SERVICE, DownloadService } from '../../core/services/download.service';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { SAFE_VALUES_SERVICE } from '../../core/services/interfaces/safevalues';
+import { MockSafeValuesService } from '../../core/services/testing/mock-safevalues.service';
 
 describe('ArtifactTabComponent', () => {
   let component: ArtifactTabComponent;
@@ -36,6 +38,7 @@ describe('ArtifactTabComponent', () => {
             'downloadBase64Data',
           ]),
         },
+        { provide: SAFE_VALUES_SERVICE, useClass: MockSafeValuesService },
       ],
     }).compileComponents();
 

@@ -21,7 +21,7 @@ import {MatIcon} from '@angular/material/icon';
 import {MatPaginator, PageEvent} from '@angular/material/paginator';
 import {MatTab, MatTabGroup, MatTabLabel} from '@angular/material/tabs';
 import {MatTooltip} from '@angular/material/tooltip';
-import {SafeHtml} from '@angular/platform-browser';
+import {type SafeHtml} from '@angular/platform-browser';
 import {NgxJsonViewerModule} from 'ngx-json-viewer';
 
 import {EvalCase} from '../../core/models/Eval';

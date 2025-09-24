@@ -24,6 +24,9 @@ import {By} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {of} from 'rxjs';
 
+import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
+import {StringToColorServiceImpl} from '../../core/services/string-to-color.service';
+import {MockStringToColorService} from '../../core/services/testing/mock-string-to-color.service';
 import {ChatPanelComponent} from './chat-panel.component';
 
 const USER_ID = 'user';
@@ -44,6 +47,12 @@ describe('ChatPanelComponent', () => {
             // BEGIN_EXTERNAL
             // MarkdownModule.forRoot(),
             // END_EXTERNAL
+          ],
+          providers: [
+            {
+              provide: STRING_TO_COLOR_SERVICE,
+              useClass: StringToColorServiceImpl,
+            },
           ],
         })
         .compileComponents();

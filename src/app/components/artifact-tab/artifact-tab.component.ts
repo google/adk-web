@@ -15,17 +15,18 @@
  * limitations under the License.
  */
 
-import {Component, input, OnChanges, SimpleChanges, Inject} from '@angular/core';
+import {Component, Inject, inject, input, OnChanges, SimpleChanges} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {MatButton} from '@angular/material/button';
+import {MatOption} from '@angular/material/core';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
+import {MatIcon} from '@angular/material/icon';
+import {MatSelect} from '@angular/material/select';
 
-import {DownloadService, DOWNLOAD_SERVICE} from '../../core/services/download.service';
+import {DOWNLOAD_SERVICE, DownloadService} from '../../core/services/download.service';
+import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {AudioPlayerComponent} from '../audio-player/audio-player.component';
 import {ViewImageDialogComponent} from '../view-image-dialog/view-image-dialog.component';
-import { MatSelect } from '@angular/material/select';
-import { FormsModule } from '@angular/forms';
-import { MatOption } from '@angular/material/core';
-import { MatButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
 
 const DEFAULT_ARTIFACT_NAME = 'default_artifact_name';
 
@@ -74,7 +75,6 @@ export function isArtifactImage(mimeType: string): boolean {
   return mimeType.startsWith('image/');
 }
 
-
 /**
  * Returns true if the mime type is an audio type.
  */
@@ -86,48 +86,6 @@ export function isArtifactAudio(mimeType: string): boolean {
   return mimeType.startsWith('audio/');
 }
 
-/**
- * Opens the base64 data in a new tab.
- */
-export function openBase64InNewTab(dataUrl: string, mimeType: string) {
-  try {
-    if (!dataUrl) {
-      return;
-    }
-
-    let base64DataString = dataUrl;
-
-    if (dataUrl.startsWith('data:') && dataUrl.includes(';base64,')) {
-      base64DataString = base64DataString.substring(
-          base64DataString.indexOf(';base64,') + ';base64,'.length);
-    }
-
-    if (!mimeType || !base64DataString) {
-      return;
-    }
-
-    const byteCharacters = atob(base64DataString);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-
-    const blob = new Blob([byteArray], {type: mimeType});
-
-    const blobUrl = URL.createObjectURL(blob);
-    const newWindow = window.open(blobUrl, '_blank');
-    if (newWindow) {
-      newWindow.focus();
-    } else {
-      alert(
-          'Pop-up blocked! Please allow pop-ups for this site to open the data in a new tab.');
-    }
-  } catch (e) {
-    alert(
-        'Could not open the data. It might be invalid or too large. Check the browser console for errors.');
-  }
-}
 
 @Component({
     selector: 'app-artifact-tab',
@@ -150,12 +108,9 @@ export class ArtifactTabComponent implements OnChanges {
   protected isArtifactAudio = isArtifactAudio;
   protected isArtifactImage = isArtifactImage;
   protected MediaType = MediaType;
-  protected openBase64InNewTab = openBase64InNewTab;
-
-  constructor(
-      @Inject(DOWNLOAD_SERVICE) private downloadService: DownloadService,
-      private dialog: MatDialog,
-  ) {}
+  private readonly downloadService = inject(DOWNLOAD_SERVICE);
+  private readonly dialog = inject(MatDialog);
+  private readonly safeValuesService = inject(SAFE_VALUES_SERVICE);
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['artifacts']) {
@@ -218,5 +173,11 @@ export class ArtifactTabComponent implements OnChanges {
     }
 
     this.openBase64InNewTab(fullBase64DataUrl, mimeType);
+  }
+
+  /**
+   * Opens the base64 data in a new tab.
+   */
+  private openBase64InNewTab(dataUrl: string, mimeType: string) {
   }
 }

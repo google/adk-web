@@ -15,28 +15,15 @@
  * limitations under the License.
  */
 
-import {CommonModule} from '@angular/common';
-import {Component, Input, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import {Injectable} from '@angular/core';
+import {SafeValuesService} from '../interfaces/safevalues';
 
-import {MarkdownModule, provideMarkdown} from 'ngx-markdown';
-
-/**
- * Renders markdown text.
- */
-@Component({
-  selector: 'app-markdown',
-  templateUrl: './markdown.component.html',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MarkdownModule,
-  ],
-  providers: [
-    provideMarkdown(),
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-})
-export class MarkdownComponent {
-  @Input() text = '';
-  @Input() thought = false;
+/** Mock implementation of SafeValuesService. */
+@Injectable()
+export class MockSafeValuesService implements Partial<SafeValuesService> {
+  windowOpen = jasmine.createSpy('windowOpen');
+  createObjectUrl = jasmine.createSpy('createObjectUrl');
+  openBlobUrl = jasmine.createSpy('openBlobUrl');
+  setAnchorHref = jasmine.createSpy('setAnchorHref');
+  openBase64InNewTab = jasmine.createSpy('openBase64InNewTab');
 }

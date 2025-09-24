@@ -34,7 +34,11 @@ import {EVAL_SERVICE, EvalService} from './app/core/services/eval.service';
 import {EVENT_SERVICE, EventService} from './app/core/services/event.service';
 import {FEATURE_FLAG_SERVICE, FeatureFlagService} from './app/core/services/feature-flag.service';
 import {GRAPH_SERVICE, GraphService} from './app/core/services/graph.service';
+import {SAFE_VALUES_SERVICE} from './app/core/services/interfaces/safevalues';
+import {STRING_TO_COLOR_SERVICE, StringToColorService} from './app/core/services/interfaces/string-to-color';
+import {SafeValuesServiceImpl} from './app/core/services/safevalues.service';
 import {SESSION_SERVICE, SessionService} from './app/core/services/session.service';
+import {StringToColorServiceImpl} from './app/core/services/string-to-color.service';
 import {TRACE_SERVICE, TraceService} from './app/core/services/trace.service';
 import {VIDEO_SERVICE, VideoService} from './app/core/services/video.service';
 import {SCREEN_SHARING_SERVICE, ScreenSharingService} from './app/core/services/screensharing.service';
@@ -62,6 +66,8 @@ fetch('./assets/config/runtime-config.json')
         {provide: TRACE_SERVICE, useClass: TraceService},
         {provide: FEATURE_FLAG_SERVICE, useClass: FeatureFlagService},
         {provide: GRAPH_SERVICE, useClass: GraphService},
+        {provide: STRING_TO_COLOR_SERVICE, useClass: StringToColorServiceImpl},
+        {provide: SAFE_VALUES_SERVICE, useClass: SafeValuesServiceImpl},
         provideAnimations(),
       ]
     }).catch((err) => console.error(err));

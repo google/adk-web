@@ -34,7 +34,10 @@ import {EVAL_SERVICE, EvalService} from '../../core/services/eval.service';
 import {EVENT_SERVICE, EventService} from '../../core/services/event.service';
 import {FEATURE_FLAG_SERVICE, FeatureFlagService,} from '../../core/services/feature-flag.service';
 import {GRAPH_SERVICE, GraphService} from '../../core/services/graph.service';
+import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
+import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
 import {SESSION_SERVICE, SessionService,} from '../../core/services/session.service';
+import {StringToColorServiceImpl} from '../../core/services/string-to-color.service';
 import {MockAgentService} from '../../core/services/testing/mock-agent.service';
 import {MockArtifactService} from '../../core/services/testing/mock-artifact.service';
 import {MockAudioService} from '../../core/services/testing/mock-audio.service';
@@ -43,7 +46,9 @@ import {MockEvalService} from '../../core/services/testing/mock-eval.service';
 import {MockEventService} from '../../core/services/testing/mock-event.service';
 import {MockFeatureFlagService} from '../../core/services/testing/mock-feature-flag.service';
 import {MockGraphService} from '../../core/services/testing/mock-graph.service';
+import {MockSafeValuesService} from '../../core/services/testing/mock-safevalues.service';
 import {MockSessionService} from '../../core/services/testing/mock-session.service';
+import {MockStringToColorService} from '../../core/services/testing/mock-string-to-color.service';
 import {MockTraceService} from '../../core/services/testing/mock-trace.service';
 import {MockVideoService} from '../../core/services/testing/mock-video.service';
 import {MockScreenSharingService} from '../../core/services/testing/mock-screensharing.service';
@@ -108,6 +113,8 @@ describe('ChatComponent', () => {
   let mockTraceService: MockTraceService;
   let mockAgentService: MockAgentService;
   let mockFeatureFlagService: MockFeatureFlagService;
+  let mockStringToColorService: MockStringToColorService;
+  let mockSafeValuesService: MockSafeValuesService;
   let mockDialog: jasmine.SpyObj<MatDialog>;
   let mockSnackBar: jasmine.SpyObj<MatSnackBar>;
   let mockRouter: jasmine.SpyObj<Router>;
@@ -128,6 +135,8 @@ describe('ChatComponent', () => {
     mockTraceService = new MockTraceService();
     mockAgentService = new MockAgentService();
     mockFeatureFlagService = new MockFeatureFlagService();
+    mockStringToColorService = new MockStringToColorService();
+    mockSafeValuesService = new MockSafeValuesService();
 
     mockSessionService.createSessionResponse.next(
         {id: SESSION_1_ID, state: {}});
@@ -190,7 +199,9 @@ describe('ChatComponent', () => {
             {provide: TRACE_SERVICE, useValue: mockTraceService},
             {provide: AGENT_SERVICE, useValue: mockAgentService},
             {provide: FEATURE_FLAG_SERVICE, useValue: mockFeatureFlagService},
+            {provide: STRING_TO_COLOR_SERVICE, useClass: StringToColorServiceImpl},
             {provide: GRAPH_SERVICE, useValue: graphService},
+            {provide: SAFE_VALUES_SERVICE, useValue: mockSafeValuesService},
             {provide: MatDialog, useValue: mockDialog},
             {provide: MatSnackBar, useValue: mockSnackBar},
             {provide: Router, useValue: mockRouter},

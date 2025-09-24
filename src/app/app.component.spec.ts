@@ -31,6 +31,8 @@ import {EVAL_SERVICE, EvalService} from './core/services/eval.service';
 import {EVENT_SERVICE, EventService} from './core/services/event.service';
 import {FEATURE_FLAG_SERVICE, FeatureFlagService,} from './core/services/feature-flag.service';
 import {GRAPH_SERVICE, GraphService} from './core/services/graph.service';
+import {SAFE_VALUES_SERVICE} from './core/services/interfaces/safevalues';
+import {STRING_TO_COLOR_SERVICE} from './core/services/interfaces/string-to-color';
 import {SESSION_SERVICE, SessionService,} from './core/services/session.service';
 import {SCREEN_SHARING_SERVICE, ScreenSharingService,} from './core/services/screensharing.service';
 import {MockAgentService} from './core/services/testing/mock-agent.service';
@@ -41,7 +43,9 @@ import {MockEvalService} from './core/services/testing/mock-eval.service';
 import {MockEventService} from './core/services/testing/mock-event.service';
 import {MockFeatureFlagService} from './core/services/testing/mock-feature-flag.service';
 import {MockGraphService} from './core/services/testing/mock-graph.service';
+import {MockSafeValuesService} from './core/services/testing/mock-safevalues.service';
 import {MockSessionService} from './core/services/testing/mock-session.service';
+import {MockStringToColorService} from './core/services/testing/mock-string-to-color.service';
 import {MockTraceService} from './core/services/testing/mock-trace.service';
 import {MockVideoService} from './core/services/testing/mock-video.service';
 import {MockScreenSharingService} from './core/services/testing/mock-screensharing.service';
@@ -64,6 +68,8 @@ describe('AppComponent', () => {
     const eventService = new MockEventService();
     const downloadService = new MockDownloadService();
     const evalService = new MockEvalService();
+    const stringToColorService = new MockStringToColorService();
+    const safeValuesService = new MockSafeValuesService();
 
     traceService.selectedTraceRow$.next(undefined);
     traceService.hoveredMessageIndicies$.next([]);
@@ -139,7 +145,15 @@ describe('AppComponent', () => {
             {
               provide: GRAPH_SERVICE,
               useValue: graphService,
-            }
+            },
+            {
+              provide: STRING_TO_COLOR_SERVICE,
+              useValue: stringToColorService,
+            },
+            {
+              provide: SAFE_VALUES_SERVICE,
+              useValue: safeValuesService,
+            },
           ],
         })
         .compileComponents();
