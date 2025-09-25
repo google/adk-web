@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 import {HttpClientModule} from '@angular/common/http';
 import {importProvidersFrom} from '@angular/core';
 import {FormsModule} from '@angular/forms';
@@ -42,6 +41,7 @@ import {SESSION_SERVICE, SessionService} from './app/core/services/session.servi
 import {StringToColorServiceImpl} from './app/core/services/string-to-color.service';
 import {TRACE_SERVICE, TraceService} from './app/core/services/trace.service';
 import {VIDEO_SERVICE, VideoService} from './app/core/services/video.service';
+import {SCREEN_SHARING_SERVICE, ScreenSharingService} from './app/core/services/screensharing.service';
 import {WEBSOCKET_SERVICE, WebSocketService} from './app/core/services/websocket.service';
 
 fetch('./assets/config/runtime-config.json')
@@ -58,6 +58,7 @@ fetch('./assets/config/runtime-config.json')
         {provide: WEBSOCKET_SERVICE, useClass: WebSocketService},
         {provide: AUDIO_SERVICE, useClass: AudioService},
         {provide: VIDEO_SERVICE, useClass: VideoService},
+        {provide: SCREEN_SHARING_SERVICE, useClass: ScreenSharingService},
         {provide: EVENT_SERVICE, useClass: EventService},
         {provide: EVAL_SERVICE, useClass: EvalService},
         {provide: ARTIFACT_SERVICE, useClass: ArtifactService},

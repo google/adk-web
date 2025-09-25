@@ -38,6 +38,7 @@ import {SESSION_SERVICE, SessionService,} from '../../core/services/session.serv
 import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
 import {MockSafeValuesService} from '../../core/services/testing/mock-safevalues.service';
 import {VIDEO_SERVICE, VideoService} from '../../core/services/video.service';
+import {SCREEN_SHARING_SERVICE, ScreenSharingService} from '../../core/services/screensharing.service';
 import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/websocket.service';
 
 import {SidePanelComponent} from './side-panel.component';
@@ -66,6 +67,7 @@ describe('SidePanelComponent', () => {
   let mockAudioService: jasmine.SpyObj<AudioService>;
   let mockWebSocketService: jasmine.SpyObj<WebSocketService>;
   let mockVideoService: jasmine.SpyObj<VideoService>;
+  let mockScreenSharingService: jasmine.SpyObj<ScreenSharingService>;
   let mockEventService: jasmine.SpyObj<EventService>;
   let mockDownloadService: jasmine.SpyObj<DownloadService>;
   let mockEvalService: jasmine.SpyObj<EvalService>;
@@ -101,6 +103,10 @@ describe('SidePanelComponent', () => {
     mockVideoService = jasmine.createSpyObj(
         'VideoService',
         ['startRecording', 'stopRecording'],
+    );
+    mockScreenSharingService = jasmine.createSpyObj(
+        'ScreenSharingService',
+        ['startScreenSharing', 'stopScreenSharing'],
     );
     mockEventService = jasmine.createSpyObj('EventService', ['getTrace']);
     mockDownloadService = jasmine.createSpyObj(
@@ -165,6 +171,7 @@ describe('SidePanelComponent', () => {
             {provide: AUDIO_SERVICE, useValue: mockAudioService},
             {provide: WEBSOCKET_SERVICE, useValue: mockWebSocketService},
             {provide: VIDEO_SERVICE, useValue: mockVideoService},
+            {provide: SCREEN_SHARING_SERVICE, useValue: mockScreenSharingService},
             {provide: EVENT_SERVICE, useValue: mockEventService},
             {provide: DOWNLOAD_SERVICE, useValue: mockDownloadService},
             {provide: EVAL_SERVICE, useValue: mockEvalService},
