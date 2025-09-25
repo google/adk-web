@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {Component, EventEmitter, Input, OnInit, Output, Inject} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, Inject, OnChanges, SimpleChanges} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {Subject} from 'rxjs';
 import {switchMap} from 'rxjs/operators';
@@ -29,7 +29,7 @@ import { NgClass } from '@angular/common';
     styleUrl: './session-tab.component.scss',
     imports: [NgClass],
 })
-export class SessionTabComponent implements OnInit {
+export class SessionTabComponent implements OnInit, OnChanges {
   @Input() userId: string = '';
   @Input() appName: string = '';
   @Input() sessionId: string = '';
@@ -65,6 +65,13 @@ export class SessionTabComponent implements OnInit {
     setTimeout(() => {
       this.refreshSessionsSubject.next();
     }, 500);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if ((changes['appName'] && !changes['appName'].firstChange) ||
+        (changes['userId'] && !changes['userId'].firstChange)) {
+      this.refreshSessionsSubject.next();
+    }
   }
 
   getSession(sessionId: string) {
