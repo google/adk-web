@@ -44,7 +44,7 @@ import {URLUtil} from '../../../utils/url-util';
 import {AgentRunRequest} from '../../core/models/AgentRunRequest';
 import {EvalCase} from '../../core/models/Eval';
 import {Session, SessionState} from '../../core/models/Session';
-import {LlmResponse} from '../../core/models/types';
+import {Event as AdkEvent} from '../../core/models/types';
 import {AGENT_SERVICE, AgentService} from '../../core/services/agent.service';
 import {ARTIFACT_SERVICE, ArtifactService} from '../../core/services/artifact.service';
 import {AUDIO_SERVICE, AudioService} from '../../core/services/audio.service';
@@ -66,7 +66,6 @@ import {AudioPlayerComponent} from '../audio-player/audio-player.component';
 import {ChatPanelComponent} from '../chat-panel/chat-panel.component';
 import {EditJsonDialogComponent} from '../edit-json-dialog/edit-json-dialog.component';
 import {EvalTabComponent} from '../eval-tab/eval-tab.component';
-import {EventTabComponent} from '../event-tab/event-tab.component';
 import {PendingEventDialogComponent} from '../pending-event-dialog/pending-event-dialog.component';
 import {DeleteSessionDialogComponent, DeleteSessionDialogData,} from '../session-tab/delete-session-dialog/delete-session-dialog.component';
 import {SessionTabComponent} from '../session-tab/session-tab.component';
@@ -147,7 +146,6 @@ const BIDI_STREAMING_RESTART_WARNING =
 export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   chatPanel = viewChild.required(ChatPanelComponent);
   sideDrawer = viewChild.required<MatDrawer>('sideDrawer');
-  eventTabComponent = viewChild.required(EventTabComponent);
   sessionTab = viewChild(SessionTabComponent);
   evalTab = viewChild(EvalTabComponent);
   private scrollContainer = viewChild.required<ElementRef>('autoScroll');
@@ -459,7 +457,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     let index = this.eventMessageIndexArray.length - 1;
     this.streamingTextMessage = null;
     this.agentService.runSse(req).subscribe({
-      next: async (chunkJson: LlmResponse) => {
+      next: async (chunkJson: AdkEvent) => {
         if (chunkJson.error) {
           this.openSnackBar(chunkJson.error, 'OK');
           return;
@@ -1155,6 +1153,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     this.bottomPanelVisible = false;
+    this.changeDetectorRef.detectChanges();
   }
 
   protected updateWithSelectedEvalCase(evalCase: EvalCase) {
