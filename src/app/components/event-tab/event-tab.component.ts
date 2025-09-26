@@ -49,7 +49,7 @@ export class EventTabComponent {
   readonly view = signal<string>('events');
   readonly isTraceView = computed(() => this.view() === 'trace');
   readonly spansByTraceId = computed(() => {
-    if (!this.traceData || this.traceData.length == 0) {
+    if (!this.traceData() || this.traceData().length == 0) {
       return new Map<string, Span[]>();
     }
     return this.traceData().reduce((map, span) => {
@@ -65,12 +65,6 @@ export class EventTabComponent {
       return map;
     }, new Map<string, Span[]>());
   });
-
-  showJson: boolean[] = Array(this.eventsMap().size).fill(false);
-
-  toggleJson(index: number) {
-    this.showJson[index] = !this.showJson[index];
-  }
 
   selectEvent(key: string) {
     this.selectedEvent.emit(key);

@@ -26,7 +26,7 @@ interface ResizingEvent {
 @Directive({ selector: '[appResizableDrawer]', })
 export class ResizableDrawerDirective implements AfterViewInit {
   private readonly sideDrawerMinWidth = 310;
-  private sideDrawerMaxWidth;
+  private sideDrawerMaxWidth = window.innerWidth / 2;
   private resizeHandle: HTMLElement|null = null;
 
   private resizingEvent: ResizingEvent = {
@@ -35,16 +35,17 @@ export class ResizableDrawerDirective implements AfterViewInit {
     startingWidth: 0,
   };
 
-  constructor(private el: ElementRef, private renderer: Renderer2) {
-    this.sideDrawerMaxWidth = window.innerWidth / 2;
-  }
+  constructor(private el: ElementRef, private renderer: Renderer2) {}
 
   ngAfterViewInit() {
+    this.sideDrawerMaxWidth = window.innerWidth / 2;
     this.resizeHandle =
         document.getElementsByClassName('resize-handler')[0] as HTMLElement;
-    this.renderer.listen(
-        this.resizeHandle, 'mousedown',
-        (event) => this.onResizeHandleMouseDown(event));
+    if (this.resizeHandle) {
+      this.renderer.listen(
+          this.resizeHandle, 'mousedown',
+          (event) => this.onResizeHandleMouseDown(event));
+    }
     document.documentElement.style.setProperty('--side-drawer-width', '570px');
 
     this.renderer.setStyle(
@@ -87,13 +88,14 @@ export class ResizableDrawerDirective implements AfterViewInit {
   private set sideDrawerWidth(width: number) {
     const clampedWidth = Math.min(
         Math.max(width, this.sideDrawerMinWidth), this.sideDrawerMaxWidth);
-    document.body.style.setProperty('--side-drawer-width', `${clampedWidth}px`);
+    document.documentElement.style.setProperty(
+        '--side-drawer-width', `${clampedWidth}px`);
   }
 
   private get sideDrawerWidth(): number {
-    const widthString =
-        getComputedStyle(document.body).getPropertyValue('--side-drawer-width');
-    const parsedWidth = parseInt(widthString, 10);
+    const widthString = getComputedStyle(document.documentElement)
+                            .getPropertyValue('--side-drawer-width');
+    const parsedWidth = parseFloat(widthString);
 
     return isNaN(parsedWidth) ? 500 : parsedWidth;
   }

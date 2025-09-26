@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-import {Component, EventEmitter, Input, OnInit, Output, Inject} from '@angular/core';
+import {NgClass} from '@angular/common';
+import {ChangeDetectorRef, Component, EventEmitter, Inject, inject, Input, OnInit, Output} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {Subject} from 'rxjs';
 import {switchMap} from 'rxjs/operators';
+
 import {Session} from '../../core/models/Session';
-import {SessionService, SESSION_SERVICE} from '../../core/services/session.service';
-import { NgClass } from '@angular/common';
+import {SESSION_SERVICE, SessionService} from '../../core/services/session.service';
 
 @Component({
     selector: 'app-session-tab',
@@ -40,6 +41,7 @@ export class SessionTabComponent implements OnInit {
   sessionList: any[] = [];
 
   private refreshSessionsSubject = new Subject<void>();
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   constructor(
     @Inject(SESSION_SERVICE) private sessionService: SessionService,
@@ -58,6 +60,7 @@ export class SessionTabComponent implements OnInit {
                   Number(b.lastUpdateTime) - Number(a.lastUpdateTime),
           );
           this.sessionList = res;
+          this.changeDetectorRef.detectChanges();
         });
   }
 

@@ -42,7 +42,7 @@ const RUN_SSE_PAYLOAD = {
   sessionId: SESSION_ID,
   appName: TEST_APP_NAME,
   userId: USER_ID,
-  newMessage: NEW_MESSAGE,
+  newMessage: {parts: [{text: NEW_MESSAGE}], role: 'user'},
 };
 
 describe('AgentService', () => {
