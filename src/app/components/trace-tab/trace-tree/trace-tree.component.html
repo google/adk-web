@@ -36,14 +36,14 @@
         <span
           class="material-symbols-outlined"
           style="margin-right: 8px"
-          [ngStyle]="{ color: isEventRow(node)? '#8AB4F8' : 'white' }"
+          [class.is-event-row]="isEventRow(node)"
         >
           {{ getSpanIcon(node.span.name) }}
         </span>
         <div
           class="trace-label"
           [style.width.px]="400 - node.level * 20"
-          [ngStyle]="{ color: isEventRow(node)? '#8AB4F8' : 'white' }"
+          [class.is-event-row]="isEventRow(node)"
         >
           {{ node.span.name }}
         </div>
@@ -58,7 +58,7 @@
         </div>
         @if (getRelativeWidth(node.span) < 10) {
         <span
-          style="position: absolute; color: #8dabbf"
+          class="short-trace-bar-duration"
           [style.left.%]="getRelativeStart(node.span) + 5"
           >{{ (toMs(node.span.end_time) - toMs(node.span.start_time)).toFixed(2) }}ms</span
         >

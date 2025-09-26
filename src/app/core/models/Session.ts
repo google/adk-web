@@ -32,4 +32,5 @@ export interface Session {
   userId?: string;
   state?: SessionState;
   events?: Event[];
+  lastUpdateTime?: number;
 }
