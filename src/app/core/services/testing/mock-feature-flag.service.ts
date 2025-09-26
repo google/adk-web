@@ -36,4 +36,12 @@ export class MockFeatureFlagService implements Partial<FeatureFlagService> {
   isA2ACardEnabledResponse = new ReplaySubject<boolean>(1);
   isA2ACardEnabled = jasmine.createSpy('isA2ACardEnabled')
                          .and.returnValue(this.isA2ACardEnabledResponse);
+  isAlwaysOnSidePanelEnabledResponse = new ReplaySubject<boolean>(1);
+  isAlwaysOnSidePanelEnabled =
+      jasmine.createSpy('isAlwaysOnSidePanelEnabled')
+          .and.returnValue(this.isAlwaysOnSidePanelEnabledResponse);
+  isApplicationSelectorEnabledResponse = new ReplaySubject<boolean>(1);
+  isApplicationSelectorEnabled =
+      jasmine.createSpy('isApplicationSelectorEnabled')
+          .and.returnValue(this.isApplicationSelectorEnabledResponse);
 }

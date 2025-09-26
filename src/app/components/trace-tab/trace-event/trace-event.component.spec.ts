@@ -69,6 +69,11 @@ describe('TraceEventComponent', () => {
     traceService.eventData$.next(
         new Map<string, any>([[EVENT_ID, EVENT_DATA]]));
     eventService.getEventTraceResponse.next({
+      name: 'test-span',
+      trace_id: 'trace-id',
+      span_id: 'span-id',
+      start_time: 1,
+      end_time: 2,
       'gcp.vertex.agent.llm_request': '{"data": "request"}',
       'gcp.vertex.agent.llm_response': '{"data": "response"}',
     });

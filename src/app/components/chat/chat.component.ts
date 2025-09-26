@@ -53,7 +53,7 @@ import {EVAL_SERVICE, EvalService} from '../../core/services/eval.service';
 import {EVENT_SERVICE, EventService} from '../../core/services/event.service';
 import {FEATURE_FLAG_SERVICE, FeatureFlagService} from '../../core/services/feature-flag.service';
 import {GRAPH_SERVICE, GraphService} from '../../core/services/graph.service';
-import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
+import {SAFE_VALUES_SERVICE, SafeValuesService} from '../../core/services/interfaces/safevalues';
 import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
 import {SESSION_SERVICE, SessionService} from '../../core/services/session.service';
 import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
@@ -271,7 +271,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   hoveredEventMessageIndices: number[] = [];
 
   constructor(
-      private sanitizer: DomSanitizer,
       @Inject(SESSION_SERVICE) private sessionService: SessionService,
       @Inject(ARTIFACT_SERVICE) private artifactService: ArtifactService,
       @Inject(AUDIO_SERVICE) private audioService: AudioService,
@@ -951,7 +950,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         const graphSrc = res.dotSrc;
         const svg = await this.graphService.render(graphSrc);
         this.rawSvgString = svg;
-        this.renderedEventGraph = this.sanitizer.bypassSecurityTrustHtml(svg);
+        this.renderedEventGraph =
+            this.safeValuesService.bypassSecurityTrustHtml(svg);
       });
   }
 
@@ -1405,7 +1405,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         const svg = await this.graphService.render(res.dotSrc);
         this.rawSvgString = svg;
-        this.renderedEventGraph = this.sanitizer.bypassSecurityTrustHtml(svg);
+        this.renderedEventGraph =
+            this.safeValuesService.bypassSecurityTrustHtml(svg);
       });
   }
 

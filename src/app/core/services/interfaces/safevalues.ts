@@ -16,6 +16,7 @@
  */
 
 import {InjectionToken} from '@angular/core';
+import {SafeHtml} from '@angular/platform-browser';
 
 export const SAFE_VALUES_SERVICE = new InjectionToken<SafeValuesService>(
   'SafeValuesService',
@@ -36,6 +37,8 @@ export abstract class SafeValuesService {
   abstract openBlobUrl(blob: Blob): Window | null;
 
   abstract setAnchorHref(a: HTMLAnchorElement, url: string): void;
+
+  abstract bypassSecurityTrustHtml(value: string): SafeHtml;
 
   openBase64InNewTab(dataUrl: string, mimeType: string) {
     try {
