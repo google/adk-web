@@ -18,17 +18,18 @@
 import {Injectable} from '@angular/core';
 import {of, ReplaySubject} from 'rxjs';
 
+import {Span} from '../../models/Trace';
 import {EventService} from '../event.service';
 
 @Injectable()
 export class MockEventService implements Partial<EventService> {
-  getEventTraceResponse = new ReplaySubject<any>(1);
+  getEventTraceResponse = new ReplaySubject<Span>(1);
   getEventTrace = jasmine.createSpy('getEventTrace')
                       .and.returnValue(this.getEventTraceResponse);
-  getTraceResponse = new ReplaySubject<any[]>(1);
+  getTraceResponse = new ReplaySubject<Span[]>(1);
   getTrace =
       jasmine.createSpy('getTrace').and.returnValue(this.getTraceResponse);
-  getEventResponse = new ReplaySubject<any>(1);
+  getEventResponse = new ReplaySubject<{dotSrc?: string}>(1);
   getEvent =
       jasmine.createSpy('getEvent').and.returnValue(this.getEventResponse);
 }

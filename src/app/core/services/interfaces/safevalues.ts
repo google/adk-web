@@ -37,6 +37,8 @@ export abstract class SafeValuesService {
 
   abstract setAnchorHref(a: HTMLAnchorElement, url: string): void;
 
+  abstract bypassSecurityTrustHtml(value: string): SafeHtml;
+
   openBase64InNewTab(dataUrl: string, mimeType: string) {
     try {
       if (!dataUrl) {
