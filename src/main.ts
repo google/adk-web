@@ -27,6 +27,7 @@ import {provideAnimations} from '@angular/platform-browser/animations';
 
 import {AppRoutingModule} from './app/app-routing.module';
 import {AppComponent} from './app/app.component';
+import {CustomLogoComponent} from './app/components/custom-logo/custom-logo.component';
 import {AGENT_SERVICE, AgentService} from './app/core/services/agent.service';
 import {ARTIFACT_SERVICE, ArtifactService} from './app/core/services/artifact.service';
 import {AUDIO_SERVICE, AudioService} from './app/core/services/audio.service';
@@ -43,6 +44,7 @@ import {StringToColorServiceImpl} from './app/core/services/string-to-color.serv
 import {TRACE_SERVICE, TraceService} from './app/core/services/trace.service';
 import {VIDEO_SERVICE, VideoService} from './app/core/services/video.service';
 import {WEBSOCKET_SERVICE, WebSocketService} from './app/core/services/websocket.service';
+import {LOGO_COMPONENT} from './app/injection_tokens';
 import {MARKDOWN_COMPONENT} from './app/components/markdown/markdown.component.interface';
 import {MarkdownComponent} from './app/components/markdown/markdown.component';
 
@@ -50,6 +52,7 @@ fetch('./assets/config/runtime-config.json')
   .then((response) => response.json())
   .then((config) => {
     (window as any)['runtimeConfig'] = config;
+
     bootstrapApplication(AppComponent, {
       providers: [
         importProvidersFrom(
@@ -70,6 +73,7 @@ fetch('./assets/config/runtime-config.json')
         {provide: STRING_TO_COLOR_SERVICE, useClass: StringToColorServiceImpl},
         {provide: SAFE_VALUES_SERVICE, useClass: SafeValuesServiceImpl},
         {provide: MARKDOWN_COMPONENT, useValue: MarkdownComponent},
+        ...(config.logo ? [{provide: LOGO_COMPONENT, useValue: CustomLogoComponent}] : []),
         provideAnimations(),
       ]
     }).catch((err) => console.error(err));

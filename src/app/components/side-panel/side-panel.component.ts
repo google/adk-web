@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import {CommonModule} from '@angular/common';
-import {Component, EventEmitter, inject, Input, Output, viewChild} from '@angular/core';
+import {Component, EventEmitter, inject, Input, Output, viewChild, Type} from '@angular/core';
 import {MatMiniFabButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
 import {MatPaginator, PageEvent} from '@angular/material/paginator';
@@ -24,9 +23,11 @@ import {MatTab, MatTabGroup, MatTabLabel} from '@angular/material/tabs';
 import {MatTooltip} from '@angular/material/tooltip';
 import {type SafeHtml} from '@angular/platform-browser';
 import {NgxJsonViewerModule} from 'ngx-json-viewer';
+import {AsyncPipe, NgComponentOutlet} from '@angular/common';
 
 import {EvalCase} from '../../core/models/Eval';
 import {Session} from '../../core/models/Session';
+import {LOGO_COMPONENT} from '../../injection_tokens';
 import {FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
 import {ArtifactTabComponent} from '../artifact-tab/artifact-tab.component';
 import {EvalTabComponent} from '../eval-tab/eval-tab.component';
@@ -46,7 +47,8 @@ import {SidePanelMessagesInjectionToken} from './side-panel.component.i18n';
   styleUrls: ['./side-panel.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
+    AsyncPipe,
+    NgComponentOutlet,
     MatTooltip,
     MatTabGroup,
     MatTab,
@@ -96,6 +98,9 @@ export class SidePanelComponent {
   readonly sessionTabComponent = viewChild(SessionTabComponent);
   readonly evalTabComponent = viewChild(EvalTabComponent);
 
+  readonly logoComponent: Type<Component> | null = inject(LOGO_COMPONENT, {
+    optional: true,
+  });
   readonly i18n = inject(SidePanelMessagesInjectionToken);
   readonly featureFlagService = inject(FEATURE_FLAG_SERVICE);
 
