@@ -20,6 +20,7 @@ import {Injectable, InjectionToken} from '@angular/core';
 import {Observable} from 'rxjs';
 
 import {URLUtil} from '../../../utils/url-util';
+import {Session} from '../models/Session';
 
 export const SESSION_SERVICE = new InjectionToken<SessionService>('SessionService');
 
@@ -36,7 +37,7 @@ export class SessionService {
           this.apiServerDomain + `/apps/${appName}/users/${userId}/sessions`;
       return this.http.post<any>(url, null);
     }
-    return new Observable<any>();
+    return new Observable<Session>();
   }
 
   listSessions(userId: string, appName: string) {
@@ -46,7 +47,7 @@ export class SessionService {
 
       return this.http.get<any>(url);
     }
-    return new Observable<[]>();
+    return new Observable<Session[]>();
   }
 
   deleteSession(userId: string, appName: string, sessionId: string) {
@@ -60,7 +61,7 @@ export class SessionService {
     const url = this.apiServerDomain +
         `/apps/${appName}/users/${userId}/sessions/${sessionId}`;
 
-    return this.http.get<any>(url);
+    return this.http.get<Session>(url);
   }
 
   importSession(userId: string, appName: string, events: any[]) {
@@ -68,13 +69,13 @@ export class SessionService {
       const url = this.apiServerDomain +
           `/apps/${appName}/users/${userId}/sessions`;
 
-      return this.http.post<any>(url, {
+      return this.http.post<Session>(url, {
         appName: appName,
         userId: userId,
         events: events,
       });
     }
 
-    return new Observable<any>();
+    return new Observable<Session>();
   }
 }

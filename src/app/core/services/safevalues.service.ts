@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
+import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 
 import {SafeValuesService} from './interfaces/safevalues';
 
@@ -27,6 +28,8 @@ import {SafeValuesService} from './interfaces/safevalues';
   providedIn: 'root',
 })
 export class SafeValuesServiceImpl extends SafeValuesService {
+  private sanitizer = inject(DomSanitizer);
+
   windowOpen(window: Window,
     url: string,
     target?: string,
@@ -46,5 +49,9 @@ export class SafeValuesServiceImpl extends SafeValuesService {
 
   setAnchorHref(a: HTMLAnchorElement, url: string) {
     a.href = url;
+  }
+
+  bypassSecurityTrustHtml(content: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(content);
   }
 }

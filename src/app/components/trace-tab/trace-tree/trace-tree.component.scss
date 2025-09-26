@@ -52,6 +52,11 @@
   font-family: 'Google Sans';
 }
 
+.short-trace-bar-duration {
+  position: absolute;
+  color: #8dabbf;
+}
+
 .trace-duration {
   color: #888;
   font-weight: normal;
@@ -123,4 +128,13 @@
 
 .invocation-id {
   font-family: 'Google Sans Mono', monospace;
+}
+
+.trace-row-left span,
+.trace-row-left div {
+  color: white;
+}
+
+.trace-row-left .is-event-row {
+  color: #8ab4f8;
 }

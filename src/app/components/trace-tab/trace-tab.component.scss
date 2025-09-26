@@ -118,18 +118,18 @@
       header-text-size: 15,
     )
   );
-}
 
-::ng-deep .mat-expansion-panel-header.mat-expanded:focus {
-  background-color: #444746 !important;
-}
+  ::ng-deep .mat-expansion-panel-header.mat-expanded:focus {
+    background-color: #444746;
+  }
 
-::ng-deep .mat-expansion-panel-header.mat-expanded {
-  background-color: #444746 !important;
-}
+  ::ng-deep .mat-expansion-panel-header.mat-expanded {
+    background-color: #444746;
+  }
 
-::ng-deep .mat-expansion-panel-header.mat-expanded:hover {
-  background-color: #444746 !important;
+  ::ng-deep .mat-expansion-panel-header.mat-expanded:hover {
+    background-color: #444746;
+  }
 }
 
 ::ng-deep .mat-expansion-panel-header-title {

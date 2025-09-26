@@ -35,8 +35,9 @@ import {EVENT_SERVICE, EventService} from '../../core/services/event.service';
 import {FEATURE_FLAG_SERVICE, FeatureFlagService,} from '../../core/services/feature-flag.service';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {SESSION_SERVICE, SessionService,} from '../../core/services/session.service';
-import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
+import {MockFeatureFlagService} from '../../core/services/testing/mock-feature-flag.service';
 import {MockSafeValuesService} from '../../core/services/testing/mock-safevalues.service';
+import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
 import {VIDEO_SERVICE, VideoService} from '../../core/services/video.service';
 import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/websocket.service';
 
@@ -71,7 +72,7 @@ describe('SidePanelComponent', () => {
   let mockEvalService: jasmine.SpyObj<EvalService>;
   let mockTraceService: jasmine.SpyObj<TraceService>;
   let mockAgentService: jasmine.SpyObj<AgentService>;
-  let mockFeatureFlagService: jasmine.SpyObj<FeatureFlagService>;
+  let mockFeatureFlagService: MockFeatureFlagService;
   let mockDialog: jasmine.SpyObj<MatDialog>;
   let mockSnackBar: jasmine.SpyObj<MatSnackBar>;
   let mockRouter: jasmine.SpyObj<Router>;
@@ -135,10 +136,7 @@ describe('SidePanelComponent', () => {
         'AgentService',
         ['listApps', 'getApp', 'getLoadingState', 'setApp', 'runSse'],
     );
-    mockFeatureFlagService = jasmine.createSpyObj(
-        'FeatureFlagService',
-        ['isImportSessionEnabled', 'isEditFunctionArgsEnabled'],
-    );
+    mockFeatureFlagService = new MockFeatureFlagService();
     mockDialog = jasmine.createSpyObj('MatDialog', ['open']);
     mockSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
@@ -154,6 +152,8 @@ describe('SidePanelComponent', () => {
     mockEvalService.listEvalResults.and.returnValue(of([]));
     mockFeatureFlagService.isEditFunctionArgsEnabled.and.returnValue(of(false));
     mockFeatureFlagService.isImportSessionEnabled.and.returnValue(of(false));
+    mockFeatureFlagService.isAlwaysOnSidePanelEnabled.and.returnValue(
+        of(false));
     mockEvalService.getEvalResult.and.returnValue(of({}));
 
     await TestBed
