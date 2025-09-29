@@ -55,7 +55,6 @@ export interface LlmRequest {
 }
 
 export interface LlmResponse {
-  id?: number;
   content: GenAiContent;
   error?: string;
   errorMessage?: string;
@@ -66,9 +65,11 @@ export interface EventActions {
   message?: string;
   functionCall?: FunctionCall;
   functionResponse?: FunctionResponse;
+  finishReason?: string;
 }
 
 export interface Event extends LlmResponse {
+  id?: string;
   author?: string
   invocationId?: string;
   actions?: EventActions;
