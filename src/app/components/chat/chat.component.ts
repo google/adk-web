@@ -302,6 +302,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.syncSelectedAppFromUrl();
     this.updateSelectedAppUrl();
+    this.validateAndFixSessionUrl();
 
     this.webSocketService.onCloseReason().subscribe((closeReason) => {
       const error =
@@ -1439,6 +1440,46 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private validateAndFixSessionUrl() {
+    // Wait for app and URL query params
+    combineLatest([
+      this.agentService.getApp(),
+      this.router.events.pipe(
+        filter((e) => e instanceof NavigationEnd),
+        map(() => this.activatedRoute.snapshot.queryParams),
+      )
+    ]).pipe(
+      filter(([appName, params]) => !!appName && !!params['session']),
+      take(1),
+      switchMap(([appName, params]) => {
+        const sessionId = params['session'];
+        // Validate current session id in URL
+        return this.sessionService.getSession(this.userId, appName, sessionId)
+          .pipe(
+            catchError((error) => {
+              // If invalid, try to use latest existing session
+              return this.sessionService.listSessions(this.userId, appName)
+                .pipe(
+                  catchError(() => of([])),
+                  switchMap((sessions: any[]) => {
+                    if (sessions && sessions.length > 0) {
+                      const latestSession = sessions.reduce((latest: any, current: any) =>
+                        current.lastUpdateTime > latest.lastUpdateTime ? current : latest
+                      );
+                      this.updateWithSelectedSession(latestSession);
+                      return of(latestSession);
+                    } else {
+                      this.createSessionAndReset();
+                      return of(null);
+                    }
+                  })
+                );
+            })
+          );
+      })
+    ).subscribe();
+  }
+
   private syncSelectedAppFromUrl() {
     combineLatest([
       this.router.events.pipe(
@@ -1663,3 +1704,5 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         this.document.head, style);  // Append to the head of the document
   }
 }
+
+
