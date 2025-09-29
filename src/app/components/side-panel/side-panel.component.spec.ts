@@ -320,35 +320,9 @@ describe('SidePanelComponent', () => {
     });
 
     describe('Eval tab', () => {
-      beforeEach(() => {
-        component.shouldShowEvalTab = true;
-        fixture.detectChanges();
-      });
-
-      describe('when shouldShowEvalTab is true', () => {
-        beforeEach(async () => {
-          await switchTab(EVAL_TAB_INDEX);
-        });
-        it('is visible', () => {
-          expect(fixture.debugElement.query(EVAL_TAB_SELECTOR)).toBeTruthy();
-        });
-      });
-
       describe('Interactions', () => {
         beforeEach(async () => {
           await switchTab(EVAL_TAB_INDEX);
-        });
-
-        describe('when app-eval-tab emits shouldShowTab', () => {
-          beforeEach(() => {
-            spyOn(component.evalTabVisibilityChange, 'emit');
-            const evalTab = fixture.debugElement.query(EVAL_TAB_SELECTOR);
-            evalTab.triggerEventHandler('shouldShowTab', false);
-          });
-          it('emits evalTabVisibilityChange', () => {
-            expect(component.evalTabVisibilityChange.emit)
-                .toHaveBeenCalledWith(false);
-          });
         });
 
         describe('when app-eval-tab emits evalCaseSelected', () => {

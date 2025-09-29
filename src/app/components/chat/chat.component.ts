@@ -151,7 +151,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private scrollContainer = viewChild.required<ElementRef>('autoScroll');
   bottomPanelRef = viewChild.required<ElementRef>('bottomPanel');
   private _snackBar = inject(MatSnackBar);
-  shouldShowEvalTab = signal(true);
   enableSseIndicator = signal(false);
   isChatMode = signal(true);
   isEvalCaseEditing = signal(false);
@@ -1092,10 +1091,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       this.resetEditEvalCaseVars();
       this.handleReturnToSession(true);
     }
-  }
-
-  protected handleShouldShowEvalTab(shouldShow: boolean) {
-    this.shouldShowEvalTab.set(shouldShow);
   }
 
   protected handleReturnToSession(event: boolean) {

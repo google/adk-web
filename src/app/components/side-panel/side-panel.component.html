@@ -60,7 +60,6 @@
       >
       </app-session-tab>
     </mat-tab>
-    @if (shouldShowEvalTab) {
     <mat-tab>
       <ng-template mat-tab-label>
         <span class="tab-label">{{ i18n.evalTabLabel }}</span>
@@ -69,7 +68,6 @@
         [appName]="appName"
         [userId]="userId"
         [sessionId]="sessionId"
-        (shouldShowTab)="evalTabVisibilityChange.emit($event)"
         (sessionSelected)="sessionSelected.emit($event)"
         (evalCaseSelected)="evalCaseSelected.emit($event)"
         (evalSetIdSelected)="evalSetIdSelected.emit($event)"
@@ -77,7 +75,6 @@
         (evalNotInstalledMsg)="evalNotInstalled.emit($event)"
       ></app-eval-tab>
     </mat-tab>
-    }
   </mat-tab-group>
 </div>
 } @if (this.selectedEvent && showSidePanel) {

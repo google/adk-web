@@ -71,7 +71,6 @@ export class SidePanelComponent {
   @Input() eventData = new Map<string, any>();
   @Input() currentSessionState: any;
   @Input() artifacts: any[] = [];
-  @Input() shouldShowEvalTab = false;
   @Input() selectedEvent: any|undefined;
   @Input() selectedEventIndex: number|undefined;
   @Input() renderedEventGraph: SafeHtml|undefined;
@@ -85,7 +84,6 @@ export class SidePanelComponent {
   @Output() readonly eventSelected = new EventEmitter<string>();
   @Output() readonly sessionSelected = new EventEmitter<Session>();
   @Output() readonly sessionReloaded = new EventEmitter<Session>();
-  @Output() readonly evalTabVisibilityChange = new EventEmitter<boolean>();
   @Output() readonly evalCaseSelected = new EventEmitter<EvalCase>();
   @Output() readonly evalSetIdSelected = new EventEmitter<string>();
   @Output() readonly returnToSession = new EventEmitter<boolean>();
