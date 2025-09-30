@@ -3,8 +3,15 @@
   <div style="width: 100%">
     <div class="drawer-header">
       <div class="drawer-logo">
-        <img src="assets/ADK-512-color.svg" width="32px" height="32px" />
-        {{ i18n.agentDevelopmentKitLabel }}
+        @if (logoComponent) {
+          <div>
+            <ng-container *ngComponentOutlet="logoComponent"></ng-container>
+            <div class="powered-by-adk">Powered by Agent Development Kit</div>
+          </div>
+        } @else {
+          <img src="assets/ADK-512-color.svg" width="32px" height="32px" />
+          {{ i18n.agentDevelopmentKitLabel }}
+        }
       </div>
       <span
         class="material-symbols-outlined"
