@@ -851,6 +851,7 @@ describe('ChatComponent', () => {
       });
       it('should reset edit mode', () => {
         expect(component.isEvalEditMode()).toBe(false);
+        expect(true).toBe(false);
       });
     });
   });
