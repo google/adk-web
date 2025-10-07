@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import {fakeAsync, TestBed, tick} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 
-import {AudioService} from './audio.service';
+import {AUDIO_WORKLET_MODULE_PATH, AudioService} from './audio.service';
 import {MockWebSocketService} from './testing/mock-websocket.service';
-import {WebSocketService} from './websocket.service';
+import {WEBSOCKET_SERVICE, WebSocketService} from './websocket.service';
 
 const AUDIO_PROCESSOR_PATH = './assets/audio-processor.js';
 const AUDIO_PROCESSOR_NAME = 'audio-processor';
@@ -61,7 +61,9 @@ describe('AudioService', () => {
     if (!navigator.mediaDevices) {
       (navigator as any).mediaDevices = {};
     }
-    spyOn(navigator.mediaDevices, 'getUserMedia').and.resolveTo(mockStream);
+    navigator.mediaDevices.getUserMedia =
+        jasmine.createSpy('getUserMedia')
+            .and.returnValue(Promise.resolve(mockStream));
     spyOn(window, 'AudioContext').and.returnValue(mockAudioContext);
     spyOn(window, 'AudioWorkletNode').and.returnValue(mockWorkletNode);
     mockAudioContext.audioWorklet.addModule.and.resolveTo();
@@ -69,7 +71,8 @@ describe('AudioService', () => {
     TestBed.configureTestingModule({
       providers: [
         AudioService,
-        {provide: WebSocketService, useValue: webSocketServiceSpy},
+        {provide: WEBSOCKET_SERVICE, useValue: webSocketServiceSpy},
+        {provide: AUDIO_WORKLET_MODULE_PATH, useValue: AUDIO_PROCESSOR_PATH},
       ],
     });
     service = TestBed.inject(AudioService);
@@ -125,16 +128,6 @@ describe('AudioService', () => {
               mockAudioContext.destination,
           );
     });
-
-    it('should set an interval to send buffered audio', fakeAsync(async () => {
-         await service.startRecording();
-         // Manually trigger onmessage to add data to buffer
-         const audioData = new Float32Array([0.1, 0.2]);
-         mockWorkletNode.port.onmessage({data: audioData});
-         tick(250);
-         expect(webSocketServiceSpy.sendMessage).toHaveBeenCalled();
-         service.stopRecording();
-       }));
   });
 
   describe('stopRecording', () => {
@@ -155,16 +148,5 @@ describe('AudioService', () => {
       service.stopRecording();
       expect(mockAudioContext.close).toHaveBeenCalled();
     });
-
-    it('should clear interval', fakeAsync(async () => {
-         await service.startRecording();
-         const audioData = new Float32Array([0.1, 0.2]);
-         mockWorkletNode.port.onmessage({data: audioData});
-         tick(250);
-         expect(webSocketServiceSpy.sendMessage).toHaveBeenCalledTimes(1);
-         service.stopRecording();
-         tick(250);
-         expect(webSocketServiceSpy.sendMessage).toHaveBeenCalledTimes(1);
-       }));
   });
 });

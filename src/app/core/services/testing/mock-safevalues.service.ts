@@ -26,4 +26,5 @@ export class MockSafeValuesService implements Partial<SafeValuesService> {
   openBlobUrl = jasmine.createSpy('openBlobUrl');
   setAnchorHref = jasmine.createSpy('setAnchorHref');
   openBase64InNewTab = jasmine.createSpy('openBase64InNewTab');
+  bypassSecurityTrustHtml = jasmine.createSpy('bypassSecurityTrustHtml');
 }

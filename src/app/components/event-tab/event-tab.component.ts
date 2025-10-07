@@ -15,14 +15,17 @@
  * limitations under the License.
  */
 
-import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, computed, inject, input, signal} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 
+import {Span} from '../../core/models/Trace';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
 import {TraceChartComponent} from './trace-chart/trace-chart.component';
 import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
 import { FormsModule } from '@angular/forms';
 import { MatList, MatListItem } from '@angular/material/list';
-import { KeyValuePipe } from '@angular/common';
+import {AsyncPipe, KeyValuePipe} from '@angular/common';
+import {InvocIdPipe} from './invoc-id.pipe';
 
 @Component({
     selector: 'app-event-tab',
@@ -35,29 +38,39 @@ import { KeyValuePipe } from '@angular/common';
         MatList,
         MatListItem,
         KeyValuePipe,
+        InvocIdPipe,
+        AsyncPipe,
     ],
 })
-export class EventTabComponent implements OnChanges {
-  @Input() eventsMap = new Map<string, any>();
+export class EventTabComponent {
+  readonly eventsMap = input<Map<string, any>>(new Map<string, any>());
+  readonly traceData = input<Span[]>([]);
   @Output() selectedEvent = new EventEmitter<string>();
-  @Input() traceData: any[] = [];
-  llmRequest: any = undefined;
-  llmResponse: any = undefined;
-  llmRequestKey = 'gcp.vertex.agent.llm_request';
-  llmResponseKey = 'gcp.vertex.agent.llm_response';
-  isDetailsPanelOpen = false;
-  view = 'events';
-  invocTraces = new Map<string, any[]>();
+  private readonly dialog = inject(MatDialog);
+  private readonly featureFlagService = inject(FEATURE_FLAG_SERVICE);
 
-  constructor(private dialog: MatDialog) {}
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if ('traceData' in changes) {
-      this.prcessTraceDataToInvocTrace();
+  readonly view = signal<string>('events');
+  readonly isTraceView = computed(() => this.view() === 'trace');
+  readonly spansByTraceId = computed(() => {
+    if (!this.traceData() || this.traceData().length == 0) {
+      return new Map<string, Span[]>();
     }
-  }
+    return this.traceData().reduce((map, span) => {
+      const key = span.trace_id;
+      const group = map.get(key);
+      if (group) {
+        span.invoc_id = span.attributes?.['gcp.vertex.agent.invocation_id'];
+        group.push(span);
+        group.sort((a: Span, b: Span) => a.start_time - b.start_time);
+      } else {
+        map.set(key, [span]);
+      }
+      return map;
+    }, new Map<string, Span[]>());
+  });
 
-  showJson: boolean[] = Array(this.eventsMap.size).fill(false);
+  showJson: boolean[] = Array(this.eventsMap().size).fill(false);
+  readonly isTraceEnabledObs = this.featureFlagService.isTraceEnabled();
 
   toggleJson(index: number) {
     this.showJson[index] = !this.showJson[index];
@@ -67,46 +80,24 @@ export class EventTabComponent implements OnChanges {
     this.selectedEvent.emit(key);
   }
 
-  isTraceView() {
-    return this.view == 'trace';
-  }
-
   mapOrderPreservingSort = (a: any, b: any): number => 0;
 
-  prcessTraceDataToInvocTrace() {
-    if (!this.traceData || this.traceData.length == 0) {
-      return;
-    }
-    this.invocTraces = this.traceData.reduce((map, item) => {
-      const key = item.trace_id;
-      const group = map.get(key);
-      if (group) {
-        group.push(item);
-        group.sort((a: any, b: any) => a.start_time - b.start_time);
-      } else {
-        map.set(key, [item]);
-      }
-      return map;
-    }, new Map<string, any[]>());
-  }
-
-  findInvocIdFromTraceId(traceId: string) {
-    const group = this.invocTraces.get(traceId);
-    return group
-        ?.find(
+  findInvocId(spans: Span[]) {
+    return spans
+        .find(
             item => item.attributes !== undefined &&
                 'gcp.vertex.agent.invocation_id' in item.attributes)
-        .attributes['gcp.vertex.agent.invocation_id']
+        ?.attributes['gcp.vertex.agent.invocation_id']
   }
 
   openDialog(traceId: string): void {
+    const spans = this.spansByTraceId().get(traceId);
+    if (!spans) return;
+
     const dialogRef = this.dialog.open(TraceChartComponent, {
       width: 'auto',
       maxWidth: '90vw',
-      data: {
-        spans: this.invocTraces.get(traceId),
-        invocId: this.findInvocIdFromTraceId(traceId)
-      },
+      data: {spans, invocId: this.findInvocId(spans)},
     });
   }
 }

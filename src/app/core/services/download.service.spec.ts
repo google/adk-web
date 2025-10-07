@@ -44,8 +44,8 @@ describe('DownloadService', () => {
     });
     service = TestBed.inject(DownloadService);
     safeValuesService = TestBed.inject(
-      SAFE_VALUES_SERVICE,
-    ) as MockSafeValuesService;
+                            SAFE_VALUES_SERVICE,
+                            ) as MockSafeValuesService;
 
     mockAnchor = jasmine.createSpyObj('HTMLAnchorElement', ['click']);
     createElementSpy = spyOn(document, 'createElement')
@@ -71,10 +71,11 @@ describe('DownloadService', () => {
 
     it('should call safeValuesService.setAnchorHref', () => {
       service.downloadBase64Data(base64Data, mimeType, FILE_NAME_PNG);
-      expect(safeValuesService.setAnchorHref).toHaveBeenCalledWith(
-        mockAnchor,
-        base64Data,
-      );
+      expect(safeValuesService.setAnchorHref)
+          .toHaveBeenCalledWith(
+              mockAnchor,
+              base64Data,
+          );
     });
 
     it('should set download attribute to filename', () => {
@@ -129,16 +130,18 @@ describe('DownloadService', () => {
       service.downloadObjectAsJson(data, FILE_NAME_JSON);
       expect(safeValuesService.createObjectUrl).toHaveBeenCalled();
       expect(
-        safeValuesService.createObjectUrl.calls.mostRecent().args[0].type,
-      ).toBe(OCTET_STREAM);
+          safeValuesService.createObjectUrl.calls.mostRecent().args[0].type,
+          )
+          .toBe(OCTET_STREAM);
     });
 
     it('should call safeValuesService.setAnchorHref with object url', () => {
       service.downloadObjectAsJson(data, FILE_NAME_JSON);
-      expect(safeValuesService.setAnchorHref).toHaveBeenCalledWith(
-        mockAnchor,
-        blobUrl,
-      );
+      expect(safeValuesService.setAnchorHref)
+          .toHaveBeenCalledWith(
+              mockAnchor,
+              blobUrl,
+          );
     });
 
     it('should create an anchor element', () => {

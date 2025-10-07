@@ -24,7 +24,7 @@
 
 .drawer-container {
   height: 100%;
-  background-color: #131314;
+  background-color: var(--chat-drawer-container-background-color);
 }
 
 .chat-container {
@@ -38,7 +38,7 @@
 }
 
 .event-container {
-  color: white;
+  color: var(--chat-event-container-color);
 }
 
 .chat-card {
@@ -48,7 +48,7 @@
   flex: 1;
   min-height: 12%;
   box-shadow: none;
-  background-color: #131314;
+  background-color: var(--chat-card-background-color);
 }
 
 .function-event-button .mdc-button__label {
@@ -79,14 +79,14 @@
 }
 
 .function-event-button {
-  background-color: white;
+  background-color: var(--chat-function-event-button-background-color);
   margin: 5px 5px 10px;
 }
 
 .function-event-button-highlight {
-  background-color: rgb(15, 82, 35);
-  border-color: rgb(15, 82, 35) !important;
-  color: white !important;
+  background-color: var(--chat-function-event-button-highlight-background-color);
+  border-color: var(--chat-function-event-button-highlight-border-color) !important;
+  color: var(--chat-function-event-button-highlight-color) !important;
 }
 
 .user-message {
@@ -94,9 +94,9 @@
   justify-content: flex-end;
   align-items: center;
   .message-card {
-    background-color: #004a77;
+    background-color: var(--chat-user-message-message-card-background-color);
     align-self: flex-end;
-    color: white;
+    color: var(--chat-user-message-message-card-color);
     box-shadow: none;
   }
 }
@@ -105,29 +105,29 @@
   display: flex;
   align-items: center;
   .message-card {
-    background-color: #303030;
+    background-color: var(--chat-bot-message-message-card-background-color);
     align-self: flex-start;
-    color: white;
+    color: var(--chat-bot-message-message-card-color);
     box-shadow: none;
   }
 }
 
 .bot-message:focus-within {
   .message-card {
-    background-color: #131314;
-    border: 1px solid #8ab4f8;
+    background-color: var(--chat-bot-message-focus-within-message-card-background-color);
+    border: 1px solid var(--chat-bot-message-focus-within-message-card-border-color);
   }
 }
 
 .message-textarea {
-  background-color: #303030;
+  background-color: var(--chat-message-textarea-background-color);
   max-width: 100%;
   border: none;
   font-family: 'Google Sans', 'Helvetica Neue', sans-serif;
 }
 
 .message-textarea:focus {
-  background-color: #131314;
+  background-color: var(--chat-message-textarea-focus-background-color);
   outline: none;
 }
 
@@ -141,7 +141,7 @@
   position: absolute;
   left: 10px;
   z-index: 10;
-  background-color: #484848;
+  background-color: var(--chat-eval-compare-container-background-color);
   overflow: hidden;
   border-radius: 20px;
   padding: 5px 20px;
@@ -149,7 +149,7 @@
   font-size: 16px;
 
   .actual-result {
-    border-right: 2px solid #8a8686;
+    border-right: 2px solid var(--chat-actual-result-border-right-color);
     padding-right: 8px;
     min-width: 350px;
     max-width: 350px;
@@ -182,17 +182,17 @@
 
 .eval-response-header {
   padding-bottom: 5px;
-  border-bottom: 2px solid #8a8686;
+  border-bottom: 2px solid var(--chat-eval-response-header-border-bottom-color);
   font-style: italic;
   font-weight: 700;
 }
 
 .header-expected {
-  color: #44c265;
+  color: var(--chat-header-expected-color);
 }
 
 .header-actual {
-  color: #ff8983;
+  color: var(--chat-header-actual-color);
 }
 
 .eval-case-edit-button {
@@ -203,12 +203,12 @@
 
 .eval-pass {
   display: flex;
-  color: #44c265;
+  color: var(--chat-eval-pass-color);
 }
 
 .eval-fail {
   display: flex;
-  color: #ff8983;
+  color: var(--chat-eval-fail-color);
 }
 
 .navigation-button-sidepanel {
@@ -230,8 +230,8 @@
 }
 
 .side-drawer {
-  background-color: #1b1b1b;
-  color: white;
+  background-color: var(--chat-side-drawer-background-color);
+  color: var(--chat-side-drawer-color);
   border-radius: 0;
 }
 
@@ -247,7 +247,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  background: #eee;
+  background: var(--chat-file-item-background-color);
   padding: 5px;
   border-radius: 4px;
 }
@@ -257,12 +257,8 @@ button {
   margin-right: 20px;
 }
 
-.app-select {
-  width: 100%;
-}
-
 .empty-state-container {
-  color: #eee;
+  color: var(--chat-empty-state-container-color);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -276,21 +272,21 @@ button {
   font-size: 18px;
 
   pre.warning {
-    color: #ffc185;
+    color: var(--chat-warning-color);
   }
 
   pre.error {
-    color: #ff4545;
+    color: var(--chat-error-color);
   }
 }
 
 :host ::ng-deep .mat-mdc-unelevated-button:not(:disabled) {
-  color: #202124;
-  background-color: #8ab4f8;
+  color: var(--chat-mat-mdc-unelevated-button-color);
+  background-color: var(--chat-mat-mdc-unelevated-button-background-color);
 }
 
 :host ::ng-deep .mdc-linear-progress__buffer-dots {
-  background: white;
+  background: var(--chat-mdc-linear-progress-buffer-dots-background-color);
 }
 
 :host ::ng-deep .mat-mdc-select-arrow-wrapper {
@@ -298,7 +294,7 @@ button {
 }
 
 :host ::ng-deep .mat-mdc-text-field-wrapper {
-  border: 1px solid #8e918f;
+  border: 1px solid var(--chat-mat-mdc-text-field-wrapper-border-color);
 }
 
 :host ::ng-deep .mdc-notched-outline__leading,
@@ -312,7 +308,7 @@ button {
 }
 
 :host ::ng-deep .segment-key {
-  color: lightgray !important;
+  color: var(--chat-segment-key-color) !important;
 }
 
 .mat-mdc-select-placeholder {
@@ -320,7 +316,7 @@ button {
 }
 
 .bottom-resize-handler {
-  background: #5f6368;
+  background: var(--chat-bottom-resize-handler-background-color);
   height: 5px;
   border-radius: 4px;
   position: absolute;
@@ -335,7 +331,7 @@ button {
 
 .trace-detail-container {
   position: relative;
-  background-color: #1b1b1b;
+  background-color: var(--chat-trace-detail-container-background-color);
 
   app-trace-event {
     padding-top: 8px;
@@ -348,30 +344,6 @@ button {
   width: 130px;
   height: 28px;
   font-size: 14px;
-}
-
-.app-select-container {
-  width: 35%;
-  margin-top: 12px;
-  background-color: #212123;
-  margin-left: 10px;
-  height: 30px;
-  display: flex;
-  justify-content: space-between;
-  padding-left: 20px;
-  padding-right: 20px;
-  border-radius: 10px;
-  padding-top: 5px;
-}
-
-.app-select-container {
-  @include mat.select-overrides(
-    (
-      placeholder-text-color: #8ab4f8,
-      enabled-trigger-text-color: #8ab4f8,
-      enabled-arrow-color: #8ab4f8,
-    )
-  );
 }
 
 .adk-checkbox {
@@ -387,14 +359,14 @@ button {
   position: sticky;
   top: 0;
   height: 48px;
-  background: #1b1b1b;
+  background: var(--chat-toolbar-background-color);
   display: flex;
   align-items: center;
   z-index: 10;
 }
 
 .chat-toolbar.edit-mode {
-  background: #44c2651a;
+  background: var(--chat-toolbar-edit-mode-background-color);
 }
 
 .toolbar-actions {
@@ -404,7 +376,7 @@ button {
 }
 
 .toolbar-session-text {
-  color: #fdfdfd;
+  color: var(--chat-toolbar-session-text-color);
   font-family: Roboto;
   font-size: 12px;
   font-style: normal;
@@ -417,7 +389,7 @@ button {
 }
 
 .toolbar-session-id {
-  color: #9aa0a6;
+  color: var(--chat-toolbar-session-id-color);
   font-family: 'Google Sans Mono', monospace;
   font-size: 14px;
   font-style: normal;
@@ -430,7 +402,7 @@ button {
 .toolbar-icon {
   width: 24px;
   height: 24px;
-  color: #c4c7c5;
+  color: var(--chat-toolbar-icon-color);
   cursor: pointer;
   margin-right: 16px;
 }
@@ -438,7 +410,7 @@ button {
 .toolbar-new-sesison {
   font-size: 14px;
   margin-right: 16px;
-  color: #9aa0a6;
+  color: var(--chat-toolbar-new-session-color);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -448,16 +420,16 @@ button {
   @include mat.slide-toggle-overrides(
     (
       label-text-size: 14px,
-      label-text-color: #9aa0a6,
-      selected-track-color: #8ab4f9,
-      selected-focus-track-color: #8ab4f9,
-      selected-hover-track-color: #8ab4f9,
-      selected-handle-color: #1b73e8,
-      selected-focus-handle-color: #1b73e8,
-      selected-hover-handle-color: #1b73e8,
+      label-text-color: var(--chat-toolbar-sse-toggle-label-text-color),
+      selected-track-color: var(--chat-toolbar-sse-toggle-selected-track-color),
+      selected-focus-track-color: var(--chat-toolbar-sse-toggle-selected-track-color),
+      selected-hover-track-color: var(--chat-toolbar-sse-toggle-selected-track-color),
+      selected-handle-color: var(--chat-toolbar-sse-toggle-selected-handle-color),
+      selected-focus-handle-color: var(--chat-toolbar-sse-toggle-selected-handle-color),
+      selected-hover-handle-color: var(--chat-toolbar-sse-toggle-selected-handle-color),
       track-height: 24px,
       track-width: 46px,
-      track-outline-color: #1b73e8,
+      track-outline-color: var(--chat-toolbar-sse-toggle-track-outline-color),
       with-icon-handle-size: 20px,
     )
   );
@@ -468,14 +440,5 @@ button {
 }
 
 ::ng-deep .mat-drawer {
-  border-right: 1px solid #444746 !important;
-}
-
-.app-name-option,
-.app-select {
-  color: #9aa0a6;
-  font-family: 'Google Sans Mono', monospace;
-  font-style: normal;
-  font-weight: 400;
-  padding-left: unset;
+  border-right: 1px solid var(--chat-mat-drawer-border-right-color) !important;
 }

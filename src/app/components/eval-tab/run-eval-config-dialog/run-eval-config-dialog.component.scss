@@ -2,14 +2,14 @@
   border-radius: 12px;
   padding: 18px;
   width:500px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 16px var(--run-eval-config-dialog-container-box-shadow-color);
 }
 
 .threshold-slider {
-  --mdc-slider-active-track-color: #4285f4;
-  --mdc-slider-inactive-track-color: #616161;
-  --mdc-slider-handle-color: #4285f4;
-  --mdc-slider-ripple-color: #4285f4;
+  --mdc-slider-active-track-color: var(--run-eval-config-dialog-threshold-slider-active-track-color);
+  --mdc-slider-inactive-track-color: var(--run-eval-config-dialog-threshold-slider-inactive-track-color);
+  --mdc-slider-handle-color: var(--run-eval-config-dialog-threshold-slider-handle-color);
+  --mdc-slider-ripple-color: var(--run-eval-config-dialog-threshold-slider-ripple-color);
   width: 100px
 }
 
@@ -28,7 +28,7 @@
 }
 
 .mdc-slider__thumb--with-indicator {
-  background-color: var(--mdc-slider-handle-color, black);
+  background-color: var(--mdc-slider-handle-color, var(--run-eval-config-dialog-mdc-slider-thumb-background-color));
   border: none !important;
   box-shadow: none !important;
 }

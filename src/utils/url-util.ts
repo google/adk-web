@@ -41,7 +41,7 @@ export class URLUtil {
   }
 
   static getWSServerUrl(): string {
-    let url = this.getApiServerBaseUrl();
+    let url = URLUtil.getApiServerBaseUrl();
     // For adk web, when the api server is not set, use the current host
     if (!url || url == '') {
       return window.location.host;

@@ -23,6 +23,10 @@ export interface Span {
   trace_id: string;
   attributes?: any;
   children?: Span[];
+  invoc_id?: string;
+  // For backward compatibility.
+  'gcp.vertex.agent.llm_request'?: string;
+  'gcp.vertex.agent.llm_response'?: string;
 }
 
 export interface SpanNode extends Span {

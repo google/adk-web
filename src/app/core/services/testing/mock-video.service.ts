@@ -24,4 +24,5 @@ export class MockVideoService implements Partial<VideoService> {
   createVideoElement = jasmine.createSpy('createVideoElement');
   startRecording = jasmine.createSpy('startRecording');
   stopRecording = jasmine.createSpy('stopRecording');
+  getCapturedFrame = jasmine.createSpy('getCapturedFrame');
 }

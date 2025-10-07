@@ -23,15 +23,15 @@
   align-items: center;
   @include mat.button-overrides(
     (
-      filled-container-color: #89b4f8,
-      filled-label-text-color: black,
+      filled-container-color: var(--side-panel-button-filled-container-color),
+      filled-label-text-color: var(--side-panel-button-filled-label-text-color),
     )
   );
 
   .mat-icon {
     width: 36px;
     height: 36px;
-    color: #bdc1c6;
+    color: var(--side-panel-mat-icon-color);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -47,7 +47,7 @@
   font-size: 14px;
 }
 .resize-handler {
-  background: #5f6368;
+  background: var(--side-panel-resize-handler-background-color);
   width: 4px;
   border-radius: 4px;
   position: absolute;
@@ -81,7 +81,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: #242424;
+  background: var(--side-panel-details-panel-container-background-color);
   display: inline-block;
   justify-content: center;
   align-items: center;
@@ -89,7 +89,7 @@
 }
 
 .details-content {
-  color: white;
+  color: var(--side-panel-details-content-color);
   font-size: 14px;
 }
 .event-graph-container {
@@ -126,4 +126,48 @@
   font-weight: 500;
   line-height: 24px;
   letter-spacing: 0.1px;
+}
+
+.powered-by-adk {
+  font-size: 10px;
+  color: var(--side-panel-powered-by-adk-color);
+  text-align: right;
+  margin-top: -5px;
+}
+
+.app-select {
+  width: 100%;
+}
+
+.app-select-container {
+  width: 35%;
+  margin-top: 12px;
+  background-color: var(--side-panel-app-select-container-background-color);
+  margin-left: 10px;
+  height: 30px;
+  display: flex;
+  justify-content: space-between;
+  padding-left: 20px;
+  padding-right: 20px;
+  border-radius: 10px;
+  padding-top: 5px;
+}
+
+.app-select-container {
+  @include mat.select-overrides(
+    (
+      placeholder-text-color: var(--side-panel-select-placeholder-text-color),
+      enabled-trigger-text-color: var(--side-panel-select-enabled-trigger-text-color),
+      enabled-arrow-color: var(--side-panel-select-enabled-arrow-color),
+    )
+  );
+}
+
+.app-name-option,
+.app-select {
+  color: var(--side-panel-app-name-option-color);
+  font-family: 'Google Sans Mono', monospace;
+  font-style: normal;
+  font-weight: 400;
+  padding-left: unset;
 }

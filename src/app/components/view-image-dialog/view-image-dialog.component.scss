@@ -8,16 +8,16 @@
   padding: 8px;
   border-radius: 50%;
   transition: background-color 0.2s ease;
-  color: #666; /* Icon color */
+  color: var(--eval-tab-status-card-separator-color); /* Icon color */
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10; /* Ensure button is clickable */
-  margin-bottom:15px;
+  margin-bottom: 15px;
 
   &:hover {
-    background-color: #f0f0f0;
-    color: #333;
+    background-color: var(--audio-player-container-background-color);
+    color: var(--chat-panel-bot-message-message-card-background-color);
   }
 
   svg {
@@ -44,7 +44,7 @@
 }
 
 .no-image-placeholder {
-  color: #888;
+  color: var(--trace-chart-trace-duration-color);
   font-style: italic;
   text-align: center;
   padding: 20px;

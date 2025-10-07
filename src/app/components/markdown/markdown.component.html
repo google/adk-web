@@ -15,9 +15,9 @@
 -->
 
 <markdown
-  [data]="text"
+  [data]="text()"
   [ngStyle]="{
-              'font-style': thought ? 'italic' : 'normal',
-              color: thought ? '#9aa0a6' : 'white'
+              'font-style': thought() ? 'italic' : 'normal',
+              color: thought() ? '#9aa0a6' : 'white'
             }"
 ></markdown>

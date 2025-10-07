@@ -14,18 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, OnChanges, SimpleChanges, Inject} from '@angular/core';
+import {Component, Inject, Input} from '@angular/core';
 
 import {Span} from '../../../core/models/Trace';
-import {TraceService, TRACE_SERVICE} from '../../../core/services/trace.service';
-import { NgStyle } from '@angular/common';
-
+import {TRACE_SERVICE, TraceService} from '../../../core/services/trace.service';
 
 @Component({
-    selector: 'app-trace-tree',
-    templateUrl: './trace-tree.component.html',
-    styleUrl: './trace-tree.component.scss',
-    imports: [NgStyle]
+  selector: 'app-trace-tree',
+  templateUrl: './trace-tree.component.html',
+  styleUrl: './trace-tree.component.scss',
 })
 export class TraceTreeComponent {
   @Input() spans: any[] = [];
@@ -37,7 +34,9 @@ export class TraceTreeComponent {
   flatTree: {span: Span; level: number}[] = [];
   traceLabelIconMap = new Map<string, string>([
     ['Invocation', 'start'],
+    // TODO: Remove agent_run mapping once all ADKs span names follow OTLP GenAI semconv.
     ['agent_run', 'directions_run'],
+    ['invoke_agent', 'directions_run'],
     ['tool', 'build'],
     ['call_llm', 'chat'],
   ]);

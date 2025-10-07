@@ -37,10 +37,10 @@
     } @if (!message.functionCall && !message.functionResponse) {
     <mat-card
       class="message-card"
-      [ngClass]="{ 'eval-fail': message.evalStatus === 2 }"
-      [ngStyle]="{
-              'background-color': shouldMessageHighlighted(i) ? 'rgb(15, 82, 35)' : ''
-            }"
+      [ngClass]="{
+        'eval-fail': message.evalStatus === 2,
+        'message-card--highlighted': shouldMessageHighlighted(i)
+      }"
     >
       @if (message.isLoading) {
       <mat-progress-bar class="loading-bar" mode="buffer"></mat-progress-bar>
@@ -76,29 +76,15 @@
             ></textarea>
             <div class="edit-message-buttons-container">
               <span
-                class="material-symbols-outlined"
+                class="material-symbols-outlined cancel-edit-button"
                 [matTooltip]="i18n.cancelEditingTooltip"
-                style="
-                  width: 24px;
-                  height: 24px;
-                  color: #c4c7c5;
-                  cursor: pointer;
-                  margin-right: 16px;
-                "
                 (click)="cancelEditMessage.emit(message)"
               >
                 close
               </span>
               <span
-                class="material-symbols-outlined"
+                class="material-symbols-outlined save-edit-button"
                 [matTooltip]="i18n.saveEvalMessageTooltip"
-                style="
-                  width: 24px;
-                  height: 24px;
-                  color: rgb(97, 151, 202);
-                  cursor: pointer;
-                  margin-right: 16px;
-                "
                 (click)="saveEditMessage.emit(message)"
               >
                 check
@@ -106,7 +92,7 @@
             </div>
           </div>
           } @else {
-          <app-markdown [text]="message.text!" [thought]="message.thought"></app-markdown>
+            <ng-container [ngComponentOutlet]="markdownComponent" [ngComponentOutletInputs]="{text: message.text!, thought: message.thought}"></ng-container>
           }
         }
         </div>
@@ -347,7 +333,6 @@
       (ngModelChange)="userInputChange.emit($event)"
       (keydown.enter)="sendMessage.emit($event)"
       [placeholder]="i18n.typeMessagePlaceholder"
-      style="caret-color: white"
     ></textarea>
     <div class="chat-input-actions">
       <div>
@@ -356,6 +341,7 @@
           (click)="fileInput.click()"
           class="function-event-button"
           [matTooltip]="i18n.uploadFileTooltip"
+          [disabled]="!(isMessageFileUploadEnabledObs | async)"
         >
           <mat-icon>attach_file</mat-icon>
         </button>
@@ -364,6 +350,7 @@
           [matMenuTriggerFor]="moreMenu"
           class="function-event-button"
           [matTooltip]="i18n.moreOptionsTooltip"
+          [disabled]="!(isManualStateUpdateEnabledObs | async)"
         >
           <mat-icon>more_vert</mat-icon>
         </button>
@@ -376,10 +363,10 @@
           mat-icon-button
           matSuffix
           (click)="toggleAudioRecording.emit()"
-          [ngStyle]="{
-              'background-color': isAudioRecording ? 'rgb(234, 67, 53)' : 'rgb(51, 53, 55)'
-            }"
+          class="audio-rec-btn"
+          [class.recording]="isAudioRecording"
           [matTooltip]="isAudioRecording ? i18n.turnOffMicTooltip : i18n.useMicTooltip"
+          [disabled]="!(isBidiStreamingEnabledObs | async)"
         >
           <mat-icon>mic</mat-icon>
         </button>
@@ -387,10 +374,10 @@
           mat-icon-button
           matSuffix
           (click)="toggleVideoRecording.emit()"
-          [ngStyle]="{
-              'background-color': isVideoRecording ? 'rgb(234, 67, 53)' : 'rgb(51, 53, 55)'
-            }"
+          class="video-rec-btn"
+          [class.recording]="isVideoRecording"
           [matTooltip]="isVideoRecording ? i18n.turnOffCamTooltip : i18n.useCamTooltip"
+          [disabled]="!(isBidiStreamingEnabledObs | async)"
         >
           <mat-icon>videocam</mat-icon>
         </button>

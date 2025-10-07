@@ -4,9 +4,9 @@
   justify-content: center;
   align-items: center;
   padding: 15px;
-  background-color: #f0f0f0;
+  background-color: var(--audio-player-container-background-color);
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 5px var(--audio-player-container-box-shadow-color);
   margin: 20px auto;
   max-width: 350px;
 }
@@ -29,13 +29,13 @@ audio {
   padding: 8px 15px;
   border: none;
   border-radius: 5px;
-  background-color: #007bff;
-  color: white;
+  background-color: var(--audio-player-custom-controls-button-background-color);
+  color: var(--audio-player-custom-controls-button-color);
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s ease;
 }
 
 .custom-controls button:hover {
-  background-color: #0056b3;
+  background-color: var(--audio-player-custom-controls-button-hover-background-color);
 }

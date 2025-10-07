@@ -27,7 +27,7 @@
 .eval-set-actions {
   display: flex;
   justify-content: space-between;
-  color: #9aa0a6;
+  color: var(--eval-tab-eval-set-actions-color);
   font-style: normal;
   font-weight: 700;
   font-size: 14px;
@@ -35,15 +35,15 @@
 
 .empty-eval-info {
   margin-top: 12px;
-  background-color: #202124;
+  background-color: var(--eval-tab-empty-eval-info-background-color);
   border-radius: 8px;
   box-shadow:
-    0px 2px 6px 2px rgba(0, 0, 0, 0.15),
-    0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+    0px 2px 6px 2px var(--eval-tab-empty-eval-info-box-shadow-color1),
+    0px 1px 2px 0px var(--eval-tab-empty-eval-info-box-shadow-color2);
 }
 
 .info-title {
-  color: #e8eaed;
+  color: var(--eval-tab-info-title-color);
   font-family: Roboto;
   font-size: 14px;
   font-weight: 500;
@@ -53,7 +53,7 @@
 }
 
 .info-detail {
-  color: #e8eaed;
+  color: var(--eval-tab-info-detail-color);
   font-family: Roboto;
   font-size: 14px;
   font-weight: 400;
@@ -64,7 +64,7 @@
 }
 
 .info-create {
-  color: var(--Blue-300, #8ab4f8);
+  color: var(--eval-tab-info-create-color);
   font-size: 14px;
   font-style: normal;
   font-weight: 500;
@@ -83,17 +83,17 @@
 
 .selected-eval-case {
   font-weight: 900;
-  color: #8ab4f8;
+  color: var(--eval-tab-selected-eval-case-color);
  }
 
 .save-session-btn {
   width: 100%;
   background: linear-gradient(
       0deg,
-      rgba(138, 180, 248, 0.24) 0%,
-      rgba(138, 180, 248, 0.24) 100%
+      var(--eval-tab-save-session-btn-background-color1) 0%,
+      var(--eval-tab-save-session-btn-background-color1) 100%
     ),
-    #202124;
+    var(--eval-tab-save-session-btn-background-color2);
   border: none;
   border-radius: 4px;
   margin-top: 12px;
@@ -111,7 +111,7 @@
 
 .save-session-btn-text {
   padding-top: 2px;
-  color: var(--Blue-100, #d2e3fc);
+  color: var(--eval-tab-save-session-btn-text-color);
   font-family: 'Google Sans';
   font-size: 14px;
   font-style: normal;
@@ -122,18 +122,18 @@
 
 .run-eval-btn {
   border-radius: 4px;
-  border: 1px solid var(--Grey-700, #5f6368);
+  border: 1px solid var(--eval-tab-run-eval-btn-border-color);
   background-color: transparent;
   padding-left: 24px;
   padding-right: 24px;
   padding-top: 8px;
   padding-bottom: 8px;
   margin-top: 16px;
-  color: #8ab4f8;
+  color: var(--eval-tab-run-eval-btn-color);
   cursor: pointer;
 
   &:hover {
-    background-color: #202124;
+    background-color: var(--eval-tab-run-eval-btn-hover-background-color);
   }
 }
 
@@ -141,20 +141,20 @@
   display: flex;
   background-color: transparent;
   border-radius: 4px;
-  border: 1px solid var(--Grey-700, #5f6368);
+  border: 1px solid var(--eval-tab-result-btn-border-color);
   margin-top: 4px;
   cursor: pointer;
 
   &:hover {
-    background-color: #202124;
+    background-color: var(--eval-tab-result-btn-hover-background-color);
   }
 
   &.pass {
-    color: #44c265;
+    color: var(--eval-tab-result-btn-pass-color);
   }
 
   &.fail {
-    color: #ff8983;
+    color: var(--eval-tab-result-btn-fail-color);
   }
 }
 
@@ -175,7 +175,7 @@
   flex-direction: column;
   align-items: center;
   border-radius: 8px;
-  background-color: #2d2d2d;
+  background-color: var(--eval-tab-status-card-background-color);
   padding: 12px 16px;
   margin-top: 12px;
 
@@ -194,7 +194,7 @@
 
   &__timestamp {
     font-size: 0.9em;
-    color: #e0e0e0;
+    color: var(--eval-tab-status-card-timestamp-color);
     margin-bottom: 5px;
   }
 
@@ -215,20 +215,20 @@
 
   &__metric {
     width: 180px;
-    color: #bbb;
+    color: var(--eval-tab-status-card-metric-color);
   }
 
   &__failed {
-    color: #ff6b6b;
+    color: var(--eval-tab-status-card-failed-color);
   }
 
   &__separator {
-    color: #666;
+    color: var(--eval-tab-status-card-separator-color);
     margin: 0 8px;
   }
 
   &__passed {
-    color: #63e6be;
+    color: var(--eval-tab-status-card-passed-color);
   }
 
   &__action {
@@ -237,7 +237,7 @@
     align-items: center;
 
     mat-icon {
-      color: #bdbdbd;
+      color: var(--eval-tab-status-card-action-mat-icon-color);
       cursor: pointer;
       transition: transform 0.2s ease-in-out;
 
@@ -247,7 +247,7 @@
     }
 
     .status-card__icon {
-      color: #bdbdbd;
+      color: var(--eval-tab-status-card-icon-color);
       font-size: 1.2em;
       cursor: pointer;
       &:hover {

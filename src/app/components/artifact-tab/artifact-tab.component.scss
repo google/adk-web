@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 .artifact-container {
   display: flex;
   flex-wrap: wrap;
@@ -36,7 +35,7 @@
 }
 
 .download-button {
-  background-color: #8ab4f8 !important;
+  background-color: var(--artifact-tab-download-button-background-color) !important;
   margin-left: 35px;
   width: 130px;
   height: 28px;
@@ -51,13 +50,13 @@
 
 hr.white-separator {
   border: none;
-  border-top: 1px solid white;
+  border-top: 1px solid var(--artifact-tab-white-separator-border-top-color);
   margin-bottom: 1.2em;
   margin-right: 15px;
 }
 
 .version-select-container {
-  background-color: #212123;
+  background-color: var(--artifact-tab-version-select-container-background-color);
   width: 80px;
   margin-left: 15px;
 }
@@ -67,27 +66,27 @@ hr.white-separator {
   border: none;
   padding: 0;
   font: inherit;
-  color: #007bff !important;
+  color: var(--artifact-tab-link-style-button-color) !important;
   text-decoration: underline;
   cursor: pointer;
   outline: none;
 }
 
 .link-style-button:hover {
-  color: #0056b3;
+  color: var(--artifact-tab-link-style-button-hover-color);
   text-decoration: underline;
 }
 
 .link-style-button:focus {
-  outline: 1px dotted #007bff;
+  outline: 1px dotted var(--artifact-tab-link-style-button-focus-outline-color);
 }
 
 .link-style-button:active {
-  color: #004085;
+  color: var(--artifact-tab-link-style-button-active-color);
 }
 
 .link-style-button:disabled {
-  color: #6c757d;
+  color: var(--artifact-tab-link-style-button-disabled-color);
   text-decoration: none;
   cursor: not-allowed;
 }

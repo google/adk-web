@@ -56,4 +56,40 @@ export class FeatureFlagService {
         map((params) => params[A2A_CARD] === 'true'),
     );
   }
+
+  isApplicationSelectorEnabled(): Observable<boolean> {
+    return of(true);
+  }
+
+  isAlwaysOnSidePanelEnabled(): Observable<boolean> {
+    return of(false);
+  }
+
+  isTraceEnabled(): Observable<boolean> {
+    return of(true);
+  }
+
+  isArtifactsTabEnabled(): Observable<boolean> {
+    return of(true);
+  }
+
+  isEvalEnabled(): Observable<boolean> {
+    return of(true);
+  }
+
+  isTokenStreamingEnabled(): Observable<boolean> {
+    return of(true);
+  }
+
+  isMessageFileUploadEnabled(): Observable<boolean> {
+    return of(true);
+  }
+
+  isManualStateUpdateEnabled(): Observable<boolean> {
+    return of(true);
+  }
+
+  isBidiStreamingEnabled(): Observable<boolean> {
+    return of(true);
+  }
 }

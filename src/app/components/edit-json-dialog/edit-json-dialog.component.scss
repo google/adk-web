@@ -18,7 +18,7 @@
   border-radius: 12px;
   padding: 18px;
   width:500px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 16px var(--edit-json-dialog-container-box-shadow-color);
 }
 
 .editor {

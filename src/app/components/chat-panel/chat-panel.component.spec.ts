@@ -24,10 +24,14 @@ import {By} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {of} from 'rxjs';
 
+import {FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
 import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
 import {StringToColorServiceImpl} from '../../core/services/string-to-color.service';
+import {MockFeatureFlagService} from '../../core/services/testing/mock-feature-flag.service';
 import {MockStringToColorService} from '../../core/services/testing/mock-string-to-color.service';
 import {ChatPanelComponent} from './chat-panel.component';
+import {MARKDOWN_COMPONENT} from '../markdown/markdown.component.interface';
+import {MarkdownComponent} from '../markdown/markdown.component';
 
 const USER_ID = 'user';
 const FUNC1_NAME = 'func1';
@@ -35,8 +39,15 @@ const FUNC1_NAME = 'func1';
 describe('ChatPanelComponent', () => {
   let component: ChatPanelComponent;
   let fixture: ComponentFixture<ChatPanelComponent>;
+  let mockFeatureFlagService: MockFeatureFlagService;
 
   beforeEach(async () => {
+    mockFeatureFlagService = new MockFeatureFlagService();
+
+    mockFeatureFlagService.isMessageFileUploadEnabledResponse.next(true);
+    mockFeatureFlagService.isManualStateUpdateEnabledResponse.next(true);
+    mockFeatureFlagService.isBidiStreamingEnabledResponse.next(true);
+
     await TestBed
         .configureTestingModule({
           imports: [
@@ -44,15 +55,15 @@ describe('ChatPanelComponent', () => {
             MatDialogModule,
             NoopAnimationsModule,
             HttpClientTestingModule,
-            // BEGIN_EXTERNAL
-            // MarkdownModule.forRoot(),
-            // END_EXTERNAL
+            MarkdownModule.forRoot(),
           ],
           providers: [
             {
               provide: STRING_TO_COLOR_SERVICE,
               useClass: StringToColorServiceImpl,
             },
+            {provide: MARKDOWN_COMPONENT, useValue: MarkdownComponent},
+            {provide: FEATURE_FLAG_SERVICE, useValue: mockFeatureFlagService},
           ],
         })
         .compileComponents();
@@ -325,5 +336,59 @@ describe('ChatPanelComponent', () => {
          expect(component.scrollInterrupted).toBeFalse();
          expect(scrollContainerElement.scrollTo).toHaveBeenCalled();
        }));
+  });
+
+  describe('disabled features', () => {
+    it('should have the attach_file button disabled', () => {
+      mockFeatureFlagService.isMessageFileUploadEnabledResponse.next(false);
+      fixture.detectChanges();
+
+      const allButtons =
+          fixture.debugElement.queryAll(By.css('button[mat-icon-button]'));
+      const button = allButtons.find(
+          b =>
+              b.nativeElement.querySelector('mat-icon')?.textContent?.trim() ===
+              'attach_file');
+      expect(button!.nativeElement.disabled).toBeTrue();
+    });
+
+    it('should have the more_vert button disabled', () => {
+      mockFeatureFlagService.isManualStateUpdateEnabledResponse.next(false);
+      fixture.detectChanges();
+
+      const allButtons =
+          fixture.debugElement.queryAll(By.css('button[mat-icon-button]'));
+      const button = allButtons.find(
+          b =>
+              b.nativeElement.querySelector('mat-icon')?.textContent?.trim() ===
+              'more_vert');
+      expect(button!.nativeElement.disabled).toBeTrue();
+    });
+
+    it('should have the mic button disabled', () => {
+      mockFeatureFlagService.isBidiStreamingEnabledResponse.next(false);
+      fixture.detectChanges();
+
+      const allButtons =
+          fixture.debugElement.queryAll(By.css('button[mat-icon-button]'));
+      const button = allButtons.find(
+          b =>
+              b.nativeElement.querySelector('mat-icon')?.textContent?.trim() ===
+              'mic');
+      expect(button!.nativeElement.disabled).toBeTrue();
+    });
+
+    it('should have the videocam button disabled', () => {
+      mockFeatureFlagService.isBidiStreamingEnabledResponse.next(false);
+      fixture.detectChanges();
+
+      const allButtons =
+          fixture.debugElement.queryAll(By.css('button[mat-icon-button]'));
+      const button = allButtons.find(
+          b =>
+              b.nativeElement.querySelector('mat-icon')?.textContent?.trim() ===
+              'videocam');
+      expect(button!.nativeElement.disabled).toBeTrue();
+    });
   });
 });

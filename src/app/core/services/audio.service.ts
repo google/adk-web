@@ -15,11 +15,14 @@
  * limitations under the License.
  */
 
-import {Injectable, InjectionToken} from '@angular/core';
+import {Inject, Injectable, InjectionToken} from '@angular/core';
+
 import {LiveRequest} from '../models/LiveRequest';
-import {WebSocketService} from './websocket.service';
 
 export const AUDIO_SERVICE = new InjectionToken<AudioService>('AudioService');
+export const AUDIO_WORKLET_MODULE_PATH =
+    new InjectionToken<string>('AudioWorkletModulePath');
+
 
 @Injectable({
   providedIn: 'root',
@@ -31,9 +34,10 @@ export class AudioService {
   private source!: MediaStreamAudioSourceNode;
   private processor!: ScriptProcessorNode;
   private audioBuffer: Uint8Array[] = [];
-  private audioIntervalId: any = null;
 
-  constructor(private wsService: WebSocketService) {}
+  constructor(
+      @Inject(AUDIO_WORKLET_MODULE_PATH)
+      private readonly audioWorkletModulePath: string) {}
 
   async startRecording() {
     try {
@@ -41,13 +45,12 @@ export class AudioService {
 
       this.audioContext = new AudioContext();
       await this.audioContext.audioWorklet.addModule(
-          './assets/audio-processor.js',
-      );
+          this.audioWorkletModulePath);
 
       this.source = this.audioContext.createMediaStreamSource(this.stream);
       const workletNode = new AudioWorkletNode(
-        this.audioContext,
-        'audio-processor',
+          this.audioContext,
+          'audio-processor',
       );
 
       workletNode.port.onmessage = (event) => {
@@ -58,35 +61,9 @@ export class AudioService {
 
       this.source.connect(workletNode);
       workletNode.connect(this.audioContext.destination);
-      this.audioIntervalId = setInterval(() => this.sendBufferedAudio(), 250);
     } catch (error) {
       console.error('Error accessing microphone:', error);
     }
-  }
-
-  private sendBufferedAudio() {
-    if (this.audioBuffer.length === 0) return;
-    // Concatenate all accumulated chunks into one Uint8Array
-    const totalLength = this.audioBuffer.reduce(
-      (sum, chunk) => sum + chunk.length,
-      0,
-    );
-    const combinedBuffer = new Uint8Array(totalLength);
-
-    let offset = 0;
-    for (const chunk of this.audioBuffer) {
-      combinedBuffer.set(chunk, offset);
-      offset += chunk.length;
-    }
-
-    const request: LiveRequest = {
-      blob: {
-        mime_type: 'audio/pcm',
-        data: combinedBuffer,
-      },
-    };
-    this.wsService.sendMessage(request);
-    this.audioBuffer = [];
   }
 
   stopRecording() {
@@ -102,10 +79,28 @@ export class AudioService {
     if (this.stream) {
       this.stream.getTracks().forEach((track) => track.stop());
     }
-    if (this.audioIntervalId) {
-      clearInterval(this.audioIntervalId);
-      this.audioIntervalId = null;
+  }
+
+  getCombinedAudioBuffer(): Uint8Array|void {
+    if (this.audioBuffer.length === 0) return;
+    // Concatenate all accumulated chunks into one Uint8Array
+    const totalLength = this.audioBuffer.reduce(
+        (sum, chunk) => sum + chunk.length,
+        0,
+    );
+    const combinedBuffer = new Uint8Array(totalLength);
+
+    let offset = 0;
+    for (const chunk of this.audioBuffer) {
+      combinedBuffer.set(chunk, offset);
+      offset += chunk.length;
     }
+
+    return combinedBuffer;
+  }
+
+  cleanAudioBuffer() {
+    this.audioBuffer = [];
   }
 
   private float32ToPCM(audioData: Float32Array): Uint8Array {

@@ -34,24 +34,11 @@
     >
   }
   <mat-drawer class="side-drawer" #sideDrawer mode="side" appResizableDrawer>
-    <div class="app-select-container">
-      <mat-select
-        class="app-select"
-        (selectionChange)="onAppSelection($event)"
-        [placeholder]="isLoadingApps() ? 'Loading...' : 'Select an agent'"
-        [formControl]="selectedAppControl"
-      >
-        @if (apps$ | async; as availableApps) {
-          @for (appName of availableApps; track appName) {
-            <mat-option class="app-name-option" [value]="appName">{{ appName }}</mat-option>
-          }
-        }
-        @if (selectedAppControl.value && isLoadingApps()) {
-          <mat-option class="app-name-option" [value]="selectedAppControl.value">{{ selectedAppControl.value }}</mat-option>
-        }
-      </mat-select>
-    </div>
     <app-side-panel
+      [isApplicationSelectorEnabledObs]="isApplicationSelectorEnabledObs"
+      [apps$]="apps$"
+      [isLoadingApps]="isLoadingApps"
+      [selectedAppControl]="selectedAppControl"
       [showSidePanel]="showSidePanel"
       [appName]="appName"
       [userId]="userId"
@@ -60,7 +47,6 @@
       [eventData]="eventData"
       [currentSessionState]="currentSessionState"
       [artifacts]="artifacts"
-      [shouldShowEvalTab]="shouldShowEvalTab()"
       [selectedEvent]="selectedEvent"
       [selectedEventIndex]="selectedEventIndex"
       [renderedEventGraph]="renderedEventGraph"
@@ -72,7 +58,6 @@
       (eventSelected)="selectEvent($event)"
       (sessionSelected)="updateWithSelectedSession($event)"
       (sessionReloaded)="updateSessionState($event)"
-      (evalTabVisibilityChange)="handleShouldShowEvalTab($event)"
       (evalCaseSelected)="updateWithSelectedEvalCase($event)"
       (evalSetIdSelected)="updateSelectedEvalSetId($event)"
       (returnToSession)="handleReturnToSession($event)"
@@ -80,6 +65,7 @@
       (page)="handlePageEvent($event)"
       (closeSelectedEvent)="closeSelectedEvent()"
       (openImageDialog)="openViewImageDialog($event)"
+      (appSelectionChange)="onAppSelection($event)"
     >
     </app-side-panel>
   </mat-drawer>
@@ -147,6 +133,7 @@
                 class="example-margin"
                 [checked]="enableSseIndicator()"
                 (change)="toggleSse()"
+                [disabled]="!(isTokenStreamingEnabledObs | async)"
               >
                 Token Streaming
               </mat-slide-toggle>
@@ -192,7 +179,7 @@
           <div class="empty-state-container">
             <span>Loading agents, please wait...</span>
           </div>
-        } @else {
+        } @else if (isApplicationSelectorEnabledObs | async) {
           <div class="empty-state-container">
             @if (((apps$ | async) || []).length > 0) {
               <span
@@ -234,7 +221,6 @@
             [selectedFiles]="selectedFiles"
             [updatedSessionState]="updatedSessionState()"
             [eventData]="eventData"
-            [MediaType]="MediaType"
             [isAudioRecording]="isAudioRecording"
             [isVideoRecording]="isVideoRecording"
             [isScreenSharing]="isScreenSharing"

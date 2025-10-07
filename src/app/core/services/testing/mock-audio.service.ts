@@ -23,4 +23,6 @@ import {AudioService} from '../audio.service';
 export class MockAudioService implements Partial<AudioService> {
   startRecording = jasmine.createSpy('startRecording');
   stopRecording = jasmine.createSpy('stopRecording');
+  getCombinedAudioBuffer = jasmine.createSpy('getCombinedAudioBuffer');
+  cleanAudioBuffer = jasmine.createSpy('cleanAudioBuffer');
 }

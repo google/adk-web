@@ -70,6 +70,11 @@ export class TraceTabComponent implements OnInit, OnChanges {
     const eventItem = group?.find(
         item => item.attributes !== undefined &&
             'gcp.vertex.agent.invocation_id' in item.attributes)
+
+    if (!eventItem) {
+      return '[no invocation id found]';
+    }
+
     const requestJson =
         JSON.parse(eventItem.attributes['gcp.vertex.agent.llm_request']) as LlmRequest
     const userContent =

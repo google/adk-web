@@ -16,8 +16,7 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, Input, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
-
+import {Component, input} from '@angular/core';
 import {MarkdownModule, provideMarkdown} from 'ngx-markdown';
 
 /**
@@ -34,9 +33,8 @@ import {MarkdownModule, provideMarkdown} from 'ngx-markdown';
   providers: [
     provideMarkdown(),
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class MarkdownComponent {
-  @Input() text = '';
-  @Input() thought = false;
+  text = input('');
+  thought = input(false);
 }

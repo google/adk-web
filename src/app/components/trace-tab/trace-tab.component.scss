@@ -23,7 +23,7 @@
 }
 
 .trace-title {
-  color: #9aa0a6;
+  color: var(--trace-tab-trace-title-color);
   font-size: 14px;
   font-style: normal;
   font-weight: 700;
@@ -33,7 +33,7 @@
 
 .trace-label {
   width: 400px;
-  color: #e3e3e3;
+  color: var(--trace-tab-trace-label-color);
   text-overflow: ellipsis;
   font-family: 'Google Sans Mono', monospace;
   font-size: 14px;
@@ -52,18 +52,18 @@
 .trace-bar {
   position: absolute;
   height: 18px;
-  background-color: #2f4d65;
+  background-color: var(--trace-tab-trace-bar-background-color);
   border-radius: 4px;
   padding-left: 4px;
   overflow: hidden;
   font-size: 11px;
   line-height: 16px;
-  color: #8dabbf;
+  color: var(--trace-tab-trace-bar-color);
   font-family: 'Google Sans';
 }
 
 .trace-duration {
-  color: #888;
+  color: var(--trace-tab-trace-duration-color);
   font-weight: normal;
   margin-left: 4px;
 }
@@ -96,7 +96,7 @@
   bottom: 0;
   left: 9px;
   width: 1px;
-  background-color: #ccc;
+  background-color: var(--trace-tab-vertical-line-background-color);
 }
 
 .horizontal-line {
@@ -105,31 +105,31 @@
   left: 9px;
   width: 10px;
   height: 1px;
-  background-color: #ccc;
+  background-color: var(--trace-tab-horizontal-line-background-color);
 }
 
 .trace-item {
   margin-top: 5px;
   @include mat.expansion-overrides(
     (
-      container-background-color: #333537,
-      header-focus-state-layer-color: red,
-      header-description-color: #8e918f,
+      container-background-color: var(--trace-tab-trace-item-container-background-color),
+      header-focus-state-layer-color: var(--trace-tab-trace-item-header-focus-state-layer-color),
+      header-description-color: var(--trace-tab-trace-item-header-description-color),
       header-text-size: 15,
     )
   );
-}
 
-::ng-deep .mat-expansion-panel-header.mat-expanded:focus {
-  background-color: #444746 !important;
-}
+  ::ng-deep .mat-expansion-panel-header.mat-expanded:focus {
+    background-color: var(--trace-tab-mat-expansion-panel-header-focus-background-color);
+  }
 
-::ng-deep .mat-expansion-panel-header.mat-expanded {
-  background-color: #444746 !important;
-}
+  ::ng-deep .mat-expansion-panel-header.mat-expanded {
+    background-color: var(--trace-tab-mat-expansion-panel-header-background-color);
+  }
 
-::ng-deep .mat-expansion-panel-header.mat-expanded:hover {
-  background-color: #444746 !important;
+  ::ng-deep .mat-expansion-panel-header.mat-expanded:hover {
+    background-color: var(--trace-tab-mat-expansion-panel-header-hover-background-color);
+  }
 }
 
 ::ng-deep .mat-expansion-panel-header-title {

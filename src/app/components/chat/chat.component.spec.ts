@@ -15,14 +15,17 @@
  * limitations under the License.
  */
 
+
 import {Location} from '@angular/common';
 import {HttpErrorResponse} from '@angular/common/http';
-import {ComponentFixture, fakeAsync, TestBed, tick} from '@angular/core/testing';
+import {Component} from '@angular/core';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {By} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
+
 import {BehaviorSubject, NEVER, of, Subject, throwError} from 'rxjs';
 
 import {EvalCase} from '../../core/models/Eval';
@@ -37,7 +40,7 @@ import {GRAPH_SERVICE, GraphService} from '../../core/services/graph.service';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
 import {SESSION_SERVICE, SessionService,} from '../../core/services/session.service';
-import {StringToColorServiceImpl} from '../../core/services/string-to-color.service';
+import {STREAM_CHAT_SERVICE} from '../../core/services/stream-chat.service';
 import {MockAgentService} from '../../core/services/testing/mock-agent.service';
 import {MockArtifactService} from '../../core/services/testing/mock-artifact.service';
 import {MockAudioService} from '../../core/services/testing/mock-audio.service';
@@ -48,6 +51,7 @@ import {MockFeatureFlagService} from '../../core/services/testing/mock-feature-f
 import {MockGraphService} from '../../core/services/testing/mock-graph.service';
 import {MockSafeValuesService} from '../../core/services/testing/mock-safevalues.service';
 import {MockSessionService} from '../../core/services/testing/mock-session.service';
+import {MockStreamChatService} from '../../core/services/testing/mock-stream-chat.service';
 import {MockStringToColorService} from '../../core/services/testing/mock-string-to-color.service';
 import {MockTraceService} from '../../core/services/testing/mock-trace.service';
 import {MockVideoService} from '../../core/services/testing/mock-video.service';
@@ -57,9 +61,11 @@ import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
 import {VIDEO_SERVICE, VideoService} from '../../core/services/video.service';
 import {SCREEN_SHARING_SERVICE, ScreenSharingService,} from '../../core/services/screensharing.service';
 import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/websocket.service';
-import {Component} from '@angular/core';
-
+import {fakeAsync,
+        tick} from '../../testing/utils';
 import {ChatPanelComponent} from '../chat-panel/chat-panel.component';
+import {MARKDOWN_COMPONENT} from '../markdown/markdown.component.interface';
+import {MockMarkdownComponent} from '../markdown/testing/mock-markdown.component';
 import {SidePanelComponent} from '../side-panel/side-panel.component';
 
 import {ChatComponent} from './chat.component';
@@ -106,7 +112,7 @@ describe('ChatComponent', () => {
   let mockAudioService: MockAudioService;
   let mockWebSocketService: MockWebSocketService;
   let mockVideoService: MockVideoService;
-  let mockScreenSharingService: MockScreenSharingService;
+  let mockStreamChatService: MockStreamChatService;
   let mockEventService: MockEventService;
   let mockDownloadService: MockDownloadService;
   let mockEvalService: MockEvalService;
@@ -128,7 +134,7 @@ describe('ChatComponent', () => {
     mockAudioService = new MockAudioService();
     mockWebSocketService = new MockWebSocketService();
     mockVideoService = new MockVideoService();
-    mockScreenSharingService = new MockScreenSharingService();
+    mockStreamChatService = new MockStreamChatService();
     mockEventService = new MockEventService();
     mockDownloadService = new MockDownloadService();
     mockEvalService = new MockEvalService();
@@ -138,6 +144,8 @@ describe('ChatComponent', () => {
     mockStringToColorService = new MockStringToColorService();
     mockSafeValuesService = new MockSafeValuesService();
 
+    mockStringToColorService.stc.and.returnValue('#8c8526ff');
+
     mockSessionService.createSessionResponse.next(
         {id: SESSION_1_ID, state: {}});
     mockTraceService.selectedTraceRow$.next(undefined);
@@ -145,6 +153,8 @@ describe('ChatComponent', () => {
     mockFeatureFlagService.isImportSessionEnabledResponse.next(true);
     mockFeatureFlagService.isEditFunctionArgsEnabledResponse.next(true);
     mockFeatureFlagService.isSessionUrlEnabledResponse.next(true);
+    mockFeatureFlagService.isApplicationSelectorEnabledResponse.next(true);
+    mockFeatureFlagService.isTokenStreamingEnabledResponse.next(true);
 
     mockDialog = jasmine.createSpyObj('MatDialog', ['open']);
     mockSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
@@ -194,12 +204,16 @@ describe('ChatComponent', () => {
             {provide: VIDEO_SERVICE, useValue: mockVideoService},
             {provide: SCREEN_SHARING_SERVICE, useValue: mockScreenSharingService},
             {provide: EVENT_SERVICE, useValue: mockEventService},
+            {provide: STREAM_CHAT_SERVICE, useValue: mockStreamChatService},
             {provide: DOWNLOAD_SERVICE, useValue: mockDownloadService},
             {provide: EVAL_SERVICE, useValue: mockEvalService},
             {provide: TRACE_SERVICE, useValue: mockTraceService},
             {provide: AGENT_SERVICE, useValue: mockAgentService},
             {provide: FEATURE_FLAG_SERVICE, useValue: mockFeatureFlagService},
-            {provide: STRING_TO_COLOR_SERVICE, useClass: StringToColorServiceImpl},
+            {
+              provide: STRING_TO_COLOR_SERVICE,
+              useValue: mockStringToColorService,
+            },
             {provide: GRAPH_SERVICE, useValue: graphService},
             {provide: SAFE_VALUES_SERVICE, useValue: mockSafeValuesService},
             {provide: MatDialog, useValue: mockDialog},
@@ -207,6 +221,7 @@ describe('ChatComponent', () => {
             {provide: Router, useValue: mockRouter},
             {provide: ActivatedRoute, useValue: mockActivatedRoute},
             {provide: Location, useValue: mockLocation},
+            {provide: MARKDOWN_COMPONENT, useValue: MockMarkdownComponent},
           ],
         })
         .compileComponents();
@@ -853,6 +868,20 @@ describe('ChatComponent', () => {
       });
       it('should reset edit mode', () => {
         expect(component.isEvalEditMode()).toBe(false);
+      });
+    });
+  });
+
+  describe('Feature Disabling', () => {
+    describe('when token streaming is disabled', () => {
+      beforeEach(() => {
+        mockFeatureFlagService.isTokenStreamingEnabledResponse.next(false);
+        fixture.detectChanges();
+      });
+
+      it('should have the token streaming toggle disabled', () => {
+        const slideToggle = fixture.debugElement.query(By.css('mat-slide-toggle'));
+        expect(slideToggle.componentInstance.disabled).toBe(true);
       });
     });
   });

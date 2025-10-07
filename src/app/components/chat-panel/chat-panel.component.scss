@@ -44,17 +44,20 @@
   font-weight: 400;
   position: relative;
   display: inline-block;
+  &.message-card--highlighted {
+    background-color: var(--chat-panel-function-event-button-highlight-background-color);
+  }
 }
 
 .function-event-button {
-  background-color: white;
+  background-color: var(--chat-panel-function-event-button-background-color);
   margin: 5px 5px 10px;
 }
 
 .function-event-button-highlight {
-  background-color: rgb(15, 82, 35);
-  border-color: rgb(15, 82, 35) !important;
-  color: white !important;
+  background-color: var(--chat-panel-function-event-button-highlight-background-color);
+  border-color: var(--chat-panel-function-event-button-highlight-border-color) !important;
+  color: var(--chat-panel-function-event-button-highlight-color) !important;
 }
 
 .user-message {
@@ -62,9 +65,9 @@
   justify-content: flex-end;
   align-items: center;
   .message-card {
-    background-color: #004a77;
+    background-color: var(--chat-panel-user-message-message-card-background-color);
     align-self: flex-end;
-    color: white;
+    color: var(--chat-panel-user-message-message-card-color);
     box-shadow: none;
   }
 }
@@ -73,29 +76,29 @@
   display: flex;
   align-items: center;
   .message-card {
-    background-color: #303030;
+    background-color: var(--chat-panel-bot-message-message-card-background-color);
     align-self: flex-start;
-    color: white;
+    color: var(--chat-panel-bot-message-message-card-color);
     box-shadow: none;
   }
 }
 
 .bot-message:focus-within {
   .message-card {
-    background-color: #131314;
-    border: 1px solid #8ab4f8;
+    background-color: var(--chat-panel-bot-message-focus-within-message-card-background-color);
+    border: 1px solid var(--chat-panel-bot-message-focus-within-message-card-border-color);
   }
 }
 
 .message-textarea {
-  background-color: #303030;
+  background-color: var(--chat-panel-message-textarea-background-color);
   max-width: 100%;
   border: none;
   font-family: 'Google Sans', 'Helvetica Neue', sans-serif;
 }
 
 .message-textarea:focus {
-  background-color: #131314;
+  background-color: var(--chat-panel-message-textarea-focus-background-color);
   outline: none;
 }
 
@@ -109,7 +112,7 @@
   position: absolute;
   left: 10px;
   z-index: 10;
-  background-color: #484848;
+  background-color: var(--chat-panel-eval-compare-container-background-color);
   overflow: hidden;
   border-radius: 20px;
   padding: 5px 20px;
@@ -117,7 +120,7 @@
   font-size: 16px;
 
   .actual-result {
-    border-right: 2px solid #8a8686;
+    border-right: 2px solid var(--chat-panel-actual-result-border-right-color);
     padding-right: 8px;
     min-width: 350px;
     max-width: 350px;
@@ -150,17 +153,17 @@
 
 .eval-response-header {
   padding-bottom: 5px;
-  border-bottom: 2px solid #8a8686;
+  border-bottom: 2px solid var(--chat-panel-eval-response-header-border-bottom-color);
   font-style: italic;
   font-weight: 700;
 }
 
 .header-expected {
-  color: #44c265;
+  color: var(--chat-panel-header-expected-color);
 }
 
 .header-actual {
-  color: #ff8983;
+  color: var(--chat-panel-header-actual-color);
 }
 
 .eval-case-edit-button {
@@ -171,12 +174,12 @@
 
 .eval-pass {
   display: flex;
-  color: #44c265;
+  color: var(--chat-panel-eval-pass-color);
 }
 
 .eval-fail {
   display: flex;
-  color: #ff8983;
+  color: var(--chat-panel-eval-fail-color);
 }
 
 .hidden {
@@ -194,19 +197,19 @@
   flex-grow: 1;
 
   textarea {
-    color: white;
+    color: var(--chat-panel-input-field-textarea-color);
     border: none;
     padding: 10px;
     box-sizing: content-box;
 
     &::placeholder {
-      color: #8e918f;
+      color: var(--chat-panel-input-field-textarea-placeholder-color);
     }
   }
 
   button {
-    color: white;
-    background-color: rgb(51, 53, 55);
+    color: var(--chat-panel-input-field-button-color);
+    background-color: var(--chat-panel-input-field-button-background-color);
   }
 }
 
@@ -255,9 +258,9 @@
 }
 
 :host ::ng-deep .mat-mdc-mini-fab {
-  background-color: white;
+  background-color: var(--chat-panel-mat-mdc-mini-fab-background-color);
   mat-icon {
-    color: black;
+    color: var(--chat-panel-mat-mdc-mini-fab-mat-icon-color);
   }
 }
 
@@ -270,7 +273,7 @@
 }
 
 :host ::ng-deep .input-field .mat-mdc-text-field-wrapper {
-  border: 1px solid #8e918f;
+  border: 1px solid var(--chat-panel-input-field-mat-mdc-text-field-wrapper-border-color);
   border-radius: 16px;
 }
 
@@ -294,12 +297,12 @@
   position: absolute;
   top: 1px;
   right: 1px;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: var(--chat-panel-delete-button-background-color);
   border: none;
   border-radius: 50%;
   padding: 8px;
   cursor: pointer;
-  color: white;
+  color: var(--chat-panel-delete-button-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -317,7 +320,7 @@
   flex-direction: column;
   gap: 8px;
   height: 80px;
-  background-color: #1e1e1e;
+  background-color: var(--chat-panel-file-container-background-color);
   border-radius: 12px;
 }
 
@@ -329,7 +332,7 @@
 
 .thought-chip {
   border-radius: 5px;
-  background-color: #8ab4f8;
+  background-color: var(--chat-panel-thought-chip-background-color);
   width: 80px;
   text-align: center;
   margin-top: 5px;
@@ -347,9 +350,37 @@
   border: none;
   padding: 0;
   font: inherit;
-  color: #007bff !important;
+  color: var(--chat-panel-link-style-button-color) !important;
   text-decoration: underline;
   cursor: pointer;
   outline: none;
   font-size: 14px;
+}
+
+.cancel-edit-button {
+  width: 24px;
+  height: 24px;
+  color: var(--chat-mat-mdc-text-field-wrapper-border-color);
+  cursor: pointer;
+  margin-right: 16px;
+}
+
+.save-edit-button {
+  width: 24px;
+  height: 24px;
+  color: var(--mat-sys-primary);
+  cursor: pointer;
+  margin-right: 16px;
+}
+
+.chat-input-box {
+  caret-color: white;
+}
+
+.audio-rec-btn,
+.video-rec-btn {
+  background-color: var(--chat-card-background-color);
+  &.recording {
+    background-color: var(--chat-panel-eval-fail-color);
+  }
 }

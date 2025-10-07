@@ -46,7 +46,7 @@ describe('MarkdownComponent', () => {
   });
 
   it('should display markdown text', fakeAsync(() => {
-       component.text = '**bold**';
+       fixture.componentRef.setInput('text', '**bold**');
        fixture.detectChanges();
        tick();
        const element: HTMLElement = fixture.nativeElement;
@@ -55,7 +55,7 @@ describe('MarkdownComponent', () => {
      }));
 
   it('should apply italic style when thought is true', () => {
-    component.thought = true;
+    fixture.componentRef.setInput('thought', true);
     fixture.detectChanges();
     const markdownElement: HTMLElement|null =
         fixture.nativeElement.querySelector('markdown');
@@ -64,7 +64,7 @@ describe('MarkdownComponent', () => {
   });
 
   it('should apply normal style when thought is false', () => {
-    component.thought = false;
+    fixture.componentRef.setInput('thought', false);
     fixture.detectChanges();
     const markdownElement: HTMLElement|null =
         fixture.nativeElement.querySelector('markdown');

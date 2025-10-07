@@ -21,7 +21,7 @@
 
 .trace-label {
   width: 400px;
-  color: #e3e3e3;
+  color: var(--trace-chart-trace-label-color);
   text-overflow: ellipsis;
   font-family: 'Google Sans Mono', monospace;
   font-size: 14px;
@@ -40,18 +40,18 @@
 .trace-bar {
   position: absolute;
   height: 18px;
-  background-color: #2f4d65;
+  background-color: var(--trace-chart-trace-bar-background-color);
   border-radius: 4px;
   padding-left: 4px;
   overflow: hidden;
   font-size: 11px;
   line-height: 16px;
-  color: #8dabbf;
+  color: var(--trace-chart-trace-bar-color);
   font-family: 'Google Sans';
 }
 
 .trace-duration {
-  color: #888;
+  color: var(--trace-chart-trace-duration-color);
   font-weight: normal;
   margin-left: 4px;
 }
@@ -81,7 +81,7 @@
   bottom: 0;
   left: 9px;
   width: 1px;
-  background-color: #ccc;
+  background-color: var(--trace-chart-vertical-line-background-color);
 }
 
 .horizontal-line {
@@ -90,5 +90,5 @@
   left: 9px;
   width: 10px;
   height: 1px;
-  background-color: #ccc;
+  background-color: var(--trace-chart-horizontal-line-background-color);
 }

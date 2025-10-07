@@ -21,7 +21,7 @@
 
 .trace-label {
   width: 400px;
-  color: #e3e3e3;
+  color: var(--trace-tree-trace-label-color);
   font-family: 'Google Sans Mono', monospace;
   font-size: 13px;
   font-style: normal;
@@ -42,18 +42,23 @@
 .trace-bar {
   position: absolute;
   height: 18px;
-  background-color: #2f4d65;
+  background-color: var(--trace-tree-trace-bar-background-color);
   border-radius: 4px;
   padding-left: 4px;
   overflow: hidden;
   font-size: 11px;
   line-height: 16px;
-  color: #8dabbf;
+  color: var(--trace-tree-trace-bar-color);
   font-family: 'Google Sans';
 }
 
+.short-trace-bar-duration {
+  position: absolute;
+  color: var(--trace-tree-short-trace-bar-duration-color);
+}
+
 .trace-duration {
-  color: #888;
+  color: var(--trace-tree-trace-duration-color);
   font-weight: normal;
   margin-left: 4px;
 }
@@ -67,12 +72,12 @@
   cursor: pointer;
 
   &:hover {
-    background-color: #3b3d3c;
+    background-color: var(--trace-tree-trace-row-hover-background-color);
   }
 }
 
 .trace-row.selected {
-  background-color: #3b3d3c;
+  background-color: var(--trace-tree-trace-row-selected-background-color);
 }
 
 .trace-indent {
@@ -94,7 +99,7 @@
   bottom: 0;
   left: 9px;
   width: 1px;
-  background-color: #ccc;
+  background-color: var(--trace-tree-vertical-line-background-color);
 }
 
 .horizontal-line {
@@ -103,7 +108,7 @@
   left: 9px;
   width: 10px;
   height: 1px;
-  background-color: #ccc;
+  background-color: var(--trace-tree-horizontal-line-background-color);
 }
 
 .trace-row-left {
@@ -112,7 +117,7 @@
 }
 
 .invocation-id-container {
-  color: #9aa0a6;
+  color: var(--trace-tree-invocation-id-container-color);
   font-size: 14px;
   font-style: normal;
   font-weight: 700;
@@ -123,4 +128,13 @@
 
 .invocation-id {
   font-family: 'Google Sans Mono', monospace;
+}
+
+.trace-row-left span,
+.trace-row-left div {
+  color: var(--trace-tree-trace-row-left-span-div-color);
+}
+
+.trace-row-left .is-event-row {
+  color: var(--trace-tree-trace-row-left-is-event-row-color);
 }

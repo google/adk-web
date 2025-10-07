@@ -42,7 +42,7 @@ const RUN_SSE_PAYLOAD = {
   sessionId: SESSION_ID,
   appName: TEST_APP_NAME,
   userId: USER_ID,
-  newMessage: NEW_MESSAGE,
+  newMessage: {parts: [{text: NEW_MESSAGE}], role: 'user'},
 };
 
 describe('AgentService', () => {
@@ -141,50 +141,53 @@ describe('AgentService', () => {
           });
     });
 
-    it('should emit LlmResponses received from fetch', (done) => {
-      const fakeResponse1 = createFakeLlmResponse();
-      const fakeResponse2 = createFakeLlmResponse({
-        content: {role: 'model', parts: [{text: 'fake response 2'}]},
-      });
-      const mockBody = new ReadableStream({
-        start(controller) {
-          const encoder = new TextEncoder();
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify(fakeResponse1)}\n`),
-          );
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify(fakeResponse2)}\n`),
-          );
-          controller.close();
-        },
-      });
-      spyOn(window, 'fetch').and.resolveTo(new Response(mockBody));
-      const results: LlmResponse[] = [];
-      service.runSse(RUN_SSE_PAYLOAD).subscribe({
-        next: (data) => {
-          results.push(data);
-        },
-        complete: () => {
-          expect(results).toEqual([fakeResponse1, fakeResponse2]);
-          done();
-        },
-      });
-    });
+    it(
+        'should emit LlmResponses received from fetch', (done) => {
+          const fakeResponse1 = createFakeLlmResponse();
+          const fakeResponse2 = createFakeLlmResponse({
+            content: {role: 'model', parts: [{text: 'fake response 2'}]},
+          });
+          const mockBody = new ReadableStream({
+            start(controller) {
+              const encoder = new TextEncoder();
+              controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify(fakeResponse1)}\n`),
+              );
+              controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify(fakeResponse2)}\n`),
+              );
+              controller.close();
+            },
+          });
+          spyOn(window, 'fetch').and.resolveTo(new Response(mockBody));
+          const results: LlmResponse[] = [];
+          service.runSse(RUN_SSE_PAYLOAD).subscribe({
+            next: (data) => {
+              results.push(data);
+            },
+            complete: () => {
+              expect(results).toEqual([fakeResponse1, fakeResponse2]);
+              done();
+            },
+          });
+        });
 
-    it('should set loading state to false when fetch is done', (done) => {
-      const mockBody = new ReadableStream({
-        start(controller) {
-          controller.close();
-        },
-      });
-      spyOn(window, 'fetch').and.resolveTo(new Response(mockBody));
-      service.runSse(RUN_SSE_PAYLOAD).subscribe({
-        complete: () => {
-          expect(service.getLoadingState().value).toBeFalse();
-          done();
-        },
-      });
-    });
+    it(
+        'should set loading state to false when fetch is done', (done) => {
+          const mockBody = new ReadableStream({
+            start(controller) {
+              controller.close();
+            },
+          });
+          spyOn(window, 'fetch').and.resolveTo(new Response(mockBody));
+          service.runSse(RUN_SSE_PAYLOAD).subscribe({
+            complete: () => {
+              expect(service.getLoadingState().value).toBeFalse();
+              done();
+            },
+          });
+        });
+
 
     it('should emit error if fetch fails', (done) => {
       spyOn(window, 'fetch').and.rejectWith(new Error('Fetch failed'));
@@ -196,32 +199,35 @@ describe('AgentService', () => {
       });
     });
 
-    it('should handle incomplete JSON chunks', (done) => {
-      const fakeResponse = createFakeLlmResponse();
-      const fakeResponseJson = JSON.stringify(fakeResponse);
-      const mid = Math.floor(fakeResponseJson.length / 2);
-      const chunk1 = fakeResponseJson.substring(0, mid);
-      const chunk2 = fakeResponseJson.substring(mid);
+    // BEGIN-EXTERNAL
+    // it('should handle incomplete JSON chunks', (done) => {
+    //   const fakeResponse = createFakeLlmResponse();
+    //   const fakeResponseJson = JSON.stringify(fakeResponse);
+    //   const mid = Math.floor(fakeResponseJson.length / 2);
+    //   const chunk1 = fakeResponseJson.substring(0, mid);
+    //   const chunk2 = fakeResponseJson.substring(mid);
 
-      const mockBody = new ReadableStream({
-        start(controller) {
-          const encoder = new TextEncoder();
-          controller.enqueue(encoder.encode(`data: ${chunk1}`));
-          controller.enqueue(encoder.encode(`${chunk2}\n`));
-          controller.close();
-        },
-      });
-      spyOn(window, 'fetch').and.resolveTo(new Response(mockBody));
-      const results: LlmResponse[] = [];
-      service.runSse(RUN_SSE_PAYLOAD).subscribe({
-        next: (data) => {
-          results.push(data);
-        },
-        complete: () => {
-          expect(results).toEqual([fakeResponse]);
-          done();
-        },
-      });
-    });
+    //   const mockBody = new ReadableStream({
+    //     start(controller) {
+    //       const encoder = new TextEncoder();
+    //       controller.enqueue(encoder.encode(`data: ${chunk1}`));
+    //       controller.enqueue(encoder.encode(`${chunk2}\n`));
+    //       controller.close();
+    //     },
+    //   });
+    //   spyOn(window, 'fetch').and.resolveTo(new Response(mockBody));
+    //   const results: LlmResponse[] = [];
+    //   service.runSse(RUN_SSE_PAYLOAD).subscribe({
+    //     next: (data) => {
+    //       results.push(data);
+    //     },
+    //     complete: () => {
+    //       expect(results).toEqual([fakeResponse]);
+    //       done();
+    //     },
+    //   });
+    // });
+    // END-EXTERNAL
+
   });
 });

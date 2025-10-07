@@ -17,7 +17,7 @@
 
 import {TextFieldModule} from '@angular/cdk/text-field';
 import {CommonModule, DOCUMENT, NgClass, NgStyle} from '@angular/common';
-import {AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, EventEmitter, inject, Inject, Input, OnChanges, Output, Renderer2, signal, SimpleChanges, ViewChild,} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, EventEmitter, inject, Inject, Input, OnChanges, Output, Renderer2, signal, SimpleChanges, ViewChild, Type} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
@@ -31,10 +31,11 @@ import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {NgxJsonViewerModule} from 'ngx-json-viewer';
 
 import type {EvalCase} from '../../core/models/Eval';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
 import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
 import {MediaType,} from '../artifact-tab/artifact-tab.component';
 import {AudioPlayerComponent} from '../audio-player/audio-player.component';
-import {MarkdownComponent} from '../markdown/markdown.component';
+import {MARKDOWN_COMPONENT, MarkdownComponentInterface} from '../markdown/markdown.component.interface';
 
 import {ChatPanelMessagesInjectionToken} from './chat-panel.component.i18n';
 
@@ -49,7 +50,7 @@ const ROOT_AGENT = 'root_agent';
     CommonModule, FormsModule, MatIconModule, MatCardModule,
     MatProgressBarModule, MatButtonModule, MatInputModule, TextFieldModule,
     MatFormFieldModule, MatMenuModule, NgxJsonViewerModule,
-    AudioPlayerComponent, MatTooltipModule, NgClass, NgStyle, MarkdownComponent
+    AudioPlayerComponent, MatTooltipModule, NgClass, NgStyle,
   ],
 })
 export class ChatPanelComponent implements OnChanges, AfterViewInit {
@@ -65,7 +66,6 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Input() selectedFiles: {file: File; url: string}[] = [];
   @Input() updatedSessionState: any|null = null;
   @Input() eventData = new Map<string, any>();
-  @Input() MediaType = MediaType;
   @Input() isAudioRecording: boolean = false;
   @Input() isVideoRecording: boolean = false;
   @Input() isScreenSharing: boolean = false;
@@ -105,12 +105,20 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   private previousMessageCount = 0;
   protected readonly i18n = inject(ChatPanelMessagesInjectionToken);
   private readonly stringToColorService = inject(STRING_TO_COLOR_SERVICE);
+  readonly markdownComponent: Type<MarkdownComponentInterface> = inject(
+    MARKDOWN_COMPONENT,
+  );
+  private readonly featureFlagService = inject(FEATURE_FLAG_SERVICE);
+  readonly MediaType = MediaType;
 
-  constructor(
-      private sanitizer: DomSanitizer,
-      @Inject(DOCUMENT) private document: Document,
-      private renderer: Renderer2,
-  ) {}
+  readonly isMessageFileUploadEnabledObs =
+      this.featureFlagService.isMessageFileUploadEnabled();
+  readonly isManualStateUpdateEnabledObs =
+      this.featureFlagService.isManualStateUpdateEnabled();
+  readonly isBidiStreamingEnabledObs =
+      this.featureFlagService.isBidiStreamingEnabled();
+
+  constructor(private sanitizer: DomSanitizer) {}
 
   ngAfterViewInit() {
     if (this.scrollContainer?.nativeElement) {

@@ -14,12 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Event} from './types';
 
+/**
+ * Interface representing the state of a Session.
+ */
+export type SessionState = {
+  [key: string]: unknown
+};
+
+/**
+ * Interface representing a Session.
+ */
 export interface Session {
   id?: string;
   appName?: string;
   userId?: string;
-  state?: any;
-  events?: any;
-  messages?: any;
+  state?: SessionState;
+  events?: Event[];
+  lastUpdateTime?: number;
 }

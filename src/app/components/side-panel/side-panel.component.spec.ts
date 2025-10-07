@@ -17,8 +17,10 @@
 
 import {Location} from '@angular/common';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {MatOption} from '@angular/material/core';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import {MatPaginator, PageEvent} from '@angular/material/paginator';
+import {MatSelect, MatSelectChange} from '@angular/material/select';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatTabGroup} from '@angular/material/tabs';
 import {By} from '@angular/platform-browser';
@@ -35,8 +37,9 @@ import {EVENT_SERVICE, EventService} from '../../core/services/event.service';
 import {FEATURE_FLAG_SERVICE, FeatureFlagService,} from '../../core/services/feature-flag.service';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {SESSION_SERVICE, SessionService,} from '../../core/services/session.service';
-import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
+import {MockFeatureFlagService} from '../../core/services/testing/mock-feature-flag.service';
 import {MockSafeValuesService} from '../../core/services/testing/mock-safevalues.service';
+import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
 import {VIDEO_SERVICE, VideoService} from '../../core/services/video.service';
 import {SCREEN_SHARING_SERVICE, ScreenSharingService} from '../../core/services/screensharing.service';
 import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/websocket.service';
@@ -54,6 +57,7 @@ const EVAL_TAB_SELECTOR = By.css('app-eval-tab');
 const DETAILS_PANEL_CLOSE_BUTTON_SELECTOR =
     By.css('.details-panel-container mat-icon');
 const EVENT_GRAPH_SELECTOR = By.css('.event-graph-container div');
+const APP_SELECT_SELECTOR = By.css('.app-select');
 
 const EVENTS_TAB_INDEX = 1;
 const SESSIONS_TAB_INDEX = 4;
@@ -73,7 +77,7 @@ describe('SidePanelComponent', () => {
   let mockEvalService: jasmine.SpyObj<EvalService>;
   let mockTraceService: jasmine.SpyObj<TraceService>;
   let mockAgentService: jasmine.SpyObj<AgentService>;
-  let mockFeatureFlagService: jasmine.SpyObj<FeatureFlagService>;
+  let mockFeatureFlagService: MockFeatureFlagService;
   let mockDialog: jasmine.SpyObj<MatDialog>;
   let mockSnackBar: jasmine.SpyObj<MatSnackBar>;
   let mockRouter: jasmine.SpyObj<Router>;
@@ -141,10 +145,7 @@ describe('SidePanelComponent', () => {
         'AgentService',
         ['listApps', 'getApp', 'getLoadingState', 'setApp', 'runSse'],
     );
-    mockFeatureFlagService = jasmine.createSpyObj(
-        'FeatureFlagService',
-        ['isImportSessionEnabled', 'isEditFunctionArgsEnabled'],
-    );
+    mockFeatureFlagService = new MockFeatureFlagService();
     mockDialog = jasmine.createSpyObj('MatDialog', ['open']);
     mockSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
@@ -160,7 +161,16 @@ describe('SidePanelComponent', () => {
     mockEvalService.listEvalResults.and.returnValue(of([]));
     mockFeatureFlagService.isEditFunctionArgsEnabled.and.returnValue(of(false));
     mockFeatureFlagService.isImportSessionEnabled.and.returnValue(of(false));
-    mockEvalService.getEvalResult.and.returnValue(of({}));
+    mockFeatureFlagService.isAlwaysOnSidePanelEnabled.and.returnValue(
+        of(false));
+    mockFeatureFlagService.isApplicationSelectorEnabledResponse.next(true);
+    mockFeatureFlagService.isTraceEnabledResponse.next(true);
+    mockFeatureFlagService.isArtifactsTabEnabledResponse.next(true);
+    mockFeatureFlagService.isEvalEnabledResponse.next(true);
+    mockFeatureFlagService.isTokenStreamingEnabled.and.returnValue(of(true));
+    mockFeatureFlagService.isMessageFileUploadEnabled.and.returnValue(of(true));
+    mockFeatureFlagService.isManualStateUpdateEnabled.and.returnValue(of(true));
+    mockFeatureFlagService.isBidiStreamingEnabled.and.returnValue(of(true));
 
     await TestBed
         .configureTestingModule({
@@ -205,6 +215,79 @@ describe('SidePanelComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('App Selector', () => {
+    beforeEach(() => {
+      component.isApplicationSelectorEnabledObs = of(true);
+      component.apps$ = of(['app1', 'app2']);
+      fixture.detectChanges();
+    });
+
+    it('shows app selector', () => {
+      expect(fixture.debugElement.query(APP_SELECT_SELECTOR)).toBeTruthy();
+    });
+
+    it('shows all apps in selector', () => {
+      const appSelect = fixture.debugElement.query(APP_SELECT_SELECTOR);
+      const options = appSelect.componentInstance.options;
+      expect(options.map((option: MatOption) => option.value)).toEqual([
+        'app1',
+        'app2',
+      ]);
+    });
+
+    describe('when app is selected', () => {
+      beforeEach(() => {
+        spyOn(component.appSelectionChange, 'emit');
+        const appSelect = fixture.debugElement.query(APP_SELECT_SELECTOR);
+        const mockEvent =
+            new MatSelectChange(appSelect.componentInstance, 'app1');
+        appSelect.triggerEventHandler('selectionChange', mockEvent);
+      });
+      it('emits appSelectionChange event', () => {
+        expect(component.appSelectionChange.emit)
+            .toHaveBeenCalledWith(jasmine.objectContaining({value: 'app1'}));
+      });
+    });
+  });
+
+  describe('Tab hiding', () => {
+    it('should hide Trace tab when isTraceEnabled is false', () => {
+      mockFeatureFlagService.isTraceEnabledResponse.next(false);
+      fixture.detectChanges();
+      const tabLabels = fixture.debugElement.queryAll(
+        By.css('.tab-label'),
+      );
+      const traceLabel = tabLabels.find(
+        (label) => label.nativeElement.textContent.trim() === 'Trace',
+      );
+      expect(traceLabel).toBeUndefined();
+    });
+
+    it('should hide Artifacts tab when isArtifactsTabEnabled is false', () => {
+      mockFeatureFlagService.isArtifactsTabEnabledResponse.next(false);
+      fixture.detectChanges();
+      const tabLabels = fixture.debugElement.queryAll(
+        By.css('.tab-label'),
+      );
+      const artifactsLabel = tabLabels.find(
+        (label) => label.nativeElement.textContent.trim() === 'Artifacts',
+      );
+      expect(artifactsLabel).toBeUndefined();
+    });
+
+    it('should hide Eval tab when isEvalEnabled is false', () => {
+      mockFeatureFlagService.isEvalEnabledResponse.next(false);
+      fixture.detectChanges();
+      const tabLabels = fixture.debugElement.queryAll(
+        By.css('.tab-label'),
+      );
+      const evalLabel = tabLabels.find(
+        (label) => label.nativeElement.textContent.trim() === 'Eval',
+      );
+      expect(evalLabel).toBeUndefined();
+    });
   });
 
   describe('Rendering', () => {
@@ -327,35 +410,9 @@ describe('SidePanelComponent', () => {
     });
 
     describe('Eval tab', () => {
-      beforeEach(() => {
-        component.shouldShowEvalTab = true;
-        fixture.detectChanges();
-      });
-
-      describe('when shouldShowEvalTab is true', () => {
-        beforeEach(async () => {
-          await switchTab(EVAL_TAB_INDEX);
-        });
-        it('is visible', () => {
-          expect(fixture.debugElement.query(EVAL_TAB_SELECTOR)).toBeTruthy();
-        });
-      });
-
       describe('Interactions', () => {
         beforeEach(async () => {
           await switchTab(EVAL_TAB_INDEX);
-        });
-
-        describe('when app-eval-tab emits shouldShowTab', () => {
-          beforeEach(() => {
-            spyOn(component.evalTabVisibilityChange, 'emit');
-            const evalTab = fixture.debugElement.query(EVAL_TAB_SELECTOR);
-            evalTab.triggerEventHandler('shouldShowTab', false);
-          });
-          it('emits evalTabVisibilityChange', () => {
-            expect(component.evalTabVisibilityChange.emit)
-                .toHaveBeenCalledWith(false);
-          });
         });
 
         describe('when app-eval-tab emits evalCaseSelected', () => {

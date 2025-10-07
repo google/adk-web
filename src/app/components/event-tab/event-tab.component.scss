@@ -19,13 +19,13 @@
 .events-wrapper {
   padding-left: 25px;
   padding-right: 25px;
-  color: #9aa0a6;
+  color: var(--event-tab-events-wrapper-color);
   font-size: 14px;
   font-weight: 700;
 }
 
 .event-index {
-  color: #80868b;
+  color: var(--event-tab-event-index-color);
   font-family: Roboto;
   font-size: 14px;
   font-style: normal;
@@ -58,8 +58,8 @@
 .event-list {
   @include mat.list-overrides(
     (
-      active-indicator-color: orange,
-      list-item-container-color: #2b2b2f,
+      active-indicator-color: var(--event-tab-event-list-active-indicator-color),
+      list-item-container-color: var(--event-tab-event-list-list-item-container-color),
       list-item-label-text-size: 14px,
       list-item-label-text-weight: 400,
       list-item-one-line-container-height: 52px,
@@ -68,11 +68,11 @@
 }
 
 :host ::ng-deep .mdc-list-item {
-  border: 1px solid #5f6368;
+  border: 1px solid var(--event-tab-mdc-list-item-border-color);
   cursor: pointer;
 
   &:hover {
-    background-color: #1c1b1c;
+    background-color: var(--event-tab-mdc-list-item-hover-background-color);
   }
 }
 

@@ -17,7 +17,7 @@
 .session-wrapper {
   padding-left: 25px;
   padding-right: 25px;
-  color: #9aa0a6;
+  color: var(--session-tab-session-wrapper-color);
   font-size: 14px;
   font-weight: 700;
 }
@@ -26,21 +26,21 @@
   display: flex;
   justify-content: space-between;
   border: none;
-  background-color: #303030;
+  background-color: var(--session-tab-session-item-background-color);
   border-radius: 8px;
   margin-bottom: 4px;
   cursor: pointer;
 
   &:hover {
-    background-color: #141414;
+    background-color: var(--session-tab-session-item-hover-background-color);
   }
   &.current {
-    background-color: #004a77;
+    background-color: var(--session-tab-session-item-current-background-color);
   }
 }
 
 .session-id {
-  color: #e8eaed;
+  color: var(--session-tab-session-id-color);
   font-family: 'Google Sans Mono', monospace;
   font-size: 14px;
   font-style: normal;
@@ -50,7 +50,7 @@
 }
 
 .session-date {
-  color: #9aa0a6;
+  color: var(--session-tab-session-date-color);
   font-family: Roboto;
   font-size: 12px;
   font-style: normal;
