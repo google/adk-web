@@ -29,4 +29,5 @@ export interface AgentRunRequest {
   functionCallEventId?: string;
   streaming?: boolean;
   stateDelta?: any;
+  invocationId?: string;
 }

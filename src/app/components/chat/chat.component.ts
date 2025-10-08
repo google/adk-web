@@ -616,8 +616,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (e?.longRunningToolIds && e.longRunningToolIds.length > 0) {
-      this.getAsyncFunctionsFromParts(e.longRunningToolIds, e.content.parts);
-      const func = this.longRunningEvents[0];
+      this.getAsyncFunctionsFromParts(e.longRunningToolIds, e.content.parts, e.invocationId);
+      const func = this.longRunningEvents[0].function;
       if (func.args.authConfig &&
         func.args.authConfig.exchangedAuthCredential &&
         func.args.authConfig.exchangedAuthCredential.oauth2) {
@@ -875,11 +875,12 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     const dialogRef = this.dialog.open(PendingEventDialogComponent, {
       width: '600px',
       data: {
-        event: this.longRunningEvents[0],
+        event: this.longRunningEvents[0].function,
         appName: this.appName,
         userId: this.userId,
         sessionId: this.sessionId,
         functionCallEventId: this.functionCallEventId,
+        invocationId: this.longRunningEvents[0].invocationId
       },
     });
 
@@ -1069,10 +1070,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isScreenSharing = false;
   }
 
-  private getAsyncFunctionsFromParts(pendingIds: any[], parts: any[]) {
+  private getAsyncFunctionsFromParts(pendingIds: any[], parts: any[], invocationId: string) {
     for (const part of parts) {
       if (part.functionCall && pendingIds.includes(part.functionCall.id)) {
-        this.longRunningEvents.push(part.functionCall);
+        this.longRunningEvents.push({function: part.functionCall, invocationId: invocationId});
       }
     }
   }

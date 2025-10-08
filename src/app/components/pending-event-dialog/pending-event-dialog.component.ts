@@ -79,6 +79,7 @@ export class PendingEventDialogComponent {
         'role': 'user',
         'parts': [],
       },
+      invocationId: this.data.invocationId
     };
     if (this.selectedEvent.response) {
       req.functionCallEventId = this.functionCallEventId;
