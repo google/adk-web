@@ -112,6 +112,7 @@ describe('ChatComponent', () => {
   let mockAudioService: MockAudioService;
   let mockWebSocketService: MockWebSocketService;
   let mockVideoService: MockVideoService;
+  let mockScreenSharingService: MockScreenSharingService;
   let mockStreamChatService: MockStreamChatService;
   let mockEventService: MockEventService;
   let mockDownloadService: MockDownloadService;
@@ -134,6 +135,7 @@ describe('ChatComponent', () => {
     mockAudioService = new MockAudioService();
     mockWebSocketService = new MockWebSocketService();
     mockVideoService = new MockVideoService();
+    mockScreenSharingService = new MockScreenSharingService();
     mockStreamChatService = new MockStreamChatService();
     mockEventService = new MockEventService();
     mockDownloadService = new MockDownloadService();

@@ -1048,11 +1048,12 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.isScreenSharing = true;
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    this.webSocketService.connect(
-      `${protocol}://${URLUtil.getWSServerUrl()}/run_live?app_name=${this.appName}&user_id=${this.userId}&session_id=${this.sessionId}`,
-    );
-    this.screenSharingService.startScreenSharing(screenSharingContainer);
+    this.streamChatService.startScreenSharingChat({
+      appName: this.appName,
+      userId: this.userId,
+      sessionId: this.sessionId,
+      screenSharingContainer,
+    });
     this.messages.update(
         messages => [...messages, {role: 'user', text: 'Sharing Screen...'}]);
     this.sessionHasUsedBidi.add(this.sessionId);
@@ -1064,8 +1065,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    this.screenSharingService.stopScreenSharing(screenSharingContainer);
-    this.webSocketService.closeConnection();
+    this.streamChatService.stopScreenSharingChat(screenSharingContainer);
     this.isScreenSharing = false;
   }
 

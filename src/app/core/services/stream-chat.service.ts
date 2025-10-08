@@ -23,6 +23,7 @@ import {LiveRequest} from '../models/LiveRequest';
 import {AUDIO_SERVICE, AudioService} from './audio.service';
 import {VIDEO_SERVICE, VideoService} from './video.service';
 import {WEBSOCKET_SERVICE, WebSocketService} from './websocket.service';
+import { SCREEN_SHARING_SERVICE, ScreenSharingService } from './screensharing.service';
 
 export const STREAM_CHAT_SERVICE =
     new InjectionToken<StreamChatService>('StreamChatService');
@@ -36,10 +37,12 @@ export const STREAM_CHAT_SERVICE =
 export class StreamChatService {
   private audioIntervalId: number|undefined = undefined;
   private videoIntervalId: number|undefined = undefined;
+  private screenSharingIntervalId: number|undefined = undefined;
 
   constructor(
       @Inject(AUDIO_SERVICE) private readonly audioService: AudioService,
       @Inject(VIDEO_SERVICE) private readonly videoService: VideoService,
+      @Inject(SCREEN_SHARING_SERVICE) private readonly screenSharingService: ScreenSharingService,
       @Inject(WEBSOCKET_SERVICE) private readonly webSocketService:
           WebSocketService,
   ) {}
@@ -111,16 +114,54 @@ export class StreamChatService {
     await this.startVideoStreaming(videoContainer);
   }
 
+  async startScreenSharingChat({
+    appName,
+    userId,
+    sessionId,
+    screenSharingContainer,
+  }: {
+    appName: string; userId: string; sessionId: string;
+    screenSharingContainer: ElementRef
+  }){
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    this.webSocketService.connect(
+        `${protocol}://${URLUtil.getWSServerUrl()}/run_live?app_name=${
+            appName}&user_id=${userId}&session_id=${sessionId}`,
+    );
+
+    await this.startAudioStreaming();
+    await this.startScreenSharing(screenSharingContainer);
+  }
+
   stopVideoChat(videoContainer: ElementRef) {
     this.stopAudioStreaming();
     this.stopVideoStreaming(videoContainer);
     this.webSocketService.closeConnection();
   }
 
+  stopScreenSharingChat(screenSharingContainer: ElementRef) {
+    this.stopAudioStreaming();
+    this.stopScreenSharing(screenSharingContainer);
+    this.webSocketService.closeConnection();
+  }
+
+
   private async startVideoStreaming(videoContainer: ElementRef) {
     try {
       await this.videoService.startRecording(videoContainer);
       this.videoIntervalId = setInterval(
+          async () => await this.sendCapturedFrame(),
+          1000,
+      );
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+    }
+  }
+
+  private async startScreenSharing(screenSharingContainer: ElementRef) {
+    try {
+      await this.screenSharingService.startScreenSharing(screenSharingContainer);
+      this.screenSharingIntervalId = setInterval(
           async () => await this.sendCapturedFrame(),
           1000,
       );
@@ -146,6 +187,12 @@ export class StreamChatService {
     clearInterval(this.videoIntervalId);
     this.videoIntervalId = undefined;
     this.videoService.stopRecording(videoContainer);
+  }
+
+  private stopScreenSharing(screenSharingContainer: ElementRef) {
+    clearInterval(this.screenSharingIntervalId);
+    this.screenSharingIntervalId = undefined;
+    this.screenSharingService.stopScreenSharing(screenSharingContainer);
   }
 
   onStreamClose() {

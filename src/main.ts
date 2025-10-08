@@ -70,6 +70,7 @@ fetch('./assets/config/runtime-config.json')
         },
         {provide: AUDIO_SERVICE, useClass: AudioService},
         {provide: VIDEO_SERVICE, useClass: VideoService},
+        {provide: SCREEN_SHARING_SERVICE, useClass: ScreenSharingService},
         {provide: STREAM_CHAT_SERVICE, useClass: StreamChatService},
         {provide: EVENT_SERVICE, useClass: EventService},
         {provide: EVAL_SERVICE, useClass: EvalService},
