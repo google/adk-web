@@ -17,6 +17,7 @@
 @if (appName != "") {
 <div #autoScroll class="chat-messages">
   <div #videoContainer></div>
+  <div #screenSharingContainer></div>
   @for (message of messages; track message; let i = $index) {
   <div
     [ngClass]="{
@@ -380,6 +381,18 @@
         >
           <mat-icon>videocam</mat-icon>
         </button>
+        <button
+          mat-icon-button
+          matSuffix
+          (click)="toggleScreenSharing.emit()"
+          [ngStyle]="{
+              'background-color': isScreenSharing ? 'rgb(234, 67, 53)' : 'rgb(51, 53, 55)'
+            }"
+          [matTooltip]="isScreenSharing ? i18n.stopScreenShareTooltip : i18n.startScreenShareTooltip"
+        >
+          <mat-icon>screen_share</mat-icon>
+        </button>
+
       </div>
     </div>
   </mat-form-field>

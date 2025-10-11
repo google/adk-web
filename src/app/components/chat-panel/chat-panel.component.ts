@@ -68,6 +68,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Input() eventData = new Map<string, any>();
   @Input() isAudioRecording: boolean = false;
   @Input() isVideoRecording: boolean = false;
+  @Input() isScreenSharing: boolean = false;
   @Input() hoveredEventMessageIndices: number[] = [];
 
   @Output() readonly userInputChange = new EventEmitter<string>();
@@ -94,8 +95,10 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Output() readonly updateState = new EventEmitter<void>();
   @Output() readonly toggleAudioRecording = new EventEmitter<void>();
   @Output() readonly toggleVideoRecording = new EventEmitter<void>();
+  @Output() readonly toggleScreenSharing = new EventEmitter<void>();
 
   @ViewChild('videoContainer', {read: ElementRef}) videoContainer!: ElementRef;
+  @ViewChild('screenSharingContainer', {read: ElementRef}) screenSharingContainer!: ElementRef;
   @ViewChild('autoScroll') scrollContainer!: ElementRef;
   @ViewChild('messageTextarea') public textarea: ElementRef|undefined;
   scrollInterrupted = false;
