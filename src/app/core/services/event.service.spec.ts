@@ -46,7 +46,7 @@ describe('EventService', () => {
 
   describe('getEventTrace', () => {
     it('should call GET /debug/trace/{id}', () => {
-      service.getEventTrace('trace1').subscribe();
+      service.getEventTrace({id: 'trace1'}).subscribe();
       const req = httpTestingController.expectOne(
           'http://test.com/debug/trace/trace1',
       );
