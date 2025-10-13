@@ -509,11 +509,12 @@ describe('ChatComponent', () => {
         component.sessionId = SESSION_1_ID;
         component.messages.set(
             [{role: 'bot', text: 'response', eventId: EVENT_1_ID}]);
-        component.eventData = new Map([[EVENT_1_ID, {id: EVENT_1_ID}]]);
         spyOn(component.sideDrawer()!, 'open');
-        component.clickEvent(0);
       });
+
       it('should open side panel with event details', () => {
+        component.eventData = new Map([[EVENT_1_ID, {id: EVENT_1_ID}]]);
+        component.clickEvent(0);
         expect(component.sideDrawer()!.open).toHaveBeenCalled();
         expect(component.selectedEvent.id).toBe(EVENT_1_ID);
         expect(mockEventService.getEventTrace).toHaveBeenCalledWith(EVENT_1_ID);
@@ -525,6 +526,31 @@ describe('ChatComponent', () => {
                 EVENT_1_ID,
             );
       });
+
+      it('should call getEventTrace with filter and parse llm request/response',
+         () => {
+           const invocationId = 'inv-1';
+           const timestamp = 123456789;
+           component.eventData = new Map([[
+             EVENT_1_ID, {
+               id: EVENT_1_ID,
+               invocationId,
+               timestampInMillis: timestamp,
+             }
+           ]]);
+           const llmRequest = {prompt: 'test prompt'};
+           const llmResponse = {response: 'test response'};
+           mockEventService.getEventTraceResponse.next({
+             'gcp.vertex.agent.llm_request': JSON.stringify(llmRequest),
+             'gcp.vertex.agent.llm_response': JSON.stringify(llmResponse),
+           });
+
+           component.clickEvent(0);
+
+           expect(mockEventService.getEventTrace).toHaveBeenCalledWith(EVENT_1_ID);
+           expect(component.llmRequest).toEqual(llmRequest);
+           expect(component.llmResponse).toEqual(llmResponse);
+         });
     });
 
     describe('when updateState() is called', () => {

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {ComponentFixture, fakeAsync, TestBed, tick,} from '@angular/core/testing';
+import {ComponentFixture,  TestBed,} from '@angular/core/testing';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import {DomSanitizer} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
@@ -29,6 +29,8 @@ import {MockGraphService} from '../../../core/services/testing/mock-graph.servic
 import {MockTraceService} from '../../../core/services/testing/mock-trace.service';
 import {TRACE_SERVICE, TraceService} from '../../../core/services/interfaces/trace';
 import {ViewImageDialogComponent} from '../../view-image-dialog/view-image-dialog.component';
+import {fakeAsync,
+        tick} from '../../../testing/utils';
 
 import {TraceEventComponent} from './trace-event.component';
 
@@ -69,11 +71,6 @@ describe('TraceEventComponent', () => {
     traceService.eventData$.next(
         new Map<string, any>([[EVENT_ID, EVENT_DATA]]));
     eventService.getEventTraceResponse.next({
-      name: 'test-span',
-      trace_id: 'trace-id',
-      span_id: 'span-id',
-      start_time: 1,
-      end_time: 2,
       'gcp.vertex.agent.llm_request': '{"data": "request"}',
       'gcp.vertex.agent.llm_response': '{"data": "response"}',
     });
@@ -146,6 +143,28 @@ describe('TraceEventComponent', () => {
     it('should parse LLM response from the event trace', () => {
       expect(component.llmResponse).toEqual({data: 'response'});
     });
+
+    it('should call getEventTrace with event and parse llm request/response',
+       () => {
+         const invocationId = 'inv-1';
+         const startTime = 123456789000000;
+         const llmRequest = {prompt: 'test prompt'};
+         const llmResponse = {response: 'test response'};
+         eventService.getEventTraceResponse.next({
+           'gcp.vertex.agent.llm_request': JSON.stringify(llmRequest),
+            'gcp.vertex.agent.llm_response': JSON.stringify(llmResponse),
+         });
+
+         traceService.selectedTraceRow$.next({
+           ...span,
+           invoc_id: invocationId,
+           start_time: startTime,
+         });
+
+         expect(eventService.getEventTrace).toHaveBeenCalledWith(EVENT_ID);
+         expect(component.llmRequest).toEqual(llmRequest);
+         expect(component.llmResponse).toEqual(llmResponse);
+       });
   });
 
   describe('getEventIdFromSpan()', () => {
