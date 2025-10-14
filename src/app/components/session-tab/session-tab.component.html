@@ -15,18 +15,20 @@
 -->
 
 <div class="session-wrapper">
-  <div class="session-tab-container" style="margin-top: 16px;">
+  <div class="session-tab-container" style="margin-top: 16px">
     @for (session of sessionList; track session) {
-      <div (click)="getSession(session.id)" [ngClass]="session.id === sessionId ? 'session-item current': 'session-item'">
-        <div class="session-info">
-          <div class="session-id">
-            {{session.id}}
-          </div>
-          <div class="session-date">
-            {{ getDate(session) }}
-          </div>
+    <div
+      (click)="getSession(session.id)"
+      [ngClass]="session.id === sessionId ? 'session-item current': 'session-item'"
+    >
+      <div class="session-info">
+        <div class="session-id">
+          {{session.id}}
+          
         </div>
+        <div class="session-date">{{ getDate(session) }}</div>
       </div>
+    </div>
     }
   </div>
 </div>
