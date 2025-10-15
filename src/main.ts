@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 import {HttpClientModule} from '@angular/common/http';
 import {importProvidersFrom} from '@angular/core';
 import {FormsModule} from '@angular/forms';
@@ -48,6 +47,7 @@ import {STREAM_CHAT_SERVICE, StreamChatService} from './app/core/services/stream
 import {StringToColorServiceImpl} from './app/core/services/string-to-color.service';
 import {TRACE_SERVICE, TraceService} from './app/core/services/trace.service';
 import {VIDEO_SERVICE, VideoService} from './app/core/services/video.service';
+import {SCREEN_SHARING_SERVICE, ScreenSharingService} from './app/core/services/screensharing.service';
 import {WEBSOCKET_SERVICE, WebSocketService} from './app/core/services/websocket.service';
 import {LOGO_COMPONENT} from './app/injection_tokens';
 
@@ -70,6 +70,7 @@ fetch('./assets/config/runtime-config.json')
         },
         {provide: AUDIO_SERVICE, useClass: AudioService},
         {provide: VIDEO_SERVICE, useClass: VideoService},
+        {provide: SCREEN_SHARING_SERVICE, useClass: ScreenSharingService},
         {provide: STREAM_CHAT_SERVICE, useClass: StreamChatService},
         {provide: EVENT_SERVICE, useClass: EventService},
         {provide: EVAL_SERVICE, useClass: EvalService},

@@ -44,6 +44,8 @@ export const CHAT_PANEL_MESSAGES = {
   turnOffMicTooltip: 'Turn off microphone',
   useMicTooltip: 'Use microphone',
   turnOffCamTooltip: 'Turn off camera',
+  stopScreenShareTooltip: 'Turn off screensharing',
+  startScreenShareTooltip: 'Turn on screensharing',
   useCamTooltip: 'Use camera',
   updatedSessionStateChipLabel: 'Updated session state',
 };

@@ -51,10 +51,12 @@ import {MockStreamChatService} from './core/services/testing/mock-stream-chat.se
 import {MockStringToColorService} from './core/services/testing/mock-string-to-color.service';
 import {MockTraceService} from './core/services/testing/mock-trace.service';
 import {MockVideoService} from './core/services/testing/mock-video.service';
+import {MockScreenSharingService} from './core/services/testing/mock-screensharing.service';
 import {MockWebSocketService} from './core/services/testing/mock-websocket.service';
 import {TRACE_SERVICE, TraceService} from './core/services/trace.service';
 import {VIDEO_SERVICE, VideoService} from './core/services/video.service';
 import {WEBSOCKET_SERVICE, WebSocketService,} from './core/services/websocket.service';
+import { SCREEN_SHARING_SERVICE } from './core/services/screensharing.service';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
@@ -66,6 +68,7 @@ describe('AppComponent', () => {
     const audioService = new MockAudioService();
     const webSocketService = new MockWebSocketService();
     const videoService = new MockVideoService();
+    const screenSharingService = new MockScreenSharingService();
     const streamChatService = new MockStreamChatService();
     const eventService = new MockEventService();
     const downloadService = new MockDownloadService();
@@ -117,6 +120,10 @@ describe('AppComponent', () => {
             {
               provide: VIDEO_SERVICE,
               useValue: videoService,
+            },
+            {
+              provide: SCREEN_SHARING_SERVICE,
+              useValue: screenSharingService,
             },
             {
               provide: STREAM_CHAT_SERVICE,

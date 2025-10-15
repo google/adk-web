@@ -164,6 +164,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   evalSetId = '';
   isAudioRecording = false;
   isVideoRecording = false;
+  isScreenSharing = false;
   longRunningEvents: any[] = [];
   functionCallEventId = '';
   redirectUri = URLUtil.getBaseUrlWithoutPath();
@@ -918,6 +919,11 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       this.stopVideoRecording();
       this.isVideoRecording = false;
     }
+    if (this.isScreenSharing) {
+      this.stopScreenSharing();
+      this.isScreenSharing = false;
+    }
+
     this.evalTab()?.resetEvalResults();
     this.traceData = [];
     this.bottomPanelVisible = false;
@@ -987,6 +993,41 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.streamChatService.stopVideoChat(videoContainer);
     this.isVideoRecording = false;
+  }
+
+  toggleScreenSharing() {
+    this.isScreenSharing ? this.stopScreenSharing() : this.startScreenSharing();
+  }
+
+  startScreenSharing() {
+    if (this.sessionHasUsedBidi.has(this.sessionId)) {
+      this.openSnackBar(BIDI_STREAMING_RESTART_WARNING, 'OK')
+      return;
+    }
+    const screenSharingContainer = this.chatPanel()?.screenSharingContainer;
+    if (!screenSharingContainer) {
+      return;
+    }
+    this.isScreenSharing = true;
+    this.streamChatService.startScreenSharingChat({
+      appName: this.appName,
+      userId: this.userId,
+      sessionId: this.sessionId,
+      screenSharingContainer,
+    });
+    this.messages.update(
+        messages => [...messages, {role: 'user', text: 'Sharing Screen...'}]);
+    this.sessionHasUsedBidi.add(this.sessionId);
+  }
+
+  stopScreenSharing() {
+    const screenSharingContainer = this.chatPanel()?.screenSharingContainer;
+    if (!screenSharingContainer) {
+      return;
+    }
+
+    this.streamChatService.stopScreenSharingChat(screenSharingContainer);
+    this.isScreenSharing = false;
   }
 
   private getAsyncFunctionsFromParts(pendingIds: any[], parts: any[], invocationId: string) {
