@@ -37,6 +37,10 @@ describe('WebSocketService', () => {
             buffer: null,
           }),
       currentTime: 0,
+      state: 'running',
+      close: jasmine.createSpy('close').and.callFake(function(this: any) {
+        this.state = 'closed';
+      }),
     };
     spyOn(window, 'AudioContext').and.returnValue(mockAudioContext);
 
@@ -58,6 +62,39 @@ describe('WebSocketService', () => {
     it('should add padding', () => {
       expect(service.urlSafeBase64ToBase64('abc')).toEqual('abc=');
       expect(service.urlSafeBase64ToBase64('abcd')).toEqual('abcd');
+    });
+  });
+
+  describe('connection restart', () => {
+    it('should close audio context when closing connection', () => {
+      service.closeConnection();
+      expect(mockAudioContext.close).toHaveBeenCalled();
+      expect(mockAudioContext.state).toBe('closed');
+    });
+
+    it('should create new audio context when reconnecting after close', () => {
+      service.closeConnection();
+      expect(mockAudioContext.state).toBe('closed');
+
+      const audioContextCallCount = (window.AudioContext as any).calls.count();
+      service.connect('ws://test');
+      expect((window.AudioContext as any).calls.count()).toBe(audioContextCallCount + 1);
+    });
+
+    it('should reset audio buffer when reconnecting', () => {
+      service.connect('ws://test1');
+
+      (service as any).audioBuffer = [new Uint8Array([1, 2, 3])];
+
+      service.connect('ws://test2');
+      expect((service as any).audioBuffer).toEqual([]);
+    });
+
+    it('should reset lastAudioTime when reconnecting', () => {
+      service.connect('ws://test1');
+      (service as any).lastAudioTime = 5.5;
+      service.connect('ws://test2');
+      expect((service as any).lastAudioTime).toBe(0);
     });
   });
 });

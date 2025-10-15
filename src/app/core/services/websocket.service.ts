@@ -39,6 +39,13 @@ export class WebSocketService {
   constructor() {}
 
   connect(serverUrl: string) {
+    this.closeConnection();
+    if (this.audioContext.state === 'closed') {
+      this.audioContext = new AudioContext({sampleRate: 22000});
+    }
+    this.lastAudioTime = 0;
+    this.audioBuffer = [];
+
     this.socket$ = new WebSocketSubject({
       url: serverUrl,
       serializer: (msg) => JSON.stringify(msg),
@@ -75,6 +82,9 @@ export class WebSocketService {
     this.audioIntervalId = null;
     if (this.socket$) {
       this.socket$.complete();
+    }
+    if (this.audioContext && this.audioContext.state !== 'closed') {
+      this.audioContext.close();
     }
   }
 
