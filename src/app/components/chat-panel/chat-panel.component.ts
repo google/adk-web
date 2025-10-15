@@ -16,7 +16,7 @@
  */
 
 import {TextFieldModule} from '@angular/cdk/text-field';
-import {CommonModule, DOCUMENT, NgClass, NgStyle} from '@angular/common';
+import {CommonModule, DOCUMENT, NgClass} from '@angular/common';
 import {AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, EventEmitter, inject, Inject, Input, OnChanges, Output, Renderer2, signal, SimpleChanges, ViewChild, Type} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
@@ -50,7 +50,7 @@ const ROOT_AGENT = 'root_agent';
     CommonModule, FormsModule, MatIconModule, MatCardModule,
     MatProgressBarModule, MatButtonModule, MatInputModule, TextFieldModule,
     MatFormFieldModule, MatMenuModule, NgxJsonViewerModule,
-    AudioPlayerComponent, MatTooltipModule, NgClass, NgStyle,
+    AudioPlayerComponent, MatTooltipModule, NgClass,
   ],
 })
 export class ChatPanelComponent implements OnChanges, AfterViewInit {
