@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import {MarkdownModule} from 'ngx-markdown';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {SimpleChange} from '@angular/core';
 import {ComponentFixture, fakeAsync, TestBed, tick} from '@angular/core/testing';
 import {MatDialogModule} from '@angular/material/dialog';
 import {By} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {MarkdownModule} from 'ngx-markdown';
 import {of} from 'rxjs';
 
 import {FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
@@ -29,9 +29,10 @@ import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-
 import {StringToColorServiceImpl} from '../../core/services/string-to-color.service';
 import {MockFeatureFlagService} from '../../core/services/testing/mock-feature-flag.service';
 import {MockStringToColorService} from '../../core/services/testing/mock-string-to-color.service';
-import {ChatPanelComponent} from './chat-panel.component';
-import {MARKDOWN_COMPONENT} from '../markdown/markdown.component.interface';
 import {MarkdownComponent} from '../markdown/markdown.component';
+import {MARKDOWN_COMPONENT} from '../markdown/markdown.component.interface';
+
+import {ChatPanelComponent} from './chat-panel.component';
 
 const USER_ID = 'user';
 const FUNC1_NAME = 'func1';
@@ -390,5 +391,6 @@ describe('ChatPanelComponent', () => {
               'videocam');
       expect(button!.nativeElement.disabled).toBeTrue();
     });
+
   });
 });

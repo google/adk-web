@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import {NgClass} from '@angular/common';
+import {AsyncPipe, NgClass} from '@angular/common';
 import {ChangeDetectorRef, Component, EventEmitter, Inject, inject, Input, OnInit, Output} from '@angular/core';
+import {MatChip} from '@angular/material/chips';
 import {MatDialog} from '@angular/material/dialog';
 import {Subject} from 'rxjs';
 import {switchMap} from 'rxjs/operators';
@@ -28,7 +29,7 @@ import {SESSION_SERVICE, SessionService} from '../../core/services/session.servi
     selector: 'app-session-tab',
     templateUrl: './session-tab.component.html',
     styleUrl: './session-tab.component.scss',
-    imports: [NgClass],
+    imports: [NgClass, AsyncPipe, MatChip],
 })
 export class SessionTabComponent implements OnInit {
   @Input() userId: string = '';
@@ -44,7 +45,7 @@ export class SessionTabComponent implements OnInit {
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   constructor(
-    @Inject(SESSION_SERVICE) private sessionService: SessionService,
+    @Inject(SESSION_SERVICE) protected readonly sessionService: SessionService,
     private dialog: MatDialog,
   ) {
     this.refreshSessionsSubject
