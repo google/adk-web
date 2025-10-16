@@ -17,7 +17,7 @@
 
 import {HttpClient} from '@angular/common/http';
 import {Injectable, InjectionToken} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 
 import {URLUtil} from '../../../utils/url-util';
 import {Session} from '../models/Session';
@@ -78,4 +78,5 @@ export class SessionService {
 
     return new Observable<Session>();
   }
+
 }

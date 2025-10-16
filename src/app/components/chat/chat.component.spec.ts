@@ -25,7 +25,6 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {By} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
-
 import {BehaviorSubject, NEVER, of, Subject, throwError} from 'rxjs';
 
 import {EvalCase} from '../../core/models/Eval';
@@ -141,7 +140,6 @@ describe('ChatComponent', () => {
     mockStringToColorService = new MockStringToColorService();
     mockSafeValuesService = new MockSafeValuesService();
     mockLocalFileService = new MockLocalFileService();
-
     mockStringToColorService.stc.and.returnValue('#8c8526ff');
 
     mockSessionService.createSessionResponse.next(
@@ -468,6 +466,7 @@ describe('ChatComponent', () => {
             expect(mockEventService.getTrace)
                 .toHaveBeenCalledWith(SESSION_1_ID);
           });
+
         });
   });
 
@@ -877,7 +876,8 @@ describe('ChatComponent', () => {
       });
 
       it('should have the token streaming toggle disabled', () => {
-        const slideToggle = fixture.debugElement.query(By.css('mat-slide-toggle'));
+        const slideToggle =
+            fixture.debugElement.query(By.css('mat-slide-toggle'));
         expect(slideToggle.componentInstance.disabled).toBe(true);
       });
     });
