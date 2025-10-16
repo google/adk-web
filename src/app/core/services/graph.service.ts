@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-import {Injectable, InjectionToken} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {instance} from '@viz-js/viz';
 import {setAnchorHref} from 'safevalues/dom';
-
-export const GRAPH_SERVICE = new InjectionToken<GraphService>('GraphService');
+import {GraphService as GraphServiceInterface} from './interfaces/graph';
 
 @Injectable({
   providedIn: 'root',
 })
-export class GraphService {
+export class GraphService implements GraphServiceInterface {
   async render(graphSrc: string): Promise<string> {
     const options = {
       format: 'svg',

@@ -17,9 +17,10 @@
 
 import {TestBed} from '@angular/core/testing';
 
-import {AUDIO_WORKLET_MODULE_PATH, AudioRecordingService} from './audio-recording.service';
+import {AudioRecordingService} from './audio-recording.service';
+import {AUDIO_WORKLET_MODULE_PATH} from './interfaces/audio-recording';
+import {WEBSOCKET_SERVICE} from './interfaces/websocket';
 import {MockWebSocketService} from './testing/mock-websocket.service';
-import {WEBSOCKET_SERVICE} from './websocket.service';
 
 const AUDIO_PROCESSOR_PATH = './assets/audio-processor.js';
 const AUDIO_PROCESSOR_NAME = 'audio-processor';

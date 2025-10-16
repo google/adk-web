@@ -42,19 +42,19 @@ import {AgentRunRequest} from '../../core/models/AgentRunRequest';
 import {EvalCase} from '../../core/models/Eval';
 import {Session, SessionState} from '../../core/models/Session';
 import {Event as AdkEvent} from '../../core/models/types';
-import {AGENT_SERVICE, AgentService} from '../../core/services/agent.service';
-import {ARTIFACT_SERVICE, ArtifactService} from '../../core/services/artifact.service';
-import {DOWNLOAD_SERVICE, DownloadService} from '../../core/services/download.service';
-import {EVAL_SERVICE, EvalService} from '../../core/services/eval.service';
-import {EVENT_SERVICE, EventService} from '../../core/services/event.service';
-import {FEATURE_FLAG_SERVICE, FeatureFlagService} from '../../core/services/feature-flag.service';
-import {GRAPH_SERVICE, GraphService} from '../../core/services/graph.service';
+import {AGENT_SERVICE, AgentService} from '../../core/services/interfaces/agent';
+import {ARTIFACT_SERVICE, ArtifactService} from '../../core/services/interfaces/artifact';
+import {DOWNLOAD_SERVICE, DownloadService} from '../../core/services/interfaces/download';
+import {EVAL_SERVICE, EvalService} from '../../core/services/interfaces/eval';
+import {EVENT_SERVICE, EventService} from '../../core/services/interfaces/event';
+import {FEATURE_FLAG_SERVICE, FeatureFlagService} from '../../core/services/interfaces/feature-flag';
+import {GRAPH_SERVICE, GraphService} from '../../core/services/interfaces/graph';
 import {LOCAL_FILE_SERVICE, LocalFileService} from '../../core/services/interfaces/localfile';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
-import {SESSION_SERVICE, SessionService} from '../../core/services/session.service';
-import {STREAM_CHAT_SERVICE, StreamChatService} from '../../core/services/stream-chat.service';
-import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
+import {SESSION_SERVICE, SessionService} from '../../core/services/interfaces/session';
+import {STREAM_CHAT_SERVICE, StreamChatService} from '../../core/services/interfaces/stream-chat';
+import {TRACE_SERVICE, TraceService} from '../../core/services/interfaces/trace';
 import {ResizableBottomDirective} from '../../directives/resizable-bottom.directive';
 import {ResizableDrawerDirective} from '../../directives/resizable-drawer.directive';
 import {getMediaTypeFromMimetype, MediaType} from '../artifact-tab/artifact-tab.component';
@@ -330,7 +330,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     })
 
-    this.traceService.hoveredMessageIndicies$.subscribe(i => this.hoveredEventMessageIndices = i);
+    this.traceService.hoveredMessageIndices$.subscribe(i => this.hoveredEventMessageIndices = i);
   }
 
   ngAfterViewInit() {
@@ -383,7 +383,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.sessionService.createSession(this.userId, this.appName)
       .subscribe((res) => {
         this.currentSessionState = res.state;
-        this.sessionId = res.id;
+        this.sessionId = res.id ?? '';
         this.sessionTab()?.refreshSession();
 
         this.isSessionUrlEnabledObs.subscribe((enabled) => {

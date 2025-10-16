@@ -29,18 +29,18 @@ import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
 import {BehaviorSubject, NEVER, of, Subject, throwError} from 'rxjs';
 
 import {EvalCase} from '../../core/models/Eval';
-import {AGENT_SERVICE, AgentService} from '../../core/services/agent.service';
-import {ARTIFACT_SERVICE, ArtifactService,} from '../../core/services/artifact.service';
-import {DOWNLOAD_SERVICE, DownloadService,} from '../../core/services/download.service';
-import {EVAL_SERVICE, EvalService} from '../../core/services/eval.service';
-import {EVENT_SERVICE, EventService} from '../../core/services/event.service';
-import {FEATURE_FLAG_SERVICE, FeatureFlagService,} from '../../core/services/feature-flag.service';
-import {GRAPH_SERVICE, GraphService} from '../../core/services/graph.service';
+import {AGENT_SERVICE, AgentService} from '../../core/services/interfaces/agent';
+import {ARTIFACT_SERVICE, ArtifactService,} from '../../core/services/interfaces/artifact';
+import {DOWNLOAD_SERVICE, DownloadService,} from '../../core/services/interfaces/download';
+import {EVAL_SERVICE, EvalService} from '../../core/services/interfaces/eval';
+import {EVENT_SERVICE, EventService} from '../../core/services/interfaces/event';
+import {FEATURE_FLAG_SERVICE, FeatureFlagService,} from '../../core/services/interfaces/feature-flag';
+import {GRAPH_SERVICE, GraphService} from '../../core/services/interfaces/graph';
 import {LOCAL_FILE_SERVICE} from '../../core/services/interfaces/localfile';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
-import {SESSION_SERVICE, SessionService,} from '../../core/services/session.service';
-import {STREAM_CHAT_SERVICE} from '../../core/services/stream-chat.service';
+import {SESSION_SERVICE, SessionService,} from '../../core/services/interfaces/session';
+import {STREAM_CHAT_SERVICE} from '../../core/services/interfaces/stream-chat';
 import {MockAgentService} from '../../core/services/testing/mock-agent.service';
 import {MockArtifactService} from '../../core/services/testing/mock-artifact.service';
 import {MockDownloadService} from '../../core/services/testing/mock-download.service';
@@ -56,9 +56,9 @@ import {MockStringToColorService} from '../../core/services/testing/mock-string-
 import {MockTraceService} from '../../core/services/testing/mock-trace.service';
 import {MockVideoService} from '../../core/services/testing/mock-video.service';
 import {MockWebSocketService} from '../../core/services/testing/mock-websocket.service';
-import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
-import {VIDEO_SERVICE, VideoService} from '../../core/services/video.service';
-import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/websocket.service';
+import {TRACE_SERVICE, TraceService} from '../../core/services/interfaces/trace';
+import {VIDEO_SERVICE, VideoService} from '../../core/services/interfaces/video';
+import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/interfaces/websocket';
 import {fakeAsync,
         tick} from '../../testing/utils';
 import {ChatPanelComponent} from '../chat-panel/chat-panel.component';
@@ -147,7 +147,7 @@ describe('ChatComponent', () => {
     mockSessionService.createSessionResponse.next(
         {id: SESSION_1_ID, state: {}});
     mockTraceService.selectedTraceRow$.next(undefined);
-    mockTraceService.hoveredMessageIndicies$.next([]);
+    mockTraceService.hoveredMessageIndices$.next([]);
     mockFeatureFlagService.isImportSessionEnabledResponse.next(true);
     mockFeatureFlagService.isEditFunctionArgsEnabledResponse.next(true);
     mockFeatureFlagService.isSessionUrlEnabledResponse.next(true);

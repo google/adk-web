@@ -15,18 +15,14 @@
  * limitations under the License.
  */
 
-import {inject, Injectable, InjectionToken} from '@angular/core';
-
-export const AUDIO_RECORDING_SERVICE =
-    new InjectionToken<AudioRecordingService>('AudioRecordingService');
-export const AUDIO_WORKLET_MODULE_PATH =
-    new InjectionToken<string>('AudioWorkletModulePath');
+import {inject, Injectable} from '@angular/core';
+import {AUDIO_WORKLET_MODULE_PATH, AudioRecordingService as AudioRecordingServiceInterface} from './interfaces/audio-recording';
 
 
 @Injectable({
   providedIn: 'root',
 })
-export class AudioRecordingService {
+export class AudioRecordingService implements AudioRecordingServiceInterface {
   private readonly audioWorkletModulePath = inject(AUDIO_WORKLET_MODULE_PATH);
 
   private stream!: MediaStream;

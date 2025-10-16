@@ -17,7 +17,7 @@
 import {Component, Inject, Input} from '@angular/core';
 
 import {Span} from '../../../core/models/Trace';
-import {TRACE_SERVICE, TraceService} from '../../../core/services/trace.service';
+import {TRACE_SERVICE, TraceService} from '../../../core/services/interfaces/trace';
 
 @Component({
   selector: 'app-trace-tree',

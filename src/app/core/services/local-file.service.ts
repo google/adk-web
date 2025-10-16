@@ -25,7 +25,7 @@ import {LocalFileService} from './interfaces/localfile';
 @Injectable({
   providedIn: 'root',
 })
-export class LocalFileServiceImpl extends LocalFileService {
+export class LocalFileServiceImpl implements LocalFileService {
   async createMessagePartFromFile(file: File): Promise<any> {
     return {
       inlineData: {

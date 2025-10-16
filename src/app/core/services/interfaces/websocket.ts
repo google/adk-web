@@ -16,14 +16,21 @@
  */
 
 import {InjectionToken} from '@angular/core';
+import {Observable} from 'rxjs';
+import {LiveRequest} from '../../models/LiveRequest';
 
-export const LOCAL_FILE_SERVICE = new InjectionToken<LocalFileService>(
-    'LocalFileService',
-);
+export const WEBSOCKET_SERVICE =
+    new InjectionToken<WebSocketService>('WebSocketService');
 
 /**
- * Service to provide methods to handle local files.
+ * Service to provide methods to handle websocket connections.
  */
-export declare abstract class LocalFileService {
-  abstract createMessagePartFromFile(file: File): Promise<any>;
+export declare abstract class WebSocketService {
+  abstract connect(serverUrl: string): void;
+  abstract sendMessage(data: LiveRequest): void;
+  abstract closeConnection(): void;
+  abstract getMessages(): Observable<string>;
+  abstract urlSafeBase64ToBase64(urlSafeBase64: string): string;
+  abstract emitWsCloseReason(reason: string): void;
+  abstract onCloseReason(): Observable<string>;
 }

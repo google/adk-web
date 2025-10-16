@@ -16,15 +16,14 @@
  */
 
 import {HttpClient} from '@angular/common/http';
-import {Injectable, InjectionToken} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {URLUtil} from '../../../utils/url-util';
-
-export const EVENT_SERVICE = new InjectionToken<EventService>('EventService');
+import {EventService as EventServiceInterface} from './interfaces/event';
 
 @Injectable({
   providedIn: 'root',
 })
-export class EventService {
+export class EventService implements EventServiceInterface {
   apiServerDomain = URLUtil.getApiServerBaseUrl();
   constructor(private http: HttpClient) {}
 
