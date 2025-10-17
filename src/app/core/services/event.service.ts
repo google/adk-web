@@ -17,9 +17,18 @@
 
 import {HttpClient} from '@angular/common/http';
 import {Injectable, InjectionToken} from '@angular/core';
+
 import {URLUtil} from '../../../utils/url-util';
+import {Event} from '../models/types';
 
 export const EVENT_SERVICE = new InjectionToken<EventService>('EventService');
+
+/**
+ * Event identifier used to fetch event trace.
+ *
+ * This is a subset of the Event interface that is used to identify an event.
+ */
+export type EventIdentifier = Pick<Event, 'id'| 'invocationId'|'timestamp'>;
 
 @Injectable({
   providedIn: 'root',
@@ -28,8 +37,11 @@ export class EventService {
   apiServerDomain = URLUtil.getApiServerBaseUrl();
   constructor(private http: HttpClient) {}
 
-  getEventTrace(id: string) {
-    const url = this.apiServerDomain + `/debug/trace/${id}`;
+  /**
+   * Returns the trace data for a given event id.
+   */
+  getEventTrace(event: EventIdentifier) {
+    const url = this.apiServerDomain + `/debug/trace/${event.id!}`;
     return this.http.get<any>(url);
   }
 
@@ -39,14 +51,14 @@ export class EventService {
   }
 
   getEvent(
-    userId: string,
-    appName: string,
-    sessionId: string,
-    eventId: string,
+      userId: string,
+      appName: string,
+      sessionId: string,
+      eventId: string,
   ) {
-    const url =
-      this.apiServerDomain +
-      `/apps/${appName}/users/${userId}/sessions/${sessionId}/events/${eventId}/graph`;
+    const url = this.apiServerDomain +
+        `/apps/${appName}/users/${userId}/sessions/${sessionId}/events/${
+                    eventId}/graph`;
     return this.http.get<{dotSrc?: string}>(url);
   }
 }
