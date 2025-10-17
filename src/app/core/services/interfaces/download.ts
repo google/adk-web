@@ -15,21 +15,14 @@
  * limitations under the License.
  */
 
-import {Injectable, InjectionToken} from '@angular/core';
-import stc from 'string-to-color';
-import {StringToColorService as StringToColorServiceInterface} from './interfaces/string-to-color';
+import {InjectionToken} from '@angular/core';
+
+export const DOWNLOAD_SERVICE = new InjectionToken<DownloadService>('DownloadService');
 
 /**
- * Service to convert a string to a color.
+ * Service to provide methods to handle downloads.
  */
-@Injectable({
-  providedIn: 'root',
-})
-export class StringToColorServiceImpl implements StringToColorServiceInterface {
-  /**
-   * Converts a string to a color, e.g. 'my string' -> '#8c8526ff'.
-   */
-  stc(str: string): string {
-    return stc(str);
-  }
+export declare abstract class DownloadService {
+  abstract downloadBase64Data(data: string, mimeType: string, fileName?: string): void;
+  abstract downloadObjectAsJson(data: object, filename?: string): void;
 }

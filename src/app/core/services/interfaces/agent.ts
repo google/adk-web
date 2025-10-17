@@ -16,14 +16,19 @@
  */
 
 import {InjectionToken} from '@angular/core';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {AgentRunRequest} from '../../models/AgentRunRequest';
+import {LlmResponse} from '../../models/types';
 
-export const LOCAL_FILE_SERVICE = new InjectionToken<LocalFileService>(
-    'LocalFileService',
-);
+export const AGENT_SERVICE = new InjectionToken<AgentService>('AgentService');
 
 /**
- * Service to provide methods to handle local files.
+ * Service to provide methods to handle agent.
  */
-export declare abstract class LocalFileService {
-  abstract createMessagePartFromFile(file: File): Promise<any>;
+export declare abstract class AgentService {
+  abstract getApp(): Observable<string>;
+  abstract setApp(name: string): void;
+  abstract getLoadingState(): BehaviorSubject<boolean>;
+  abstract runSse(req: AgentRunRequest): Observable<LlmResponse>;
+  abstract listApps(): Observable<string[]>;
 }

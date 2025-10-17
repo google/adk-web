@@ -15,21 +15,26 @@
  * limitations under the License.
  */
 
-import {Injectable, InjectionToken} from '@angular/core';
-import stc from 'string-to-color';
-import {StringToColorService as StringToColorServiceInterface} from './interfaces/string-to-color';
+import {InjectionToken} from '@angular/core';
+import {Observable} from 'rxjs';
+
+export const ARTIFACT_SERVICE = new InjectionToken<ArtifactService>('ArtifactService');
 
 /**
- * Service to convert a string to a color.
+ * Service to provide methods to handle artifacts.
  */
-@Injectable({
-  providedIn: 'root',
-})
-export class StringToColorServiceImpl implements StringToColorServiceInterface {
-  /**
-   * Converts a string to a color, e.g. 'my string' -> '#8c8526ff'.
-   */
-  stc(str: string): string {
-    return stc(str);
-  }
+export declare abstract class ArtifactService {
+  abstract getLatestArtifact(
+    userId: string,
+    appName: string,
+    sessionId: string,
+    artifactName: string,
+  ): Observable<any>;
+  abstract getArtifactVersion(
+    userId: string,
+    appName: string,
+    sessionId: string,
+    artifactName: string,
+    versionId: string,
+  ): Observable<any>;
 }

@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-import {Injectable, InjectionToken} from '@angular/core';
-import stc from 'string-to-color';
-import {StringToColorService as StringToColorServiceInterface} from './interfaces/string-to-color';
+import {InjectionToken} from '@angular/core';
+import {Observable} from 'rxjs';
+
+export const EVENT_SERVICE = new InjectionToken<EventService>('EventService');
 
 /**
- * Service to convert a string to a color.
+ * Service to provide methods to handle events.
  */
-@Injectable({
-  providedIn: 'root',
-})
-export class StringToColorServiceImpl implements StringToColorServiceInterface {
-  /**
-   * Converts a string to a color, e.g. 'my string' -> '#8c8526ff'.
-   */
-  stc(str: string): string {
-    return stc(str);
-  }
+export declare abstract class EventService {
+  abstract getEventTrace(id: string): Observable<any>;
+  abstract getTrace(sessionId: string): Observable<any>;
+  abstract getEvent(
+    userId: string,
+    appName: string,
+    sessionId: string,
+    eventId: string,
+  ): Observable<{dotSrc?: string}>;
 }

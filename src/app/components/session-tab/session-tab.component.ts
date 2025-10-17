@@ -22,7 +22,7 @@ import {Subject} from 'rxjs';
 import {switchMap} from 'rxjs/operators';
 
 import {Session} from '../../core/models/Session';
-import {SESSION_SERVICE, SessionService} from '../../core/services/session.service';
+import {SESSION_SERVICE, SessionService} from '../../core/services/interfaces/session';
 
 @Component({
     selector: 'app-session-tab',

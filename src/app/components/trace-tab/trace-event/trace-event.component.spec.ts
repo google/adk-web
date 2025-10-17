@@ -22,12 +22,12 @@ import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {of} from 'rxjs';
 
 import {Span} from '../../../core/models/Trace';
-import {EVENT_SERVICE, EventService} from '../../../core/services/event.service';
-import {GRAPH_SERVICE, GraphService} from '../../../core/services/graph.service';
+import {EVENT_SERVICE, EventService} from '../../../core/services/interfaces/event';
+import {GRAPH_SERVICE, GraphService} from '../../../core/services/interfaces/graph';
 import {MockEventService} from '../../../core/services/testing/mock-event.service';
 import {MockGraphService} from '../../../core/services/testing/mock-graph.service';
 import {MockTraceService} from '../../../core/services/testing/mock-trace.service';
-import {TRACE_SERVICE, TraceService} from '../../../core/services/trace.service';
+import {TRACE_SERVICE, TraceService} from '../../../core/services/interfaces/trace';
 import {ViewImageDialogComponent} from '../../view-image-dialog/view-image-dialog.component';
 
 import {TraceEventComponent} from './trace-event.component';

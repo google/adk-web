@@ -25,7 +25,7 @@ import {TraceService} from '../trace.service';
 export class MockTraceService implements Partial<TraceService> {
   selectedTraceRow$ = new ReplaySubject<Span|undefined>(1);
   eventData$ = new ReplaySubject<Map<string, any>|undefined>(1);
-  hoveredMessageIndicies$ = new ReplaySubject<number[]>(1);
+  hoveredMessageIndices$ = new ReplaySubject<number[]>(1);
   messages$ = new ReplaySubject<any[]>(1);
 
   selectedRow = jasmine.createSpy('selectedRow');

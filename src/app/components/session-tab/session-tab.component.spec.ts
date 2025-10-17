@@ -18,7 +18,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SessionTabComponent } from './session-tab.component';
-import { SESSION_SERVICE, SessionService } from '../../core/services/session.service';
+import { SESSION_SERVICE, SessionService } from '../../core/services/interfaces/session';
 import { of } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 

@@ -23,9 +23,26 @@ export const SAFE_VALUES_SERVICE = new InjectionToken<SafeValuesService>(
 );
 
 /**
+ * Needed for 1p JS compiler. A declared interface is needed here because
+ * abstract classes with implementations can't be declared.
+*/
+declare interface SafeValuesServiceInterface {
+  windowOpen(window: Window,
+    url: string,
+    target?: string,
+    features?: string
+  ): Window | null;
+  createObjectUrl(blob: Blob): string;
+  openBlobUrl(blob: Blob): Window | null;
+  setAnchorHref(a: HTMLAnchorElement, url: string): void;
+  bypassSecurityTrustHtml(value: string): SafeHtml;
+  openBase64InNewTab(dataUrl: string, mimeType: string): void;
+}
+
+/**
  * Service to provide safe values for DOM manipulation.
  */
-export abstract class SafeValuesService {
+export abstract class SafeValuesService implements SafeValuesServiceInterface {
   abstract windowOpen(window: Window,
     url: string,
     target?: string,

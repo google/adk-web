@@ -15,22 +15,20 @@
  * limitations under the License.
  */
 
-import {inject, Injectable, InjectionToken} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {WebSocketSubject} from 'rxjs/webSocket';
 
 import {LiveRequest} from '../models/LiveRequest';
 import {Event} from '../models/types';
 
-import {AUDIO_PLAYING_SERVICE, AudioPlayingService} from './audio-playing.service';
-
-export const WEBSOCKET_SERVICE =
-    new InjectionToken<WebSocketService>('WebSocketService');
+import {AUDIO_PLAYING_SERVICE} from './interfaces/audio-playing';
+import {WebSocketService as WebSocketServiceInterface} from './interfaces/websocket';
 
 @Injectable({
   providedIn: 'root',
 })
-export class WebSocketService {
+export class WebSocketService implements WebSocketServiceInterface {
   private readonly audioPlayingService = inject(AUDIO_PLAYING_SERVICE);
 
   private socket$!: WebSocketSubject<any>;

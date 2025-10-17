@@ -15,21 +15,13 @@
  * limitations under the License.
  */
 
-import {Injectable, InjectionToken} from '@angular/core';
-import stc from 'string-to-color';
-import {StringToColorService as StringToColorServiceInterface} from './interfaces/string-to-color';
+import {InjectionToken} from '@angular/core';
+
+export const GRAPH_SERVICE = new InjectionToken<GraphService>('GraphService');
 
 /**
- * Service to convert a string to a color.
+ * Service to provide methods to handle graphs.
  */
-@Injectable({
-  providedIn: 'root',
-})
-export class StringToColorServiceImpl implements StringToColorServiceInterface {
-  /**
-   * Converts a string to a color, e.g. 'my string' -> '#8c8526ff'.
-   */
-  stc(str: string): string {
-    return stc(str);
-  }
+export declare abstract class GraphService {
+  abstract render(graphSrc: string): Promise<string>;
 }

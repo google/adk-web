@@ -23,9 +23,9 @@ import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {NgxJsonViewerModule} from 'ngx-json-viewer';
 
 import {Span} from '../../../core/models/Trace';
-import {EVENT_SERVICE, EventService} from '../../../core/services/event.service';
-import {GRAPH_SERVICE, GraphService} from '../../../core/services/graph.service';
-import {TRACE_SERVICE, TraceService} from '../../../core/services/trace.service';
+import {EVENT_SERVICE, EventService} from '../../../core/services/interfaces/event';
+import {GRAPH_SERVICE, GraphService} from '../../../core/services/interfaces/graph';
+import {TRACE_SERVICE, TraceService} from '../../../core/services/interfaces/trace';
 import {ViewImageDialogComponent} from '../../view-image-dialog/view-image-dialog.component';
 
 @Component({

@@ -17,7 +17,7 @@
 
 import {TestBed} from '@angular/core/testing';
 
-import {AUDIO_PLAYING_SERVICE} from './audio-playing.service';
+import {AUDIO_PLAYING_SERVICE} from './interfaces/audio-playing';
 import {MockAudioPlayingService} from './testing/mock-audio-playing.service';
 import {WebSocketService} from './websocket.service';
 

@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
-import {ElementRef, Inject, Injectable, InjectionToken} from '@angular/core';
+import {ElementRef, Inject, Injectable} from '@angular/core';
 
 import {URLUtil} from '../../../utils/url-util';
 import {LiveRequest} from '../models/LiveRequest';
 
-import {AUDIO_RECORDING_SERVICE, AudioRecordingService} from './audio-recording.service';
-import {VIDEO_SERVICE, VideoService} from './video.service';
-import {WEBSOCKET_SERVICE, WebSocketService} from './websocket.service';
-
-export const STREAM_CHAT_SERVICE =
-    new InjectionToken<StreamChatService>('StreamChatService');
+import {AUDIO_RECORDING_SERVICE, AudioRecordingService} from './interfaces/audio-recording';
+import {STREAM_CHAT_SERVICE, StreamChatService as StreamChatServiceInterface} from './interfaces/stream-chat';
+import {VIDEO_SERVICE} from './interfaces/video';
+import {WEBSOCKET_SERVICE} from './interfaces/websocket';
+import {VideoService} from './video.service';
+import {WebSocketService} from './websocket.service';
 
 /**
  * Service for supporting live streaming with audio/video.
@@ -33,7 +33,7 @@ export const STREAM_CHAT_SERVICE =
 @Injectable({
   providedIn: 'root',
 })
-export class StreamChatService {
+export class StreamChatService implements StreamChatServiceInterface {
   private audioIntervalId: number|undefined = undefined;
   private videoIntervalId: number|undefined = undefined;
 

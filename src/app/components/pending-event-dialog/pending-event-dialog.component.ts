@@ -18,7 +18,7 @@
 import {Component, Inject} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
 import {AgentRunRequest} from '../../core/models/AgentRunRequest';
-import {AgentService, AGENT_SERVICE} from '../../core/services/agent.service';
+import {AgentService, AGENT_SERVICE} from '../../core/services/interfaces/agent';
 import { NgIf } from '@angular/common';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatFormField, MatLabel } from '@angular/material/form-field';

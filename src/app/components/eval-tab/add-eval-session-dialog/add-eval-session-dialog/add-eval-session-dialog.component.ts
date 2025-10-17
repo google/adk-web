@@ -18,7 +18,7 @@
 import {Component, Inject} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
 import { uuidv4 } from 'uuidv7';
-import {EvalService, EVAL_SERVICE} from '../../../../core/services/eval.service';
+import {EvalService, EVAL_SERVICE} from '../../../../core/services/interfaces/eval';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatFormField } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';

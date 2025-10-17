@@ -26,9 +26,9 @@ import {catchError} from 'rxjs/operators';
 import {DEFAULT_EVAL_METRICS, EvalMetric, EvalCase} from '../../core/models/Eval';
 import {Session} from '../../core/models/Session';
 import {Invocation} from '../../core/models/Eval';
-import {EvalService, EVAL_SERVICE} from '../../core/services/eval.service';
-import {FeatureFlagService, FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
-import {SessionService, SESSION_SERVICE} from '../../core/services/session.service';
+import {EvalService, EVAL_SERVICE} from '../../core/services/interfaces/eval';
+import {FeatureFlagService} from '../../core/services/feature-flag.service';
+import {SessionService, SESSION_SERVICE} from '../../core/services/interfaces/session';
 
 import {AddEvalSessionDialogComponent} from './add-eval-session-dialog/add-eval-session-dialog/add-eval-session-dialog.component';
 import {NewEvalSetDialogComponentComponent} from './new-eval-set-dialog/new-eval-set-dialog-component/new-eval-set-dialog-component.component';
