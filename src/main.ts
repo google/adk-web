@@ -16,6 +16,7 @@
  */
 
 
+import {Location} from '@angular/common';
 import {HttpClientModule} from '@angular/common/http';
 import {importProvidersFrom} from '@angular/core';
 import {FormsModule} from '@angular/forms';
@@ -67,6 +68,7 @@ import {TraceService} from './app/core/services/trace.service';
 import {VideoService} from './app/core/services/video.service';
 import {WebSocketService} from './app/core/services/websocket.service';
 import {LOGO_COMPONENT} from './app/injection_tokens';
+import {LOCATION_SERVICE} from './app/core/services/location.service';
 
 fetch('./assets/config/runtime-config.json')
     .then((response) => response.json())
@@ -108,6 +110,7 @@ fetch('./assets/config/runtime-config.json')
                   [{provide: LOGO_COMPONENT, useValue: CustomLogoComponent}] :
                   []),
           provideAnimations(),
+          {provide: LOCATION_SERVICE, useClass: Location}
         ]
       }).catch((err) => console.error(err));
     });

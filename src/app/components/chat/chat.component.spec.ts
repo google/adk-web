@@ -38,6 +38,7 @@ import {GRAPH_SERVICE, GraphService} from '../../core/services/interfaces/graph'
 import {LOCAL_FILE_SERVICE} from '../../core/services/interfaces/localfile';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
+import {LOCATION_SERVICE} from '../../core/services/location.service';
 import {SESSION_SERVICE, SessionService,} from '../../core/services/interfaces/session';
 import {STREAM_CHAT_SERVICE} from '../../core/services/interfaces/stream-chat';
 import {MockAgentService} from '../../core/services/testing/mock-agent.service';
@@ -215,7 +216,7 @@ describe('ChatComponent', () => {
             {provide: MatSnackBar, useValue: mockSnackBar},
             {provide: Router, useValue: mockRouter},
             {provide: ActivatedRoute, useValue: mockActivatedRoute},
-            {provide: Location, useValue: mockLocation},
+            {provide: LOCATION_SERVICE, useValue: mockLocation},
             {provide: MARKDOWN_COMPONENT, useValue: MockMarkdownComponent},
           ],
         })
@@ -291,7 +292,8 @@ describe('ChatComponent', () => {
     });
 
     describe('when session ID is provided in URL', () => {
-      beforeEach(async () => {
+      beforeEach(() => {
+        mockAgentService.listAppsResponse.next([TEST_APP_1_NAME]);
         mockFeatureFlagService.isSessionUrlEnabledResponse.next(true);
         mockActivatedRoute.snapshot!.queryParams = {
           [APP_QUERY_PARAM]: TEST_APP_1_NAME,
@@ -299,21 +301,26 @@ describe('ChatComponent', () => {
         };
         mockSessionService.getSessionResponse.next(
             {id: SESSION_2_ID, state: {}, events: []});
-        fixture = TestBed.createComponent(ChatComponent);
-        component = fixture.componentInstance;
-        component.ngOnInit();
-        fixture.detectChanges();
-        component.selectApp(TEST_APP_2_NAME);
-        await fixture.whenStable();
       });
-      it('should load session from URL', () => {
-        expect(mockSessionService.getSession)
-            .toHaveBeenCalledWith(
-                USER_ID,
-                TEST_APP_2_NAME,
-                SESSION_2_ID,
-            );
-        expect(component.sessionId).toBe(SESSION_2_ID);
+
+      describe('on app change', () => {
+        beforeEach(async () => {
+          fixture = TestBed.createComponent(ChatComponent);
+          component = fixture.componentInstance;
+          component.ngOnInit();
+          fixture.detectChanges();
+          component.selectApp(TEST_APP_2_NAME);
+          await fixture.whenStable();
+        });
+        it('should load session from URL', () => {
+          expect(mockSessionService.getSession)
+              .toHaveBeenCalledWith(
+                  USER_ID,
+                  TEST_APP_2_NAME,
+                  SESSION_2_ID,
+              );
+          expect(component.sessionId).toBe(SESSION_2_ID);
+        });
       });
     });
 
