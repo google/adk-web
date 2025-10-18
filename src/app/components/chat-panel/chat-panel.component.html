@@ -209,6 +209,30 @@
         }
       </div>
       }
+      @if (message.metricResults?.length) {
+      <div class="message-metric-results">
+        @for (metricResult of message.metricResults; track metricResult.metricName) {
+          <span
+            class="metric-result-chip"
+            [ngClass]="{
+              'metric-pass': metricResult.evalStatus === 1 || metricResult.evalStatus === 'PASSED',
+              'metric-fail': metricResult.evalStatus === 2 || metricResult.evalStatus === 'FAILED',
+              'metric-neutral': metricResult.evalStatus !== 1 && metricResult.evalStatus !== 2 && metricResult.evalStatus !== 'PASSED' && metricResult.evalStatus !== 'FAILED'
+            }"
+          >
+            <span class="metric-result-name">{{ metricResult.metricName }}</span>
+            @if (metricResult.score !== undefined) {
+              <span class="metric-result-score">Score: {{ metricResult.score }}</span>
+            }
+            @if (metricResult.threshold !== undefined) {
+              <span class="metric-result-threshold"
+                >Threshold: {{ metricResult.threshold }}</span
+              >
+            }
+          </span>
+        }
+      </div>
+      }
     </mat-card>
     } @if (message.functionCall) {
     <button
