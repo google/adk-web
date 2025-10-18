@@ -88,6 +88,14 @@ export class EvalService {
     });
   }
 
+  listMetricsInfo(appName: string) {
+    if (this.apiServerDomain != undefined) {
+      const url = this.apiServerDomain + `/apps/${appName}/metrics-info`;
+      return this.http.get<any>(url, {});
+    }
+    return new Observable<any>();
+  }
+
   listEvalResults(appName: string) {
     if (this.apiServerDomain != undefined) {
       const url = this.apiServerDomain + `/apps/${appName}/eval_results`;
