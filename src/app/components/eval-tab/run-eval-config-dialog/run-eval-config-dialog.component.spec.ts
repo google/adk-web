@@ -22,8 +22,6 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
-import {MatRadioModule} from '@angular/material/radio';
-import {MatSliderModule} from '@angular/material/slider';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 
@@ -42,8 +40,6 @@ describe('RunEvalConfigDialogComponent', () => {
     imports: [
         ReactiveFormsModule,
         MatDialogModule,
-        MatRadioModule,
-        MatSliderModule,
         NoopAnimationsModule,
         RunEvalConfigDialogComponent,
     ],
@@ -52,14 +48,24 @@ describe('RunEvalConfigDialogComponent', () => {
         {
             provide: MAT_DIALOG_DATA,
             useValue: {
-                evalMetrics: [
+                metrics: [
                     {
                         metricName: 'tool_trajectory_avg_score',
                         threshold: 1,
+                        metricValueInfo: {
+                          minThreshold: 0,
+                          maxThreshold: 1,
+                          step: 0.1,
+                        },
                     },
                     {
                         metricName: 'response_match_score',
                         threshold: 0.7,
+                        metricValueInfo: {
+                          minThreshold: 0,
+                          maxThreshold: 1,
+                          step: 0.1,
+                        },
                     },
                 ],
             },
@@ -93,23 +99,26 @@ describe('RunEvalConfigDialogComponent', () => {
     expect(dialogRefSpy.close).toHaveBeenCalledWith(null);
   });
 
-  it('should update threshold value when slider changes (simulated)', () => {
-    const toolTrajectoryAvgScoreSlider = component.evalForm.get(
-      'tool_trajectory_avg_score_threshold'
-    )!;
-    const responseMatchScoreSlider = component.evalForm.get(
-      'response_match_score_threshold'
-    )!;
+  it('should close dialog with updated thresholds on start', () => {
+    const toolControl =
+      component.evalForm.get('tool_trajectory_avg_score_threshold')!;
+    const responseControl =
+      component.evalForm.get('response_match_score_threshold')!;
 
-    toolTrajectoryAvgScoreSlider.setValue(0.4); // Simulate slider value change
-    responseMatchScoreSlider.setValue(0.5); // Simulate slider value change
-    fixture.detectChanges();
+    toolControl.setValue(0.4);
+    responseControl.setValue(0.5);
 
-    expect(toolTrajectoryAvgScoreSlider.value).toBe(0.4);
-    expect(responseMatchScoreSlider.value).toBe(0.5);
-    const thresholdValueDisplays =
-      fixture.nativeElement.querySelectorAll('.threshold-value');
-    expect(thresholdValueDisplays[0].textContent).toContain('0.4');
-    expect(thresholdValueDisplays[1].textContent).toContain('0.5');
+    component.onStart();
+
+    expect(dialogRefSpy.close).toHaveBeenCalledWith([
+      jasmine.objectContaining({
+        metricName: 'tool_trajectory_avg_score',
+        threshold: 0.4,
+      }),
+      jasmine.objectContaining({
+        metricName: 'response_match_score',
+        threshold: 0.5,
+      }),
+    ]);
   });
 });
