@@ -23,7 +23,7 @@ import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeader
 import {BehaviorSubject, of} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 
-import {DEFAULT_EVAL_METRICS, EvalMetric, EvalCase} from '../../core/models/Eval';
+import {DEFAULT_EVAL_METRICS, EvalMetric, EvalCase, EvalMetricConfig, MetricValueInfo} from '../../core/models/Eval';
 import {Session} from '../../core/models/Session';
 import {Invocation} from '../../core/models/Eval';
 import {EvalService, EVAL_SERVICE} from '../../core/services/eval.service';
@@ -37,6 +37,10 @@ import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { NgClass } from '@angular/common';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatFormField } from '@angular/material/form-field';
+import { MatLabel } from '@angular/material/form-field';
+import { MatSelect } from '@angular/material/select';
+import { MatOption } from '@angular/material/core';
 
 
 interface EvaluationResult {
@@ -48,6 +52,10 @@ interface EvaluationResult {
   evalMetricResultPerInvocation?: any[];
   sessionId: string;
   sessionDetails: any;
+}
+
+interface MetricOption extends EvalMetricConfig {
+  selected: boolean;
 }
 
 interface UIEvaluationResult {
@@ -96,6 +104,10 @@ interface AppEvaluationResult {
         MatRowDef,
         MatRow,
         MatProgressSpinner,
+        MatFormField,
+        MatLabel,
+        MatSelect,
+        MatOption,
     ],
 })
 export class EvalTabComponent implements OnInit, OnChanges {
@@ -128,6 +140,9 @@ export class EvalTabComponent implements OnInit, OnChanges {
 
   evalRunning = signal(false);
   evalMetrics: EvalMetric[] = DEFAULT_EVAL_METRICS;
+  metricOptions: MetricOption[] = [];
+  selectedMetricNames: string[] =
+      DEFAULT_EVAL_METRICS.map((metric) => metric.metricName);
 
   // Key: evalSetId
   // Value: EvaluationResult[]
@@ -151,10 +166,203 @@ export class EvalTabComponent implements OnInit, OnChanges {
     });
   }
 
+  private loadMetricsInfo() {
+    const appName = this.appName();
+
+    if (!appName) {
+      this.initializeMetricOptions([]);
+      return;
+    }
+
+    this.evalService.listMetricsInfo(appName)
+        .pipe(catchError(() => of({metrics_info: []})))
+        .subscribe((response: any) => {
+          const metricsInfo = response?.metrics_info ?? [];
+          this.initializeMetricOptions(metricsInfo);
+        });
+  }
+
+  private initializeMetricOptions(rawMetrics: any[]) {
+    const previousOptions =
+        new Map(this.metricOptions.map((metric) => [metric.metricName, metric]));
+    const selectedNamesBefore = new Set(this.selectedMetricNames);
+
+    const metrics: MetricOption[] = rawMetrics
+                                         .map((rawMetric: any) => {
+                                           const metricName =
+                                               rawMetric?.metricName ??
+                                               rawMetric?.metric_name ??
+                                               rawMetric?.name ?? '';
+                                           if (!metricName) {
+                                             return null;
+                                           }
+
+                                           const previous =
+                                               previousOptions.get(metricName);
+                                           const metricValueInfo =
+                                               this.normalizeMetricValueInfo(
+                                                   rawMetric?.metricValueInfo ??
+                                                   rawMetric?.metric_value_info);
+                                           const threshold =
+                                               previous?.threshold ??
+                                               this.findThreshold(metricName) ??
+                                               this.getDefaultThreshold(
+                                                   metricValueInfo);
+                                           const selected =
+                                               previous?.selected ??
+                                               selectedNamesBefore.has(
+                                                   metricName) ??
+                                               this.isDefaultMetric(metricName);
+
+                                           return {
+                                             metricName,
+                                             description:
+                                                 rawMetric?.description ??
+                                                 previous?.description,
+                                             metricValueInfo,
+                                             threshold:
+                                                 threshold ??
+                                                 this.getDefaultThreshold(
+                                                     metricValueInfo),
+                                             selected: !!selected,
+                                             criterion:
+                                                 previous?.criterion ??
+                                                 rawMetric?.criterion,
+                                           } as MetricOption;
+                                         })
+                                         .filter((metric) => !!metric) as
+        MetricOption[];
+
+    if (metrics.length === 0) {
+      this.metricOptions = this.buildFallbackMetricOptions();
+    } else {
+      this.metricOptions = metrics;
+      if (!this.metricOptions.some((metric) => metric.selected)) {
+        this.metricOptions.forEach((metric) => {
+          metric.selected = this.isDefaultMetric(metric.metricName);
+        });
+      }
+    }
+
+    this.selectedMetricNames =
+        this.metricOptions.filter((metric) => metric.selected)
+            .map((metric) => metric.metricName);
+    this.syncEvalMetricsFromOptions();
+    this.changeDetectorRef.detectChanges();
+  }
+
+  private buildFallbackMetricOptions(): MetricOption[] {
+    return DEFAULT_EVAL_METRICS.map((metric) => ({
+                                      metricName: metric.metricName,
+                                      threshold: metric.threshold,
+                                      selected: true,
+                                      description: '',
+                                      metricValueInfo: undefined,
+                                    })) as MetricOption[];
+  }
+
+  private normalizeMetricValueInfo(raw: any): MetricValueInfo|undefined {
+    if (!raw) {
+      return undefined;
+    }
+
+    const toNumber =
+        (value: unknown|undefined): number|undefined => {
+          if (value === null || value === undefined) {
+            return undefined;
+          }
+          const parsed = Number(value);
+          return isNaN(parsed) ? undefined : parsed;
+        };
+
+    return {
+      defaultThreshold: toNumber(
+          raw.defaultThreshold ?? raw.default_threshold ?? raw.default_value ??
+          raw.default),
+      minThreshold: toNumber(
+          raw.minThreshold ?? raw.min_threshold ?? raw.min_value ?? raw.min),
+      maxThreshold: toNumber(
+          raw.maxThreshold ?? raw.max_threshold ?? raw.max_value ?? raw.max),
+      step: toNumber(raw.step ?? raw.thresholdStep ?? raw.threshold_step),
+    };
+  }
+
+  private getDefaultThreshold(metricValueInfo: MetricValueInfo|undefined) {
+    return metricValueInfo?.defaultThreshold ?? 1;
+  }
+
+  private findThreshold(metricName: string): number|undefined {
+    const existing =
+        this.evalMetrics.find((metric) => metric.metricName === metricName);
+    if (existing) {
+      return existing.threshold;
+    }
+    const fallback =
+        DEFAULT_EVAL_METRICS.find((metric) => metric.metricName === metricName);
+    return fallback?.threshold;
+  }
+
+  private isDefaultMetric(metricName: string): boolean {
+    return DEFAULT_EVAL_METRICS.some(
+        (metric) => metric.metricName === metricName);
+  }
+
+  protected onMetricSelectionChange(selected: string[]) {
+    this.selectedMetricNames = selected;
+    const selectedSet = new Set(selected);
+
+    this.metricOptions.forEach((metric) => {
+      metric.selected = selectedSet.has(metric.metricName);
+      if (metric.selected &&
+          (metric.threshold === undefined || metric.threshold === null)) {
+        metric.threshold = this.getDefaultThreshold(metric.metricValueInfo);
+      }
+    });
+
+    this.syncEvalMetricsFromOptions();
+  }
+
+  private syncEvalMetricsFromOptions() {
+    const selectedMetrics =
+        this.metricOptions.filter((metric) => metric.selected);
+
+    this.evalMetrics = selectedMetrics.map((metric) => {
+      return {
+        metricName: metric.metricName,
+        threshold: metric.threshold,
+        ...(metric.criterion ? {criterion: metric.criterion} : {}),
+      } as EvalMetric;
+    });
+  }
+
+  private cloneSelectedMetricOptions(): MetricOption[] {
+    return this.metricOptions.filter((metric) => metric.selected)
+        .map((metric) => {
+          return {...metric};
+        });
+  }
+
+  private applyUpdatedMetricOptions(updatedMetrics: MetricOption[]) {
+    const updatedMap =
+        new Map(updatedMetrics.map((metric) => [metric.metricName, metric]));
+
+    this.metricOptions.forEach((metric) => {
+      const updated = updatedMap.get(metric.metricName);
+      if (updated) {
+        metric.threshold = updated.threshold;
+        metric.criterion = updated.criterion;
+      }
+    });
+
+    this.syncEvalMetricsFromOptions();
+    this.changeDetectorRef.detectChanges();
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['appName']) {
       this.selectedEvalSet = '';
       this.evalCases = [];
+      this.loadMetricsInfo();
       this.getEvalSet();
       this.getEvaluationResult();
     }
@@ -232,12 +440,16 @@ export class EvalTabComponent implements OnInit, OnChanges {
   }
 
   runEval() {
-    this.evalRunning.set(true);
     if (this.selection.selected.length == 0) {
       alert('No case selected!');
-      this.evalRunning.set(false);
       return;
     }
+    if (this.evalMetrics.length === 0) {
+      alert('No metric selected!');
+      return;
+    }
+
+    this.evalRunning.set(true);
     this.evalService
         .runEval(
             this.appName(),
@@ -345,6 +557,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
   private addEvalFieldsToBotEvent(
       event: any, invocationResult: any, failedMetric: string, score: number,
       threshold: number) {
+    event.metricResults = invocationResult.evalMetricResults ?? [];
     event.failedMetric = failedMetric;
     event.evalScore = score;
     event.evalThreshold = threshold;
@@ -553,19 +766,23 @@ export class EvalTabComponent implements OnInit, OnChanges {
       alert('No case selected!');
       return;
     }
+    if (this.metricOptions.filter((metric) => metric.selected).length === 0) {
+      alert('No metric selected!');
+      return;
+    }
 
     const dialogRef = this.dialog.open(RunEvalConfigDialogComponent, {
       maxWidth: '90vw',
       maxHeight: '90vh',
       data: {
-        evalMetrics: this.evalMetrics,
+        metrics: this.cloneSelectedMetricOptions(),
       },
     });
 
-    dialogRef.afterClosed().subscribe((evalMetrics) => {
-      if (!!evalMetrics) {
-        this.evalMetrics = evalMetrics;
-
+    dialogRef.afterClosed().subscribe((updatedMetrics: MetricOption[]|
+                                        null|undefined) => {
+      if (!!updatedMetrics && updatedMetrics.length > 0) {
+        this.applyUpdatedMetricOptions(updatedMetrics);
         this.runEval();
       }
     });
@@ -574,28 +791,41 @@ export class EvalTabComponent implements OnInit, OnChanges {
   protected getEvalMetrics(evalResult: any|undefined) {
     if (!evalResult || !evalResult.evaluationResults ||
         !evalResult.evaluationResults.evaluationResults) {
-      return this.evalMetrics;
+      return this.metricOptions.filter((metric) => metric.selected)
+          .map((metric) => ({
+                 metricName: metric.metricName,
+                 threshold: metric.threshold,
+                 score: undefined,
+                 evalStatus: undefined,
+               }));
     }
 
     const results = evalResult.evaluationResults.evaluationResults;
 
     if (results.length === 0) {
-      return this.evalMetrics;
+      return this.metricOptions.filter((metric) => metric.selected)
+          .map((metric) => ({
+                 metricName: metric.metricName,
+                 threshold: metric.threshold,
+                 score: undefined,
+                 evalStatus: undefined,
+               }));
     }
 
     if (typeof results[0].overallEvalMetricResults === 'undefined' ||
         !results[0].overallEvalMetricResults ||
         results[0].overallEvalMetricResults.length === 0) {
-      return this.evalMetrics;
+      return this.metricOptions.filter((metric) => metric.selected)
+          .map((metric) => ({
+                 metricName: metric.metricName,
+                 threshold: metric.threshold,
+                 score: undefined,
+                 evalStatus: undefined,
+               }));
     }
 
     const overallEvalMetricResults = results[0].overallEvalMetricResults;
 
-    return overallEvalMetricResults.map((result: any) => {
-      return {
-        metricName: result.metricName,
-        threshold: result.threshold,
-      };
-    });
+    return overallEvalMetricResults;
   }
 }
