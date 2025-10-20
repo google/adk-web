@@ -28,6 +28,7 @@ import {provideAnimations} from '@angular/platform-browser/animations';
 import {AppRoutingModule} from './app/app-routing.module';
 import {AppComponent} from './app/app.component';
 import {CustomLogoComponent} from './app/components/custom-logo/custom-logo.component';
+import {EVAL_TAB_COMPONENT, EvalTabComponent} from './app/components/eval-tab/eval-tab.component';
 import {MarkdownComponent} from './app/components/markdown/markdown.component';
 import {MARKDOWN_COMPONENT} from './app/components/markdown/markdown.component.interface';
 import {AGENT_SERVICE, AgentService} from './app/core/services/agent.service';
@@ -93,6 +94,7 @@ fetch('./assets/config/runtime-config.json')
           ...(config.logo ?
                   [{provide: LOGO_COMPONENT, useValue: CustomLogoComponent}] :
                   []),
+          {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
           provideAnimations(),
         ]
       }).catch((err) => console.error(err));

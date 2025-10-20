@@ -27,7 +27,10 @@ import {By} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ActivatedRoute, Router} from '@angular/router';
 import {of} from 'rxjs';
-
+import {
+  EVAL_TAB_COMPONENT,
+  EvalTabComponent,
+} from '../eval-tab/eval-tab.component';
 import {AGENT_SERVICE, AgentService} from '../../core/services/agent.service';
 import {ARTIFACT_SERVICE, ArtifactService,} from '../../core/services/artifact.service';
 import {AUDIO_RECORDING_SERVICE, AudioRecordingService} from '../../core/services/audio-recording.service';
@@ -170,6 +173,7 @@ describe('SidePanelComponent', () => {
         .configureTestingModule({
           imports: [SidePanelComponent, MatDialogModule, NoopAnimationsModule],
           providers: [
+            {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
             {provide: SESSION_SERVICE, useValue: mockSessionService},
             {provide: ARTIFACT_SERVICE, useValue: mockArtifactService},
             {
@@ -191,13 +195,12 @@ describe('SidePanelComponent', () => {
             {provide: Location, useValue: mockLocation},
             {provide: SAFE_VALUES_SERVICE, useClass: MockSafeValuesService},
           ],
-        })
-        .compileComponents();
+        });
 
     fixture = TestBed.createComponent(SidePanelComponent);
     component = fixture.componentInstance;
-    component.appName = 'test-app';
-    component.showSidePanel = true;
+    fixture.componentRef.setInput('appName', 'test-app');
+    fixture.componentRef.setInput('showSidePanel', true);
     fixture.detectChanges();
   });
 
@@ -215,8 +218,8 @@ describe('SidePanelComponent', () => {
 
   describe('App Selector', () => {
     beforeEach(() => {
-      component.isApplicationSelectorEnabledObs = of(true);
-      component.apps$ = of(['app1', 'app2']);
+      fixture.componentRef.setInput('isApplicationSelectorEnabledObs', of(true));
+      fixture.componentRef.setInput('apps$', of(['app1', 'app2']));
       fixture.detectChanges();
     });
 
@@ -289,7 +292,7 @@ describe('SidePanelComponent', () => {
   describe('Rendering', () => {
     describe('when appName is empty', () => {
       beforeEach(() => {
-        component.appName = '';
+        fixture.componentRef.setInput('appName', '');
         fixture.detectChanges();
       });
       it('does not show tabs container', () => {
@@ -306,7 +309,7 @@ describe('SidePanelComponent', () => {
 
     describe('when selectedEvent is undefined', () => {
       beforeEach(() => {
-        component.selectedEvent = undefined;
+        fixture.componentRef.setInput('selectedEvent', undefined);
         fixture.detectChanges();
       });
       it('does not show details panel', () => {
@@ -316,7 +319,7 @@ describe('SidePanelComponent', () => {
 
     describe('when selectedEvent is defined', () => {
       beforeEach(() => {
-        component.selectedEvent = {id: 'event1'};
+        fixture.componentRef.setInput('selectedEvent', {id: 'event1'});
         fixture.detectChanges();
       });
       it('shows details panel', () => {
@@ -415,8 +418,10 @@ describe('SidePanelComponent', () => {
           beforeEach(() => {
             spyOn(component.evalCaseSelected, 'emit');
             const evalTab = fixture.debugElement.query(EVAL_TAB_SELECTOR);
-            evalTab.triggerEventHandler(
-                'evalCaseSelected', {evalId: 'eval1'} as any);
+            evalTab.componentInstance.evalCaseSelected.emit({
+              evalId: 'eval1',
+            } as any);
+            fixture.detectChanges();
           });
           it('emits evalCaseSelected', () => {
             expect(component.evalCaseSelected.emit).toHaveBeenCalledWith({
@@ -429,7 +434,8 @@ describe('SidePanelComponent', () => {
           beforeEach(() => {
             spyOn(component.evalSetIdSelected, 'emit');
             const evalTab = fixture.debugElement.query(EVAL_TAB_SELECTOR);
-            evalTab.triggerEventHandler('evalSetIdSelected', 'set1');
+            evalTab.componentInstance.evalSetIdSelected.emit('set1');
+            fixture.detectChanges();
           });
           it('emits evalSetIdSelected', () => {
             expect(component.evalSetIdSelected.emit)
@@ -441,7 +447,8 @@ describe('SidePanelComponent', () => {
           beforeEach(() => {
             spyOn(component.returnToSession, 'emit');
             const evalTab = fixture.debugElement.query(EVAL_TAB_SELECTOR);
-            evalTab.triggerEventHandler('shouldReturnToSession', true);
+            evalTab.componentInstance.shouldReturnToSession.emit(true);
+            fixture.detectChanges();
           });
           it('emits returnToSession', () => {
             expect(component.returnToSession.emit).toHaveBeenCalledWith(true);
@@ -452,7 +459,8 @@ describe('SidePanelComponent', () => {
           beforeEach(() => {
             spyOn(component.evalNotInstalled, 'emit');
             const evalTab = fixture.debugElement.query(EVAL_TAB_SELECTOR);
-            evalTab.triggerEventHandler('evalNotInstalledMsg', 'error');
+            evalTab.componentInstance.evalNotInstalledMsg.emit('error');
+            fixture.detectChanges();
           });
           it('emits evalNotInstalled', () => {
             expect(component.evalNotInstalled.emit)
@@ -465,7 +473,7 @@ describe('SidePanelComponent', () => {
 
   describe('Details Panel', () => {
     beforeEach(() => {
-      component.selectedEvent = {id: 'event1'};
+      fixture.componentRef.setInput('selectedEvent', {id: 'event1'});
       fixture.detectChanges();
     });
 
@@ -497,7 +505,7 @@ describe('SidePanelComponent', () => {
 
     describe('when event graph is clicked', () => {
       beforeEach(async () => {
-        component.renderedEventGraph = '<div>graph</div>';
+        fixture.componentRef.setInput('renderedEventGraph', '<div>graph</div>');
         fixture.detectChanges();
         await fixture.whenStable();
         fixture.detectChanges();
