@@ -16,7 +16,7 @@
  */
 
 import {SelectionModel} from '@angular/cdk/collections';
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, input, OnChanges, OnInit, output, signal, SimpleChanges, viewChildren, Inject} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, input, OnChanges, OnInit, output, signal, SimpleChanges, viewChildren, Inject, InjectionToken, Type} from '@angular/core';
 import {MatCheckbox} from '@angular/material/checkbox';
 import {MatDialog} from '@angular/material/dialog';
 import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
@@ -38,6 +38,9 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { NgClass } from '@angular/common';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
+export const EVAL_TAB_COMPONENT = new InjectionToken<Type<EvalTabComponent>>(
+    'EVAL_TAB_COMPONENT',
+);
 
 interface EvaluationResult {
   setId: string;
@@ -73,7 +76,6 @@ interface SetEvaluationResult {
 interface AppEvaluationResult {
   [key: string]: SetEvaluationResult;
 }
-
 
 @Component({
     selector: 'app-eval-tab',
@@ -183,6 +185,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
             if (sets !== null) {
               this.shouldShowTab.emit(true);
               this.evalsets = sets;
+              this.changeDetectorRef.detectChanges();
             }
           });
       ;
@@ -198,6 +201,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
     dialogRef.afterClosed().subscribe((needRefresh) => {
       if (needRefresh) {
         this.getEvalSet();
+        this.changeDetectorRef.detectChanges();
       }
     });
   }
@@ -216,6 +220,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
     dialogRef.afterClosed().subscribe((needRefresh) => {
       if (needRefresh) {
         this.listEvalCases();
+        this.changeDetectorRef.detectChanges();
       }
     });
   }
@@ -256,6 +261,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
           this.currentEvalResultBySet.set(this.selectedEvalSet, res);
 
           this.getEvaluationResult();
+          this.changeDetectorRef.detectChanges();
         });
   }
 
@@ -490,6 +496,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
           this.deletedEvalCaseIndex = this.evalCases.indexOf(evalCaseId);
           this.selectedEvalCase.set(null);
           this.listEvalCases();
+          this.changeDetectorRef.detectChanges();
         });
   }
 
@@ -543,6 +550,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
 
                   this.appEvaluationResults[this.appName()][res.evalSetId][timeStamp] =
                       uiEvaluationResult;
+                  this.changeDetectorRef.detectChanges();
                 });
           }
         });

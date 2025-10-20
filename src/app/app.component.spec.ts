@@ -23,6 +23,7 @@ import {ActivatedRoute} from '@angular/router';
 import {of} from 'rxjs';
 
 import {AppComponent} from './app.component';
+import {EVAL_TAB_COMPONENT, EvalTabComponent} from './components/eval-tab/eval-tab.component';
 import {AGENT_SERVICE} from './core/services/agent.service';
 import {ARTIFACT_SERVICE} from './core/services/artifact.service';
 import {AUDIO_PLAYING_SERVICE} from './core/services/audio-playing.service';
@@ -168,6 +169,10 @@ describe('AppComponent', () => {
             {
               provide: LOCAL_FILE_SERVICE,
               useValue: localFileService,
+            },
+            {
+              provide: EVAL_TAB_COMPONENT,
+              useValue: EvalTabComponent
             },
           ],
         })
