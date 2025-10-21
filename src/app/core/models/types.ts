@@ -63,6 +63,7 @@ export declare interface LlmResponse {
 
 export declare interface EventActions {
   message?: string;
+  artifactDelta?: any;
   functionCall?: FunctionCall;
   functionResponse?: FunctionResponse;
   finishReason?: string;

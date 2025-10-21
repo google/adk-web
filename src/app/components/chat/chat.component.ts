@@ -448,6 +448,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           }
         } else if (chunkJson.errorMessage) {
           this.processErrorMessage(chunkJson)
+        } else if (chunkJson.actions) {
+          this.processActionArtifact(chunkJson)
         }
         this.changeDetectorRef.detectChanges();
       },
@@ -563,6 +565,13 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     return parts;
   }
 
+  private processActionArtifact(e: AdkEvent) {
+    if (e.actions && e.actions.artifactDelta) {
+      this.storeEvents(null, e);
+      this.storeMessage(null, e, 'bot');
+    }
+  }
+
   private updateRedirectUri(urlString: string, newRedirectUri: string): string {
     try {
       const url = new URL(urlString);
@@ -639,43 +648,44 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           additionalIndeces.toolUseIndex :
           undefined,
     };
-    if (part.inlineData) {
-      const base64Data =
-        this.formatBase64Data(part.inlineData.data, part.inlineData.mimeType);
-      message.inlineData = {
-        displayName: part.inlineData.displayName,
-        data: base64Data,
-        mimeType: part.inlineData.mimeType,
-      };
-    } else if (part.text) {
-      message.text = part.text;
-      message.thought = part.thought ? true : false;
-      if (e?.groundingMetadata && e.groundingMetadata.searchEntryPoint &&
-        e.groundingMetadata.searchEntryPoint.renderedContent) {
-        message.renderedContent =
-          e.groundingMetadata.searchEntryPoint.renderedContent;
-      }
-      message.eventId = e?.id;
-    } else if (part.functionCall) {
-      message.functionCall = part.functionCall;
-      message.eventId = e?.id;
-    } else if (part.functionResponse) {
-      message.functionResponse = part.functionResponse;
-      message.eventId = e?.id;
-    } else if (part.executableCode) {
-      message.executableCode = part.executableCode;
-    } else if (part.codeExecutionResult) {
-      message.codeExecutionResult = part.codeExecutionResult;
-      if (e.actions && e.actions.artifact_delta) {
-        for (const key in e.actions.artifact_delta) {
-          if (e.actions.artifact_delta.hasOwnProperty(key)) {
-            this.renderArtifact(key, e.actions.artifact_delta[key]);
+    if (part) {
+      if (part.inlineData) {
+        const base64Data =
+          this.formatBase64Data(part.inlineData.data, part.inlineData.mimeType);
+        message.inlineData = {
+          displayName: part.inlineData.displayName,
+          data: base64Data,
+          mimeType: part.inlineData.mimeType,
+        };
+      } else if (part.text) {
+        message.text = part.text;
+        message.thought = part.thought ? true : false;
+        if (e?.groundingMetadata && e.groundingMetadata.searchEntryPoint &&
+          e.groundingMetadata.searchEntryPoint.renderedContent) {
+          message.renderedContent =
+            e.groundingMetadata.searchEntryPoint.renderedContent;
+        }
+        message.eventId = e?.id;
+      } else if (part.functionCall) {
+        message.functionCall = part.functionCall;
+        message.eventId = e?.id;
+      } else if (part.functionResponse) {
+        message.functionResponse = part.functionResponse;
+        message.eventId = e?.id;
+      } else if (part.executableCode) {
+        message.executableCode = part.executableCode;
+      } else if (part.codeExecutionResult) {
+        message.codeExecutionResult = part.codeExecutionResult;
+        if (e.actions && e.actions.artifact_delta) {
+          for (const key in e.actions.artifact_delta) {
+            if (e.actions.artifact_delta.hasOwnProperty(key)) {
+              this.renderArtifact(key, e.actions.artifact_delta[key]);
+            }
           }
         }
       }
     }
-
-    if (Object.keys(part).length > 0) {
+    if (part && Object.keys(part).length > 0) {
       this.insertMessageBeforeLoadingMessage(message);
     }
   }
@@ -760,21 +770,25 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private storeEvents(part: any, e: any) {
     let title = '';
-    if (part.text) {
-      title += 'text:' + part.text;
-    } else if (part.functionCall) {
-      title += 'functionCall:' + part.functionCall.name;
-    } else if (part.functionResponse) {
-      title += 'functionResponse:' + part.functionResponse.name;
-    } else if (part.executableCode) {
-      title += 'executableCode:' + part.executableCode.code.slice(0, 10);
-    } else if (part.codeExecutionResult) {
-      title += 'codeExecutionResult:' + part.codeExecutionResult.outcome;
-    } else if (part.errorMessage) {
-      title += 'errorMessage:' + part.errorMessage
+    if (part == null && e.actions.artifactDelta) {
+      title += "eventAction: artifact";
+    } 
+    else if (part) {
+      if (part.text) {
+        title += 'text:' + part.text;
+      } else if (part.functionCall) {
+        title += 'functionCall:' + part.functionCall.name;
+      } else if (part.functionResponse) {
+        title += 'functionResponse:' + part.functionResponse.name;
+      } else if (part.executableCode) {
+        title += 'executableCode:' + part.executableCode.code.slice(0, 10);
+      } else if (part.codeExecutionResult) {
+        title += 'codeExecutionResult:' + part.codeExecutionResult.outcome;
+      } else if (part.errorMessage) {
+        title += 'errorMessage:' + part.errorMessage
+      }
     }
     e.title = title;
-
     this.eventData.set(e.id, e);
     this.eventData = new Map(this.eventData);
   }
