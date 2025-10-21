@@ -63,7 +63,9 @@ export class TraceEventComponent implements OnInit {
       this.selectedRow = span;
       const eventId = this.getEventIdFromSpan();
       if (eventId) {
-        this.eventService.getEventTrace(eventId).subscribe((res) => {
+        const eventTraceParam = eventId;
+
+        this.eventService.getEventTrace(eventTraceParam).subscribe((res) => {
           this.llmRequest = JSON.parse(res[this.llmRequestKey]);
           this.llmResponse = JSON.parse(res[this.llmResponseKey]);
         });

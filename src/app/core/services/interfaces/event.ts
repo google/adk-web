@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Event} from '../../models/types';
 
 import {InjectionToken} from '@angular/core';
 import {Observable} from 'rxjs';
@@ -27,9 +28,9 @@ export declare abstract class EventService {
   abstract getEventTrace(id: string): Observable<any>;
   abstract getTrace(sessionId: string): Observable<any>;
   abstract getEvent(
-    userId: string,
-    appName: string,
-    sessionId: string,
-    eventId: string,
-  ): Observable<{dotSrc?: string}>;
+      userId: string,
+      appName: string,
+      sessionId: string,
+      eventId: string,
+      ): Observable<{dotSrc?: string}>;
 }

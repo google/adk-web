@@ -102,7 +102,7 @@ class CustomPaginatorIntl extends MatPaginatorIntl {
 }
 
 const BIDI_STREAMING_RESTART_WARNING =
-  'Restarting bidirectional streaming is not currently supported. Please refresh the page or start a new session.';
+    'Restarting bidirectional streaming is not currently supported. Please refresh the page or start a new session.';
 
 @Component({
   selector: 'app-chat',
@@ -172,7 +172,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   currentMessage = '';
   messages = signal<any[]>([]);
   lastTextChunk: string = '';
-  streamingTextMessage: any | null = null;
+  streamingTextMessage: any|null = null;
   latestThought: string = '';
   artifacts: any[] = [];
   userInput: string = '';
@@ -180,8 +180,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   userId = 'user';
   appName = '';
   sessionId = ``;
-  evalCase: EvalCase | null = null;
-  updatedEvalCase: EvalCase | null = null;
+  evalCase: EvalCase|null = null;
+  updatedEvalCase: EvalCase|null = null;
   evalSetId = '';
   isAudioRecording = false;
   isVideoRecording = false;
@@ -200,8 +200,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   eventData = new Map<string, any>();
   traceData: any[] = [];
-  renderedEventGraph: SafeHtml | undefined;
-  rawSvgString: string | null = null;
+  renderedEventGraph: SafeHtml|undefined;
+  rawSvgString: string|null = null;
 
   selectedEvent: any = undefined;
   selectedEventIndex: any = undefined;
@@ -212,7 +212,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getMediaTypeFromMimetype = getMediaTypeFromMimetype;
 
-  selectedFiles: { file: File; url: string }[] = [];
+  selectedFiles: {file: File; url: string}[] = [];
 
   protected MediaType = MediaType;
 
@@ -226,31 +226,31 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   // Load apps
   protected isLoadingApps: WritableSignal<boolean> = signal(false);
   loadingError: WritableSignal<string> = signal('');
-  protected readonly apps$: Observable<string[] | undefined> = of([]).pipe(
-    tap(() => {
-      this.isLoadingApps.set(true);
-      this.selectedAppControl.disable();
-    }),
-    switchMap(
-      () => this.agentService.listApps().pipe(
-        catchError((err: HttpErrorResponse) => {
-          this.loadingError.set(err.message);
-          return of(undefined);
-        }),
-      ),
-    ),
-    take(1),
-    tap((app) => {
-      this.isLoadingApps.set(false);
-      this.selectedAppControl.enable();
-      if (app?.length == 1) {
-        this.router.navigate([], {
-          relativeTo: this.activatedRoute,
-          queryParams: { app: app[0] },
-        });
-      }
-    }),
-    shareReplay(),
+  protected readonly apps$: Observable<string[]|undefined> = of([]).pipe(
+      tap(() => {
+        this.isLoadingApps.set(true);
+        this.selectedAppControl.disable();
+      }),
+      switchMap(
+          () => this.agentService.listApps().pipe(
+              catchError((err: HttpErrorResponse) => {
+                this.loadingError.set(err.message);
+                return of(undefined);
+              }),
+              ),
+          ),
+      take(1),
+      tap((app) => {
+        this.isLoadingApps.set(false);
+        this.selectedAppControl.enable();
+        if (app?.length == 1) {
+          this.router.navigate([], {
+            relativeTo: this.activatedRoute,
+            queryParams: {app: app[0]},
+          });
+        }
+      }),
+      shareReplay(),
   );
 
   // Feature flag references for use in template.
@@ -272,7 +272,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.streamChatService.onStreamClose().subscribe((closeReason) => {
       const error =
-        'Please check server log for full details: \n' + closeReason;
+          'Please check server log for full details: \n' + closeReason;
       this.openSnackBar(error, 'OK');
     });
 
@@ -284,7 +284,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     if (searchParams.has('code')) {
       const authResponseUrl = window.location.href;
       // Send token to the main window
-      window.opener?.postMessage({ authResponseUrl }, window.origin);
+      window.opener?.postMessage({authResponseUrl}, window.origin);
       // Close the popup
       window.close();
     }
@@ -310,15 +310,16 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     this.traceService.selectedTraceRow$.subscribe(node => {
-      const eventId = node?.attributes['gcp.vertex.agent.event_id']
+      const eventId = node?.attributes['gcp.vertex.agent.event_id'];
       if (eventId && this.eventData.has(eventId)) {
         this.bottomPanelVisible = true;
       } else {
         this.bottomPanelVisible = false;
       }
-    })
+    });
 
-    this.traceService.hoveredMessageIndices$.subscribe(i => this.hoveredEventMessageIndices = i);
+    this.traceService.hoveredMessageIndices$.subscribe(
+        i => this.hoveredEventMessageIndices = i);
   }
 
   ngAfterViewInit() {
@@ -369,17 +370,17 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   createSession() {
     this.sessionService.createSession(this.userId, this.appName)
-      .subscribe((res) => {
-        this.currentSessionState = res.state;
-        this.sessionId = res.id ?? '';
-        this.sessionTab()?.refreshSession();
+        .subscribe((res) => {
+          this.currentSessionState = res.state;
+          this.sessionId = res.id ?? '';
+          this.sessionTab()?.refreshSession();
 
-        this.isSessionUrlEnabledObs.subscribe((enabled) => {
-          if (enabled) {
-            this.updateSelectedSessionUrl();
-          }
+          this.isSessionUrlEnabledObs.subscribe((enabled) => {
+            if (enabled) {
+              this.updateSelectedSessionUrl();
+            }
+          });
         });
-      });
   }
 
   async sendMessage(event: Event) {
@@ -402,9 +403,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     // Add user message attachments
     if (this.selectedFiles.length > 0) {
       const messageAttachments = this.selectedFiles.map((file) => ({
-        file: file.file,
-        url: file.url,
-      }));
+                                                          file: file.file,
+                                                          url: file.url,
+                                                        }));
       this.messages.update(
           messages =>
               [...messages, {role: 'user', attachments: messageAttachments}]);
@@ -474,7 +475,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private processPart(chunkJson: any, part: any) {
     const renderedContent =
-      chunkJson.groundingMetadata?.searchEntryPoint?.renderedContent;
+        chunkJson.groundingMetadata?.searchEntryPoint?.renderedContent;
 
     if (part.text) {
       this.isModelThinkingSubject.next(false);
@@ -502,7 +503,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
         if (renderedContent) {
           this.streamingTextMessage.renderedContent =
-            chunkJson.groundingMetadata.searchEntryPoint.renderedContent;
+              chunkJson.groundingMetadata.searchEntryPoint.renderedContent;
         }
 
         this.insertMessageBeforeLoadingMessage(this.streamingTextMessage);
@@ -515,7 +516,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       } else {
         if (renderedContent) {
           this.streamingTextMessage.renderedContent =
-            chunkJson.groundingMetadata.searchEntryPoint.renderedContent;
+              chunkJson.groundingMetadata.searchEntryPoint.renderedContent;
         }
 
         if (newChunk == this.streamingTextMessage.text) {
@@ -529,7 +530,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       this.isModelThinkingSubject.next(false);
       this.storeEvents(part, chunkJson);
       this.storeMessage(
-        part, chunkJson, chunkJson.author === 'user' ? 'user' : 'bot');
+          part, chunkJson, chunkJson.author === 'user' ? 'user' : 'bot');
     } else {
       this.isModelThinkingSubject.next(true);
     }
@@ -596,26 +597,27 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (e?.longRunningToolIds && e.longRunningToolIds.length > 0) {
-      this.getAsyncFunctionsFromParts(e.longRunningToolIds, e.content.parts, e.invocationId);
+      this.getAsyncFunctionsFromParts(
+          e.longRunningToolIds, e.content.parts, e.invocationId);
       const func = this.longRunningEvents[0].function;
       if (func.args.authConfig &&
-        func.args.authConfig.exchangedAuthCredential &&
-        func.args.authConfig.exchangedAuthCredential.oauth2) {
+          func.args.authConfig.exchangedAuthCredential &&
+          func.args.authConfig.exchangedAuthCredential.oauth2) {
         // for OAuth
         const authUri =
-          func.args.authConfig.exchangedAuthCredential.oauth2.authUri;
+            func.args.authConfig.exchangedAuthCredential.oauth2.authUri;
         const updatedAuthUri = this.updateRedirectUri(
-          authUri,
-          this.redirectUri,
+            authUri,
+            this.redirectUri,
         );
         this.openOAuthPopup(updatedAuthUri)
-          .then((authResponseUrl) => {
-            this.functionCallEventId = e.id;
-            this.sendOAuthResponse(func, authResponseUrl, this.redirectUri);
-          })
-          .catch((error) => {
-            console.error('OAuth Error:', error);
-          });
+            .then((authResponseUrl) => {
+              this.functionCallEventId = e.id;
+              this.sendOAuthResponse(func, authResponseUrl, this.redirectUri);
+            })
+            .catch((error) => {
+              console.error('OAuth Error:', error);
+            });
       } else {
         this.functionCallEventId = e.id;
       }
@@ -654,7 +656,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     if (part.inlineData) {
       const base64Data =
-        this.formatBase64Data(part.inlineData.data, part.inlineData.mimeType);
+          this.formatBase64Data(part.inlineData.data, part.inlineData.mimeType);
       message.inlineData = {
         displayName: part.inlineData.displayName,
         data: base64Data,
@@ -664,9 +666,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       message.text = part.text;
       message.thought = part.thought ? true : false;
       if (e?.groundingMetadata && e.groundingMetadata.searchEntryPoint &&
-        e.groundingMetadata.searchEntryPoint.renderedContent) {
+          e.groundingMetadata.searchEntryPoint.renderedContent) {
         message.renderedContent =
-          e.groundingMetadata.searchEntryPoint.renderedContent;
+            e.groundingMetadata.searchEntryPoint.renderedContent;
       }
       message.eventId = e?.id;
     } else if (part.functionCall) {
@@ -727,48 +729,48 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
                                                   currentMessages.length - 1;
 
     this.artifactService
-      .getArtifactVersion(
-        this.userId,
-        this.appName,
-        this.sessionId,
-        artifactId,
-        versionId,
-      )
-      .subscribe((res) => {
-        const mimeType = res.inlineData.mimeType;
-        const base64Data =
-          this.formatBase64Data(res.inlineData.data, mimeType);
-
-        const mediaType = getMediaTypeFromMimetype(mimeType);
-
-        let inlineData = {
-          name: this.createDefaultArtifactName(mimeType),
-          data: base64Data,
-          mimeType: mimeType,
-          mediaType,
-        };
-
-        this.messages.update(messages => {
-          const newMessages = [...messages];
-          newMessages[currentIndex] = {
-            role: 'bot',
-            inlineData,
-          };
-          return newMessages;
-        });
-
-        // To trigger ngOnChanges in the artifact tab component
-        this.artifacts = [
-          ...this.artifacts,
-          {
-            id: artifactId,
-            data: base64Data,
-            mimeType,
+        .getArtifactVersion(
+            this.userId,
+            this.appName,
+            this.sessionId,
+            artifactId,
             versionId,
-            mediaType: getMediaTypeFromMimetype(mimeType),
-          },
-        ];
-      });
+            )
+        .subscribe((res) => {
+          const mimeType = res.inlineData.mimeType;
+          const base64Data =
+              this.formatBase64Data(res.inlineData.data, mimeType);
+
+          const mediaType = getMediaTypeFromMimetype(mimeType);
+
+          let inlineData = {
+            name: this.createDefaultArtifactName(mimeType),
+            data: base64Data,
+            mimeType: mimeType,
+            mediaType,
+          };
+
+          this.messages.update(messages => {
+            const newMessages = [...messages];
+            newMessages[currentIndex] = {
+              role: 'bot',
+              inlineData,
+            };
+            return newMessages;
+          });
+
+          // To trigger ngOnChanges in the artifact tab component
+          this.artifacts = [
+            ...this.artifacts,
+            {
+              id: artifactId,
+              data: base64Data,
+              mimeType,
+              versionId,
+              mediaType: getMediaTypeFromMimetype(mimeType),
+            },
+          ];
+        });
   }
 
   private storeEvents(part: any, e: any) {
@@ -793,9 +795,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private sendOAuthResponse(
-    func: any,
-    authResponseUrl: string,
-    redirectUri: string,
+      func: any,
+      authResponseUrl: string,
+      redirectUri: string,
   ) {
     this.longRunningEvents.pop();
     const authResponse: AgentRunRequest = {
@@ -868,7 +870,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   removeFinishedLongRunningEvents(finishedEvents: any[]) {
     const idsToExclude = new Set(finishedEvents.map((obj: any) => obj.id));
     this.longRunningEvents =
-      this.longRunningEvents.filter(obj => !idsToExclude.has(obj.id));
+        this.longRunningEvents.filter(obj => !idsToExclude.has(obj.id));
   }
 
   createAgentIconColorClass(agentName: string) {
@@ -889,7 +891,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedEvent = this.eventData.get(key);
     this.selectedEventIndex = this.getIndexOfKeyInMap(key);
 
-    this.eventService.getEventTrace(this.selectedEvent.id).subscribe((res) => {
+    const eventTraceParam = key;
+
+    this.eventService.getEventTrace(eventTraceParam).subscribe((res) => {
       if (res[this.llmRequestKey]) {
         this.llmRequest = JSON.parse(res[this.llmRequestKey]);
       }
@@ -899,23 +903,23 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     this.eventService
-      .getEvent(
-        this.userId,
-        this.appName,
-        this.sessionId,
-        this.selectedEvent.id,
-      )
-      .subscribe(async (res) => {
-        if (!res.dotSrc) {
-          this.renderedEventGraph = undefined;
-          return;
-        }
-        const graphSrc = res.dotSrc;
-        const svg = await this.graphService.render(graphSrc);
-        this.rawSvgString = svg;
-        this.renderedEventGraph =
-            this.safeValuesService.bypassSecurityTrustHtml(svg);
-      });
+        .getEvent(
+            this.userId,
+            this.appName,
+            this.sessionId,
+            this.selectedEvent.id,
+            )
+        .subscribe(async (res) => {
+          if (!res.dotSrc) {
+            this.renderedEventGraph = undefined;
+            return;
+          }
+          const graphSrc = res.dotSrc;
+          const svg = await this.graphService.render(graphSrc);
+          this.rawSvgString = svg;
+          this.renderedEventGraph =
+              this.safeValuesService.bypassSecurityTrustHtml(svg);
+        });
   }
 
   ngOnDestroy(): void {
@@ -938,7 +942,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   toggleAudioRecording() {
     this.isAudioRecording ? this.stopAudioRecording() :
-      this.startAudioRecording();
+                            this.startAudioRecording();
   }
 
   startAudioRecording() {
@@ -969,7 +973,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   toggleVideoRecording() {
     this.isVideoRecording ? this.stopVideoRecording() :
-      this.startVideoRecording();
+                            this.startVideoRecording();
   }
 
   startVideoRecording() {
@@ -1002,10 +1006,12 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isVideoRecording = false;
   }
 
-  private getAsyncFunctionsFromParts(pendingIds: any[], parts: any[], invocationId: string) {
+  private getAsyncFunctionsFromParts(
+      pendingIds: any[], parts: any[], invocationId: string) {
     for (const part of parts) {
       if (part.functionCall && pendingIds.includes(part.functionCall.id)) {
-        this.longRunningEvents.push({function: part.functionCall, invocationId: invocationId});
+        this.longRunningEvents.push(
+            {function: part.functionCall, invocationId: invocationId});
       }
     }
   }
@@ -1026,7 +1032,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         if (event.origin !== window.location.origin) {
           return;  // Ignore messages from unknown sources
         }
-        const { authResponseUrl } = event.data;
+        const {authResponseUrl} = event.data;
         if (authResponseUrl) {
           resolve(authResponseUrl);
           window.removeEventListener('message', listener);
@@ -1094,7 +1100,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     session.events.forEach((event: any) => {
       event.content?.parts?.forEach((part: any) => {
         this.storeMessage(
-          part, event, event.author === 'user' ? 'user' : 'bot');
+            part, event, event.author === 'user' ? 'user' : 'bot');
         if (event.author && event.author !== 'user') {
           this.storeEvents(part, event);
         }
@@ -1132,11 +1138,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
             functionCall: {name: toolUse.name, args: toolUse.args}
           };
           this.storeMessage(
-              functionCallPart, null, 'bot', invocationIndex,
-              {toolUseIndex});
+              functionCallPart, null, 'bot', invocationIndex, {toolUseIndex});
           toolUseIndex++;
 
-          const functionResponsePart = { functionResponse: { name: toolUse.name } };
+          const functionResponsePart = {functionResponse: {name: toolUse.name}};
           this.storeMessage(functionResponsePart, null, 'bot');
         }
       }
@@ -1145,8 +1150,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         let finalResponsePartIndex = 0;
         for (const part of invocation.finalResponse.parts) {
           this.storeMessage(
-              part, null, 'bot', invocationIndex,
-              {finalResponsePartIndex});
+              part, null, 'bot', invocationIndex, {finalResponsePartIndex});
           finalResponsePartIndex++;
         }
       }
@@ -1235,11 +1239,11 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isEvalCaseEditing.set(false);
     message.isEditing = false;
     message.text =
-      this.userEditEvalCaseMessage ? this.userEditEvalCaseMessage : ' ';
+        this.userEditEvalCaseMessage ? this.userEditEvalCaseMessage : ' ';
 
     this.updatedEvalCase = structuredClone(this.evalCase!);
     this.updatedEvalCase!.conversation[message.invocationIndex]
-      .finalResponse!.parts![message.finalResponsePartIndex] = {
+        .finalResponse!.parts![message.finalResponsePartIndex] = {
       text: this.userEditEvalCaseMessage
     };
 
@@ -1261,7 +1265,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.updatedEvalCase = structuredClone(this.evalCase!);
     this.updatedEvalCase!.conversation[message.invocationIndex]
-      .finalResponse!.parts!.splice(message.finalResponsePartIndex, 1);
+        .finalResponse!.parts!.splice(message.finalResponsePartIndex, 1);
   }
 
   protected editEvalCase() {
@@ -1313,7 +1317,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       for (let i = 0; i < input.files.length; i++) {
         const file = input.files[i];
         const url = this.safeValuesService.createObjectUrl(file);
-        this.selectedFiles.push({ file, url });
+        this.selectedFiles.push({file, url});
       }
     }
     input.value = '';
@@ -1331,7 +1335,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   selectEvent(key: string) {
     this.selectedEvent = this.eventData.get(key);
     this.selectedEventIndex = this.getIndexOfKeyInMap(key);
-    this.eventService.getEventTrace(this.selectedEvent.id).subscribe((res) => {
+
+    const eventTraceParam = this.selectedEvent.id;
+
+    this.eventService.getEventTrace(eventTraceParam).subscribe((res) => {
       if (res[this.llmRequestKey]) {
         this.llmRequest = JSON.parse(res[this.llmRequestKey]);
       }
@@ -1340,29 +1347,29 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
     this.eventService
-      .getEvent(
-        this.userId,
-        this.appName,
-        this.sessionId,
-        this.selectedEvent.id,
-      )
-      .subscribe(async (res) => {
-        if (!res.dotSrc) {
-          this.renderedEventGraph = undefined;
-          return;
-        }
-        const svg = await this.graphService.render(res.dotSrc);
-        this.rawSvgString = svg;
-        this.renderedEventGraph =
-            this.safeValuesService.bypassSecurityTrustHtml(svg);
-      });
+        .getEvent(
+            this.userId,
+            this.appName,
+            this.sessionId,
+            this.selectedEvent.id,
+            )
+        .subscribe(async (res) => {
+          if (!res.dotSrc) {
+            this.renderedEventGraph = undefined;
+            return;
+          }
+          const svg = await this.graphService.render(res.dotSrc);
+          this.rawSvgString = svg;
+          this.renderedEventGraph =
+              this.safeValuesService.bypassSecurityTrustHtml(svg);
+        });
   }
 
   deleteSession(session: string) {
     const dialogData: DeleteSessionDialogData = {
       title: 'Confirm delete',
       message:
-        `Are you sure you want to delete this session ${this.sessionId}?`,
+          `Are you sure you want to delete this session ${this.sessionId}?`,
       confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
     };
@@ -1390,9 +1397,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private syncSelectedAppFromUrl() {
     combineLatest([
       this.router.events.pipe(
-        filter((e) => e instanceof NavigationEnd),
-        map(() => this.activatedRoute.snapshot.queryParams),
-      ),
+          filter((e) => e instanceof NavigationEnd),
+          map(() => this.activatedRoute.snapshot.queryParams),
+          ),
       this.apps$
     ]).subscribe(([params, apps]) => {
       if (apps && apps.length) {
@@ -1408,20 +1415,20 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private updateSelectedAppUrl() {
     this.selectedAppControl.valueChanges
-      .pipe(distinctUntilChanged(), filter(Boolean))
-      .subscribe((app: string) => {
-        this.selectApp(app);
+        .pipe(distinctUntilChanged(), filter(Boolean))
+        .subscribe((app: string) => {
+          this.selectApp(app);
 
-        // Navigate if selected app changed.
-        const selectedAgent = this.activatedRoute.snapshot.queryParams['app'];
-        if (app === selectedAgent) {
-          return;
-        }
-        this.router.navigate([], {
-          queryParams: { 'app': app },
-          queryParamsHandling: 'merge',
+          // Navigate if selected app changed.
+          const selectedAgent = this.activatedRoute.snapshot.queryParams['app'];
+          if (app === selectedAgent) {
+            return;
+          }
+          this.router.navigate([], {
+            queryParams: {'app': app},
+            queryParamsHandling: 'merge',
+          });
         });
-      });
   }
 
   private updateSelectedSessionUrl() {
@@ -1448,15 +1455,15 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedEventIndex = undefined;
   }
 
-  private getIndexOfKeyInMap(key: string): number | undefined {
+  private getIndexOfKeyInMap(key: string): number|undefined {
     let index = 0;
     const mapOrderPreservingSort = (a: any, b: any): number =>
-      0;  // Simple compare function
+        0;  // Simple compare function
 
     const sortedKeys = Array.from(this.eventData.keys())
-      .sort(
-        mapOrderPreservingSort,
-      );
+                           .sort(
+                               mapOrderPreservingSort,
+                           );
 
     for (const k of sortedKeys) {
       if (k === key) {
@@ -1467,14 +1474,14 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     return undefined;  // Key not found
   }
 
-  private getKeyAtIndexInMap(index: number): string | undefined {
+  private getKeyAtIndexInMap(index: number): string|undefined {
     const mapOrderPreservingSort = (a: any, b: any): number =>
-      0;  // Simple compare function
+        0;  // Simple compare function
 
     const sortedKeys = Array.from(this.eventData.keys())
-      .sort(
-        mapOrderPreservingSort,
-      );
+                           .sort(
+                               mapOrderPreservingSort,
+                           );
 
     if (index >= 0 && index < sortedKeys.length) {
       return sortedKeys[index];
@@ -1494,7 +1501,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.safeValuesService.windowOpen(window, url, '_blank');
   }
 
-  openViewImageDialog(imageData: string | null) {
+  openViewImageDialog(imageData: string|null) {
     const dialogRef = this.dialog.open(ViewImageDialogComponent, {
       maxWidth: '90vw',
       maxHeight: '90vh',
@@ -1514,11 +1521,11 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   protected exportSession() {
     this.sessionService.getSession(this.userId, this.appName, this.sessionId)
-      .subscribe((res) => {
-        console.log(res);
-        this.downloadService.downloadObjectAsJson(
-          res, `session-${this.sessionId}.json`);
-      });
+        .subscribe((res) => {
+          console.log(res);
+          this.downloadService.downloadObjectAsJson(
+              res, `session-${this.sessionId}.json`);
+        });
   }
 
   updateState() {
@@ -1543,7 +1550,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   closeTraceEventDetailPanel() {
     this.bottomPanelVisible = false;
     this.traceService.selectedRow(undefined);
-    this.traceService.setHoveredMessages(undefined, "")
+    this.traceService.setHoveredMessages(undefined, '')
   }
 
   protected importSession() {
@@ -1562,7 +1569,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       reader.onload = (e) => {
         if (e.target?.result) {
           try {
-            const sessionData = JSON.parse(e.target.result as string) as Session;
+            const sessionData =
+                JSON.parse(e.target.result as string) as Session;
             if (!sessionData.userId || !sessionData.appName ||
                 !sessionData.events) {
               this.openSnackBar('Invalid session file format', 'OK');
