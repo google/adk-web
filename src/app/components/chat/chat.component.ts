@@ -51,9 +51,9 @@ import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag'
 import {GRAPH_SERVICE} from '../../core/services/interfaces/graph';
 import {LOCAL_FILE_SERVICE} from '../../core/services/interfaces/localfile';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
-import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
 import {SESSION_SERVICE} from '../../core/services/interfaces/session';
 import {STREAM_CHAT_SERVICE} from '../../core/services/interfaces/stream-chat';
+import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
 import {TRACE_SERVICE} from '../../core/services/interfaces/trace';
 import {ResizableBottomDirective} from '../../directives/resizable-bottom.directive';
 import {ResizableDrawerDirective} from '../../directives/resizable-drawer.directive';
@@ -254,11 +254,16 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   );
 
   // Feature flag references for use in template.
-  readonly importSessionEnabledObs: Observable<boolean> = this.featureFlagService.isImportSessionEnabled();
-  readonly isEditFunctionArgsEnabledObs: Observable<boolean> = this.featureFlagService.isEditFunctionArgsEnabled();
-  readonly isSessionUrlEnabledObs: Observable<boolean> = this.featureFlagService.isSessionUrlEnabled();
-  readonly isApplicationSelectorEnabledObs: Observable<boolean> = this.featureFlagService.isApplicationSelectorEnabled();
-  readonly isTokenStreamingEnabledObs: Observable<boolean> = this.featureFlagService.isTokenStreamingEnabled();
+  readonly importSessionEnabledObs: Observable<boolean> =
+      this.featureFlagService.isImportSessionEnabled();
+  readonly isEditFunctionArgsEnabledObs: Observable<boolean> =
+      this.featureFlagService.isEditFunctionArgsEnabled();
+  readonly isSessionUrlEnabledObs: Observable<boolean> =
+      this.featureFlagService.isSessionUrlEnabled();
+  readonly isApplicationSelectorEnabledObs: Observable<boolean> =
+      this.featureFlagService.isApplicationSelectorEnabled();
+  readonly isTokenStreamingEnabledObs: Observable<boolean> =
+      this.featureFlagService.isTokenStreamingEnabled();
 
   // Trace detail
   bottomPanelVisible = false;
@@ -325,38 +330,43 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this.showSidePanel = true;
     this.sideDrawer()?.open();
+
   }
 
   selectApp(appName: string) {
     if (appName != this.appName) {
       this.agentService.setApp(appName);
 
-      this.isSessionUrlEnabledObs.subscribe((sessionUrlEnabled) => {
-        const sessionUrl = this.activatedRoute.snapshot.queryParams['session'];
-
-        if (!sessionUrlEnabled || !sessionUrl) {
-          this.createSessionAndReset();
-
-          return;
-        }
-
-        if (sessionUrl) {
-          this.sessionService.getSession(this.userId, this.appName, sessionUrl)
-              .pipe(take(1), catchError((error) => {
-                      this.openSnackBar(
-                          'Cannot find specified session. Creating a new one.',
-                          'OK');
-                      this.createSessionAndReset();
-                      return of(null);
-                    }))
-              .subscribe((session) => {
-                if (session) {
-                  this.updateWithSelectedSession(session);
-                }
-              });
-        }
-      });
+      this.loadSessionByUrlOrReset();
     }
+  }
+
+  private loadSessionByUrlOrReset() {
+    this.isSessionUrlEnabledObs.subscribe((sessionUrlEnabled) => {
+      const sessionUrl = this.activatedRoute.snapshot.queryParams['session'];
+
+      if (!sessionUrlEnabled || !sessionUrl) {
+        this.createSessionAndReset();
+
+        return;
+      }
+
+      if (sessionUrl) {
+        this.sessionService.getSession(this.userId, this.appName, sessionUrl)
+            .pipe(take(1), catchError((error) => {
+                    this.openSnackBar(
+                        'Cannot find specified session. Creating a new one.',
+                        'OK');
+                    this.createSessionAndReset();
+                    return of(null);
+                  }))
+            .subscribe((session) => {
+              if (session) {
+                this.updateWithSelectedSession(session);
+              }
+            });
+      }
+    });
   }
 
   private createSessionAndReset() {
@@ -558,7 +568,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private combineTextParts(parts: Part[]) {
     const result: Part[] = [];
-    let combinedTextPart: Part | undefined;
+    let combinedTextPart: Part|undefined;
 
     for (const part of parts) {
       if (part.text) {

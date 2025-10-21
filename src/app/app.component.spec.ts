@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import {Location} from '@angular/common';
 import {TestBed} from '@angular/core/testing';
 import {MatDialog} from '@angular/material/dialog';
 import {DomSanitizer} from '@angular/platform-browser';
@@ -35,6 +36,7 @@ import {GRAPH_SERVICE} from './core/services/interfaces/graph';
 import {LOCAL_FILE_SERVICE} from './core/services/interfaces/localfile';
 import {SAFE_VALUES_SERVICE} from './core/services/interfaces/safevalues';
 import {STRING_TO_COLOR_SERVICE} from './core/services/interfaces/string-to-color';
+import {LOCATION_SERVICE} from './core/services/location.service';
 import {SESSION_SERVICE} from './core/services/interfaces/session';
 import {STREAM_CHAT_SERVICE} from './core/services/interfaces/stream-chat';
 import {MockAgentService} from './core/services/testing/mock-agent.service';
@@ -169,6 +171,10 @@ describe('AppComponent', () => {
               provide: LOCAL_FILE_SERVICE,
               useValue: localFileService,
             },
+            {
+              provide: LOCATION_SERVICE,
+              useClass: Location,
+            }
           ],
         })
         .compileComponents();
