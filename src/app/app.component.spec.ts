@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import {Location} from '@angular/common';
 import {TestBed} from '@angular/core/testing';
 import {MatDialog} from '@angular/material/dialog';
 import {DomSanitizer} from '@angular/platform-browser';
@@ -23,20 +24,21 @@ import {ActivatedRoute} from '@angular/router';
 import {of} from 'rxjs';
 
 import {AppComponent} from './app.component';
-import {AGENT_SERVICE} from './core/services/agent.service';
-import {ARTIFACT_SERVICE} from './core/services/artifact.service';
-import {AUDIO_PLAYING_SERVICE} from './core/services/audio-playing.service';
-import {AUDIO_RECORDING_SERVICE} from './core/services/audio-recording.service';
-import {DOWNLOAD_SERVICE} from './core/services/download.service';
-import {EVAL_SERVICE} from './core/services/eval.service';
-import {EVENT_SERVICE} from './core/services/event.service';
-import {FEATURE_FLAG_SERVICE} from './core/services/feature-flag.service';
-import {GRAPH_SERVICE} from './core/services/graph.service';
+import {AGENT_SERVICE} from './core/services/interfaces/agent';
+import {ARTIFACT_SERVICE} from './core/services/interfaces/artifact';
+import {AUDIO_PLAYING_SERVICE} from './core/services/interfaces/audio-playing';
+import {AUDIO_RECORDING_SERVICE} from './core/services/interfaces/audio-recording';
+import {DOWNLOAD_SERVICE} from './core/services/interfaces/download';
+import {EVAL_SERVICE} from './core/services/interfaces/eval';
+import {EVENT_SERVICE} from './core/services/interfaces/event';
+import {FEATURE_FLAG_SERVICE} from './core/services/interfaces/feature-flag';
+import {GRAPH_SERVICE} from './core/services/interfaces/graph';
 import {LOCAL_FILE_SERVICE} from './core/services/interfaces/localfile';
 import {SAFE_VALUES_SERVICE} from './core/services/interfaces/safevalues';
 import {STRING_TO_COLOR_SERVICE} from './core/services/interfaces/string-to-color';
-import {SESSION_SERVICE} from './core/services/session.service';
-import {STREAM_CHAT_SERVICE} from './core/services/stream-chat.service';
+import {LOCATION_SERVICE} from './core/services/location.service';
+import {SESSION_SERVICE} from './core/services/interfaces/session';
+import {STREAM_CHAT_SERVICE} from './core/services/interfaces/stream-chat';
 import {MockAgentService} from './core/services/testing/mock-agent.service';
 import {MockArtifactService} from './core/services/testing/mock-artifact.service';
 import {MockAudioPlayingService} from './core/services/testing/mock-audio-playing.service';
@@ -54,9 +56,9 @@ import {MockStringToColorService} from './core/services/testing/mock-string-to-c
 import {MockTraceService} from './core/services/testing/mock-trace.service';
 import {MockVideoService} from './core/services/testing/mock-video.service';
 import {MockWebSocketService} from './core/services/testing/mock-websocket.service';
-import {TRACE_SERVICE} from './core/services/trace.service';
-import {VIDEO_SERVICE} from './core/services/video.service';
-import {WEBSOCKET_SERVICE} from './core/services/websocket.service';
+import {TRACE_SERVICE} from './core/services/interfaces/trace';
+import {VIDEO_SERVICE} from './core/services/interfaces/video';
+import {WEBSOCKET_SERVICE} from './core/services/interfaces/websocket';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
@@ -78,7 +80,7 @@ describe('AppComponent', () => {
     const localFileService = new MockLocalFileService();
 
     traceService.selectedTraceRow$.next(undefined);
-    traceService.hoveredMessageIndicies$.next([]);
+    traceService.hoveredMessageIndices$.next([]);
 
     const graphService = new MockGraphService();
     graphService.render.and.returnValue(Promise.resolve('svg'));
@@ -169,6 +171,10 @@ describe('AppComponent', () => {
               provide: LOCAL_FILE_SERVICE,
               useValue: localFileService,
             },
+            {
+              provide: LOCATION_SERVICE,
+              useClass: Location,
+            }
           ],
         })
         .compileComponents();

@@ -23,9 +23,10 @@ import {
 } from '@angular/material/dialog';
 import { PendingEventDialogComponent } from './pending-event-dialog.component';
 import {createFakeLlmResponse} from '../../core/models/testing/fake_genai_types';
-import { AGENT_SERVICE, AgentService } from '../../core/services/agent.service';
+import { AgentService } from '../../core/services/agent.service';
 import { of } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import {AGENT_SERVICE} from '../../core/services/interfaces/agent';
 
 describe('PendingEventDialogComponent', () => {
   let component: PendingEventDialogComponent;

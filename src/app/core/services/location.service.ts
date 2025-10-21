@@ -14,22 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Location} from '@angular/common';
+import {InjectionToken} from '@angular/core';
 
-import {Injectable, InjectionToken} from '@angular/core';
-import stc from 'string-to-color';
-import {StringToColorService as StringToColorServiceInterface} from './interfaces/string-to-color';
-
-/**
- * Service to convert a string to a color.
- */
-@Injectable({
-  providedIn: 'root',
-})
-export class StringToColorServiceImpl implements StringToColorServiceInterface {
-  /**
-   * Converts a string to a color, e.g. 'my string' -> '#8c8526ff'.
-   */
-  stc(str: string): string {
-    return stc(str);
-  }
-}
+export const LOCATION_SERVICE = new InjectionToken<Location>('Location');

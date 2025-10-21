@@ -20,7 +20,7 @@ import {TestBed} from '@angular/core/testing';
 
 import {MockWebSocketService} from './testing/mock-websocket.service';
 import {VideoService} from './video.service';
-import {WEBSOCKET_SERVICE, WebSocketService} from './websocket.service';
+import {WEBSOCKET_SERVICE, WebSocketService} from './interfaces/websocket';
 
 const WIDTH = '400';
 const HEIGHT = '300';

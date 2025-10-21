@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-import {ElementRef, Inject, Injectable, InjectionToken, Renderer2, RendererFactory2} from '@angular/core';
+import {ElementRef, Injectable, Renderer2, RendererFactory2} from '@angular/core';
 
 import {LiveRequest} from '../models/LiveRequest';
-
-export const VIDEO_SERVICE = new InjectionToken<VideoService>('VideoService');
+import {VideoService as VideoServiceInterface} from './interfaces/video';
 
 @Injectable({
   providedIn: 'root',
 })
-export class VideoService {
+export class VideoService implements VideoServiceInterface {
   private mediaRecorder!: MediaRecorder;
   private stream!: MediaStream;
   private renderer: Renderer2;

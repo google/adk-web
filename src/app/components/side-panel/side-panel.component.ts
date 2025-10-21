@@ -31,7 +31,7 @@ import {Observable, of} from 'rxjs';
 
 import {EvalCase} from '../../core/models/Eval';
 import {Session} from '../../core/models/Session';
-import {FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 import {LOGO_COMPONENT} from '../../injection_tokens';
 import {ArtifactTabComponent} from '../artifact-tab/artifact-tab.component';
 import {EvalTabComponent} from '../eval-tab/eval-tab.component';

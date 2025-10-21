@@ -24,7 +24,7 @@ import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {MarkdownModule} from 'ngx-markdown';
 import {of} from 'rxjs';
 
-import {FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
 import {StringToColorServiceImpl} from '../../core/services/string-to-color.service';
 import {MockFeatureFlagService} from '../../core/services/testing/mock-feature-flag.service';

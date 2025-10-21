@@ -18,12 +18,11 @@
 import {AsyncPipe, NgClass} from '@angular/common';
 import {ChangeDetectorRef, Component, EventEmitter, Inject, inject, Input, OnInit, Output} from '@angular/core';
 import {MatChip} from '@angular/material/chips';
-import {MatDialog} from '@angular/material/dialog';
 import {Subject} from 'rxjs';
 import {switchMap} from 'rxjs/operators';
 
 import {Session} from '../../core/models/Session';
-import {SESSION_SERVICE, SessionService} from '../../core/services/session.service';
+import {SESSION_SERVICE} from '../../core/services/interfaces/session';
 
 @Component({
     selector: 'app-session-tab',
@@ -43,11 +42,9 @@ export class SessionTabComponent implements OnInit {
 
   private refreshSessionsSubject = new Subject<void>();
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  protected readonly sessionService = inject(SESSION_SERVICE);
 
-  constructor(
-    @Inject(SESSION_SERVICE) protected readonly sessionService: SessionService,
-    private dialog: MatDialog,
-  ) {
+  constructor() {
     this.refreshSessionsSubject
         .pipe(
             switchMap(

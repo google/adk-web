@@ -15,15 +15,13 @@
  * limitations under the License.
  */
 
-import {Injectable, InjectionToken} from '@angular/core';
-
-export const AUDIO_PLAYING_SERVICE =
-    new InjectionToken<AudioPlayingService>('AudioPlayingService');
+import {Injectable} from '@angular/core';
+import {AudioPlayingService as AudioPlayingServiceInterface} from './interfaces/audio-playing';
 
 @Injectable({
   providedIn: 'root',
 })
-export class AudioPlayingService {
+export class AudioPlayingService implements AudioPlayingServiceInterface {
   private audioContext = new AudioContext({sampleRate: 22000});
   private lastAudioTime = 0;
 

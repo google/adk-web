@@ -21,13 +21,12 @@ import {Observable, of} from 'rxjs';
 
 import {URLUtil} from '../../../utils/url-util';
 import {Session} from '../models/Session';
-
-export const SESSION_SERVICE = new InjectionToken<SessionService>('SessionService');
+import {SessionService as SessionServiceInterface} from './interfaces/session';
 
 @Injectable({
   providedIn: 'root',
 })
-export class SessionService {
+export class SessionService implements SessionServiceInterface {
   apiServerDomain = URLUtil.getApiServerBaseUrl();
   constructor(private http: HttpClient) {}
 

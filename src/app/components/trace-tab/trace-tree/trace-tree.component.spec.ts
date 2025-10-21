@@ -17,7 +17,7 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TraceTreeComponent } from './trace-tree.component';
-import { TRACE_SERVICE, TraceService } from '../../../core/services/trace.service';
+import { TRACE_SERVICE, TraceService } from '../../../core/services/interfaces/trace';
 import { of } from 'rxjs';
 
 describe('TraceTreeComponent', () => {

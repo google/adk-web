@@ -19,7 +19,8 @@ import {TestBed} from '@angular/core/testing';
 import {ActivatedRoute, Params} from '@angular/router';
 import {BehaviorSubject, firstValueFrom} from 'rxjs';
 
-import {A2A_CARD, EDIT_FUNCTION_ARGS, FeatureFlagService, IMPORT_SESSION,} from './feature-flag.service';
+import {FeatureFlagService} from './feature-flag.service';
+import {A2A_CARD, EDIT_FUNCTION_ARGS, IMPORT_SESSION,} from './interfaces/feature-flag';
 
 class MockActivatedRoute {
   queryParams = new BehaviorSubject<Params>({});

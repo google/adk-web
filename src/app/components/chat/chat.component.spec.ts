@@ -28,18 +28,19 @@ import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
 import {BehaviorSubject, NEVER, of, Subject, throwError} from 'rxjs';
 
 import {EvalCase} from '../../core/models/Eval';
-import {AGENT_SERVICE, AgentService} from '../../core/services/agent.service';
-import {ARTIFACT_SERVICE, ArtifactService,} from '../../core/services/artifact.service';
-import {DOWNLOAD_SERVICE, DownloadService,} from '../../core/services/download.service';
-import {EVAL_SERVICE, EvalService} from '../../core/services/eval.service';
-import {EVENT_SERVICE, EventService} from '../../core/services/event.service';
-import {FEATURE_FLAG_SERVICE, FeatureFlagService,} from '../../core/services/feature-flag.service';
-import {GRAPH_SERVICE, GraphService} from '../../core/services/graph.service';
+import {AGENT_SERVICE, AgentService} from '../../core/services/interfaces/agent';
+import {ARTIFACT_SERVICE, ArtifactService,} from '../../core/services/interfaces/artifact';
+import {DOWNLOAD_SERVICE, DownloadService,} from '../../core/services/interfaces/download';
+import {EVAL_SERVICE, EvalService} from '../../core/services/interfaces/eval';
+import {EVENT_SERVICE, EventService} from '../../core/services/interfaces/event';
+import {FEATURE_FLAG_SERVICE, FeatureFlagService,} from '../../core/services/interfaces/feature-flag';
+import {GRAPH_SERVICE, GraphService} from '../../core/services/interfaces/graph';
 import {LOCAL_FILE_SERVICE} from '../../core/services/interfaces/localfile';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
-import {SESSION_SERVICE, SessionService,} from '../../core/services/session.service';
-import {STREAM_CHAT_SERVICE} from '../../core/services/stream-chat.service';
+import {LOCATION_SERVICE} from '../../core/services/location.service';
+import {SESSION_SERVICE, SessionService,} from '../../core/services/interfaces/session';
+import {STREAM_CHAT_SERVICE} from '../../core/services/interfaces/stream-chat';
 import {MockAgentService} from '../../core/services/testing/mock-agent.service';
 import {MockArtifactService} from '../../core/services/testing/mock-artifact.service';
 import {MockDownloadService} from '../../core/services/testing/mock-download.service';
@@ -55,9 +56,9 @@ import {MockStringToColorService} from '../../core/services/testing/mock-string-
 import {MockTraceService} from '../../core/services/testing/mock-trace.service';
 import {MockVideoService} from '../../core/services/testing/mock-video.service';
 import {MockWebSocketService} from '../../core/services/testing/mock-websocket.service';
-import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
-import {VIDEO_SERVICE, VideoService} from '../../core/services/video.service';
-import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/websocket.service';
+import {TRACE_SERVICE, TraceService} from '../../core/services/interfaces/trace';
+import {VIDEO_SERVICE, VideoService} from '../../core/services/interfaces/video';
+import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/interfaces/websocket';
 import {fakeAsync,
         tick} from '../../testing/utils';
 import {ChatPanelComponent} from '../chat-panel/chat-panel.component';
@@ -145,7 +146,7 @@ describe('ChatComponent', () => {
     mockSessionService.createSessionResponse.next(
         {id: SESSION_1_ID, state: {}});
     mockTraceService.selectedTraceRow$.next(undefined);
-    mockTraceService.hoveredMessageIndicies$.next([]);
+    mockTraceService.hoveredMessageIndices$.next([]);
     mockFeatureFlagService.isImportSessionEnabledResponse.next(true);
     mockFeatureFlagService.isEditFunctionArgsEnabledResponse.next(true);
     mockFeatureFlagService.isSessionUrlEnabledResponse.next(true);
@@ -215,7 +216,7 @@ describe('ChatComponent', () => {
             {provide: MatSnackBar, useValue: mockSnackBar},
             {provide: Router, useValue: mockRouter},
             {provide: ActivatedRoute, useValue: mockActivatedRoute},
-            {provide: Location, useValue: mockLocation},
+            {provide: LOCATION_SERVICE, useValue: mockLocation},
             {provide: MARKDOWN_COMPONENT, useValue: MockMarkdownComponent},
           ],
         })
@@ -291,7 +292,8 @@ describe('ChatComponent', () => {
     });
 
     describe('when session ID is provided in URL', () => {
-      beforeEach(async () => {
+      beforeEach(() => {
+        mockAgentService.listAppsResponse.next([TEST_APP_1_NAME]);
         mockFeatureFlagService.isSessionUrlEnabledResponse.next(true);
         mockActivatedRoute.snapshot!.queryParams = {
           [APP_QUERY_PARAM]: TEST_APP_1_NAME,
@@ -299,21 +301,26 @@ describe('ChatComponent', () => {
         };
         mockSessionService.getSessionResponse.next(
             {id: SESSION_2_ID, state: {}, events: []});
-        fixture = TestBed.createComponent(ChatComponent);
-        component = fixture.componentInstance;
-        component.ngOnInit();
-        fixture.detectChanges();
-        component.selectApp(TEST_APP_2_NAME);
-        await fixture.whenStable();
       });
-      it('should load session from URL', () => {
-        expect(mockSessionService.getSession)
-            .toHaveBeenCalledWith(
-                USER_ID,
-                TEST_APP_2_NAME,
-                SESSION_2_ID,
-            );
-        expect(component.sessionId).toBe(SESSION_2_ID);
+
+      describe('on app change', () => {
+        beforeEach(async () => {
+          fixture = TestBed.createComponent(ChatComponent);
+          component = fixture.componentInstance;
+          component.ngOnInit();
+          fixture.detectChanges();
+          component.selectApp(TEST_APP_2_NAME);
+          await fixture.whenStable();
+        });
+        it('should load session from URL', () => {
+          expect(mockSessionService.getSession)
+              .toHaveBeenCalledWith(
+                  USER_ID,
+                  TEST_APP_2_NAME,
+                  SESSION_2_ID,
+              );
+          expect(component.sessionId).toBe(SESSION_2_ID);
+        });
       });
     });
 
@@ -389,7 +396,8 @@ describe('ChatComponent', () => {
               'sessionTab', ['refreshSession', 'getSession']);
           sessionTabSpy.refreshSession.and.returnValue(
               {id: SESSION_2_ID} as any);
-          spyOn(component, 'sessionTab').and.returnValue(sessionTabSpy);
+          spyOnProperty(component, 'sessionTab', 'get')
+              .and.returnValue(sessionTabSpy);
           component.deleteSession(SESSION_1_ID);
         });
         it('should delete session', () => {
@@ -509,11 +517,12 @@ describe('ChatComponent', () => {
         component.sessionId = SESSION_1_ID;
         component.messages.set(
             [{role: 'bot', text: 'response', eventId: EVENT_1_ID}]);
-        component.eventData = new Map([[EVENT_1_ID, {id: EVENT_1_ID}]]);
         spyOn(component.sideDrawer()!, 'open');
-        component.clickEvent(0);
       });
+
       it('should open side panel with event details', () => {
+        component.eventData = new Map([[EVENT_1_ID, {id: EVENT_1_ID}]]);
+        component.clickEvent(0);
         expect(component.sideDrawer()!.open).toHaveBeenCalled();
         expect(component.selectedEvent.id).toBe(EVENT_1_ID);
         expect(mockEventService.getEventTrace).toHaveBeenCalledWith(EVENT_1_ID);
@@ -525,6 +534,31 @@ describe('ChatComponent', () => {
                 EVENT_1_ID,
             );
       });
+
+      it('should call getEventTrace with filter and parse llm request/response',
+         () => {
+           const invocationId = 'inv-1';
+           const timestamp = 123456789;
+           component.eventData = new Map([[
+             EVENT_1_ID, {
+               id: EVENT_1_ID,
+               invocationId,
+               timestampInMillis: timestamp,
+             }
+           ]]);
+           const llmRequest = {prompt: 'test prompt'};
+           const llmResponse = {response: 'test response'};
+           mockEventService.getEventTraceResponse.next({
+             'gcp.vertex.agent.llm_request': JSON.stringify(llmRequest),
+             'gcp.vertex.agent.llm_response': JSON.stringify(llmResponse),
+           });
+
+           component.clickEvent(0);
+
+           expect(mockEventService.getEventTrace).toHaveBeenCalledWith(EVENT_1_ID);
+           expect(component.llmRequest).toEqual(llmRequest);
+           expect(component.llmResponse).toEqual(llmResponse);
+         });
     });
 
     describe('when updateState() is called', () => {
@@ -607,13 +641,65 @@ describe('ChatComponent', () => {
         expect(messageCards[0].nativeElement.textContent)
             .toContain(TEST_MESSAGE);
       });
+
+      describe('when event contains multiple text parts', () => {
+        it('should combine consecutive text parts into a single message',
+           async () => {
+             const sseEvent = {
+               id: 'event-1',
+               author: 'bot',
+               content:
+                   {role: 'bot', parts: [{text: 'Hello '}, {text: 'World!'}]},
+             };
+             component.messages.set([]);
+             component.userInput = 'test message';
+             await component.sendMessage(
+                 new KeyboardEvent('keydown', {key: 'Enter'}));
+             mockAgentService.runSseResponse.next(sseEvent);
+             fixture.detectChanges();
+
+             const botMessages =
+                 component.messages().filter(m => m.role === 'bot');
+             expect(botMessages.length).toBe(1);
+             expect(botMessages[0].text).toBe('Hello World!');
+           });
+
+        it('should not combine non-consecutive text parts', async () => {
+          const sseEvent = {
+            id: 'event-1',
+            author: 'bot',
+            content: {
+              role: 'bot',
+              parts: [
+                {text: 'Hello '},
+                {functionCall: {name: 'foo', args: {}}},
+                {text: 'World!'},
+              ]
+            },
+          };
+          component.messages.set([]);
+          component.userInput = 'test message';
+          await component.sendMessage(
+              new KeyboardEvent('keydown', {key: 'Enter'}));
+          mockAgentService.runSseResponse.next(sseEvent);
+          fixture.detectChanges();
+
+          const botMessages =
+              component.messages().filter(m => m.role === 'bot');
+          expect(botMessages.length).toBe(3);
+          expect(botMessages[0].text).toBe('Hello ');
+          expect(botMessages[1].functionCall).toEqual({name: 'foo', args: {}});
+          expect(botMessages[2].text).toBe('World!');
+        });
+      });
     });
 
     describe('when chat-panel emits sendMessage', () => {
       const mockEvent = new KeyboardEvent('keydown', {key: 'Enter'});
       beforeEach(() => {
         spyOn(component, 'sendMessage').and.callThrough();
-        mockAgentService.runSseResponse.next('');
+        mockAgentService.runSseResponse.next(
+            {content: {role: 'bot', parts: []}});
         const chatPanelDebugEl =
             fixture.debugElement.query(By.directive(ChatPanelComponent));
         chatPanelDebugEl.triggerEventHandler('sendMessage', mockEvent);

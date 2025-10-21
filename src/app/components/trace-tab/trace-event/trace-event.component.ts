@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, EventEmitter, Inject, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
 import {MatIconButton} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
 import {MatIcon} from '@angular/material/icon';
@@ -23,9 +23,9 @@ import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {NgxJsonViewerModule} from 'ngx-json-viewer';
 
 import {Span} from '../../../core/models/Trace';
-import {EVENT_SERVICE, EventService} from '../../../core/services/event.service';
-import {GRAPH_SERVICE, GraphService} from '../../../core/services/graph.service';
-import {TRACE_SERVICE, TraceService} from '../../../core/services/trace.service';
+import {EVENT_SERVICE} from '../../../core/services/interfaces/event';
+import {GRAPH_SERVICE} from '../../../core/services/interfaces/graph';
+import {TRACE_SERVICE} from '../../../core/services/interfaces/trace';
 import {ViewImageDialogComponent} from '../../view-image-dialog/view-image-dialog.component';
 
 @Component({
@@ -50,20 +50,22 @@ export class TraceEventComponent implements OnInit {
   llmRequestKey = 'gcp.vertex.agent.llm_request';
   llmResponseKey = 'gcp.vertex.agent.llm_response';
 
+  private readonly dialog = inject(MatDialog);
+  private readonly traceService = inject(TRACE_SERVICE);
+  private readonly eventService = inject(EVENT_SERVICE);
+  private readonly graphService = inject(GRAPH_SERVICE);
+  private readonly sanitizer = inject(DomSanitizer);
 
-  constructor(
-      private dialog: MatDialog,
-      @Inject(TRACE_SERVICE) private traceService: TraceService,
-      @Inject(EVENT_SERVICE) private eventService: EventService,
-      @Inject(GRAPH_SERVICE) private graphService: GraphService,
-      private sanitizer: DomSanitizer) {}
+  constructor() {}
 
   ngOnInit() {
     this.traceService.selectedTraceRow$.subscribe(span => {
       this.selectedRow = span;
       const eventId = this.getEventIdFromSpan();
       if (eventId) {
-        this.eventService.getEventTrace(eventId).subscribe((res) => {
+        const eventTraceParam = eventId;
+
+        this.eventService.getEventTrace(eventTraceParam).subscribe((res) => {
           this.llmRequest = JSON.parse(res[this.llmRequestKey]);
           this.llmResponse = JSON.parse(res[this.llmResponseKey]);
         });

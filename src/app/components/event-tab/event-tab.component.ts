@@ -19,7 +19,7 @@ import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, comput
 import {MatDialog} from '@angular/material/dialog';
 
 import {Span} from '../../core/models/Trace';
-import {FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 import {TraceChartComponent} from './trace-chart/trace-chart.component';
 import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
 import { FormsModule } from '@angular/forms';

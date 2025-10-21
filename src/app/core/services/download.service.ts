@@ -14,16 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Injectable, inject} from '@angular/core';
+import {DownloadService as DownloadServiceInterface} from './interfaces/download';
 import {SAFE_VALUES_SERVICE} from './interfaces/safevalues';
-
-import {Injectable, InjectionToken, inject} from '@angular/core';
-
-export const DOWNLOAD_SERVICE = new InjectionToken<DownloadService>('DownloadService');
 
 @Injectable({
   providedIn: 'root',
 })
-export class DownloadService {
+export class DownloadService implements DownloadServiceInterface {
   private readonly safeValuesService = inject(SAFE_VALUES_SERVICE);
 
   downloadBase64Data(data: string, mimeType: string, fileName = 'image.png') {

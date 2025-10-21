@@ -18,9 +18,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ArtifactTabComponent } from './artifact-tab.component';
-import { DOWNLOAD_SERVICE, DownloadService } from '../../core/services/download.service';
+import { DownloadService } from '../../core/services/download.service';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { SAFE_VALUES_SERVICE } from '../../core/services/interfaces/safevalues';
+import {DOWNLOAD_SERVICE} from '../../core/services/interfaces/download';
 import { MockSafeValuesService } from '../../core/services/testing/mock-safevalues.service';
 
 describe('ArtifactTabComponent', () => {

@@ -19,6 +19,7 @@ import {Injectable} from '@angular/core';
 import {of, ReplaySubject} from 'rxjs';
 
 import {AgentService} from '../agent.service';
+import {Event as AdkEvent} from '../../models/types';
 
 @Injectable()
 export class MockAgentService implements Partial<AgentService> {
@@ -35,6 +36,6 @@ export class MockAgentService implements Partial<AgentService> {
   getLoadingState = jasmine.createSpy('getLoadingState')
                         .and.returnValue(this.getLoadingStateResponse);
 
-  runSseResponse = new ReplaySubject<string>(1);
+  runSseResponse = new ReplaySubject<AdkEvent>(1);
   runSse = jasmine.createSpy('runSse').and.returnValue(this.runSseResponse);
 }

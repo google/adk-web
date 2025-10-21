@@ -21,7 +21,7 @@ import {MatExpansionPanelHarness} from '@angular/material/expansion/testing';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 import {Span} from '../../core/models/Trace';
-import {TRACE_SERVICE} from '../../core/services/trace.service';
+import {TRACE_SERVICE} from '../../core/services/interfaces/trace';
 
 import {MockTraceService} from './../../core/services/testing/mock-trace.service';
 import {TraceTabComponent} from './trace-tab.component';

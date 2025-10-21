@@ -28,20 +28,31 @@ import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ActivatedRoute, Router} from '@angular/router';
 import {of} from 'rxjs';
 
-import {AGENT_SERVICE, AgentService} from '../../core/services/agent.service';
-import {ARTIFACT_SERVICE, ArtifactService,} from '../../core/services/artifact.service';
-import {AUDIO_RECORDING_SERVICE, AudioRecordingService} from '../../core/services/audio-recording.service';
-import {DOWNLOAD_SERVICE, DownloadService,} from '../../core/services/download.service';
-import {EVAL_SERVICE, EvalService} from '../../core/services/eval.service';
-import {EVENT_SERVICE, EventService} from '../../core/services/event.service';
-import {FEATURE_FLAG_SERVICE, FeatureFlagService,} from '../../core/services/feature-flag.service';
+import {AgentService} from '../../core/services/agent.service';
+import {ArtifactService} from '../../core/services/artifact.service';
+import {AudioRecordingService} from '../../core/services/audio-recording.service';
+import {DownloadService} from '../../core/services/download.service';
+import {EvalService} from '../../core/services/eval.service';
+import {EventService} from '../../core/services/event.service';
+import {FeatureFlagService} from '../../core/services/feature-flag.service';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
-import {SESSION_SERVICE, SessionService,} from '../../core/services/session.service';
+import {SessionService} from '../../core/services/session.service';
 import {MockFeatureFlagService} from '../../core/services/testing/mock-feature-flag.service';
 import {MockSafeValuesService} from '../../core/services/testing/mock-safevalues.service';
-import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
-import {VIDEO_SERVICE, VideoService} from '../../core/services/video.service';
-import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/websocket.service';
+import {TraceService} from '../../core/services/trace.service';
+import {VideoService} from '../../core/services/video.service';
+import {WebSocketService} from '../../core/services/websocket.service';
+import {AGENT_SERVICE} from '../../core/services/interfaces/agent';
+import {ARTIFACT_SERVICE} from '../../core/services/interfaces/artifact';
+import {AUDIO_RECORDING_SERVICE} from '../../core/services/interfaces/audio-recording';
+import {DOWNLOAD_SERVICE} from '../../core/services/interfaces/download';
+import {EVAL_SERVICE} from '../../core/services/interfaces/eval';
+import {EVENT_SERVICE} from '../../core/services/interfaces/event';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
+import {SESSION_SERVICE} from '../../core/services/interfaces/session';
+import {TRACE_SERVICE} from '../../core/services/interfaces/trace';
+import {VIDEO_SERVICE} from '../../core/services/interfaces/video';
+import {WEBSOCKET_SERVICE} from '../../core/services/interfaces/websocket';
 
 import {SidePanelComponent} from './side-panel.component';
 
@@ -132,7 +143,7 @@ describe('SidePanelComponent', () => {
         ['setEventData', 'setMessages', 'selectedRow', 'setHoveredMessages'],
         {
           selectedTraceRow$: of(null),
-          hoveredMessageIndicies$: of([]),
+          hoveredMessageIndices$: of([]),
         },
     );
     mockAgentService = jasmine.createSpyObj(

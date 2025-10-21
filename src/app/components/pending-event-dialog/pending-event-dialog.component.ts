@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import {Component, Inject} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
 import {AgentRunRequest} from '../../core/models/AgentRunRequest';
-import {AgentService, AGENT_SERVICE} from '../../core/services/agent.service';
+import {AGENT_SERVICE} from '../../core/services/interfaces/agent';
 import { NgIf } from '@angular/common';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -45,25 +45,19 @@ import { MatButton } from '@angular/material/button';
     ],
 })
 export class PendingEventDialogComponent {
-  selectedEvent: any = null;
-  appName: string;
-  userId: string;
-  sessionId: string;
-  functionCallEventId: string;
+  readonly dialogRef = inject(MatDialogRef<PendingEventDialogComponent>);
+  readonly data: any = inject(MAT_DIALOG_DATA);
+  private readonly agentService = inject(AGENT_SERVICE);
+
+  selectedEvent: any = this.data.event;
+  appName: string = this.data.appName;
+  userId: string = this.data.userId;
+  sessionId: string = this.data.sessionId;
+  functionCallEventId: string = this.data.functionCallEventId;
   sending: boolean = false;
   response: any[] = [];
 
-  constructor(
-    public dialogRef: MatDialogRef<PendingEventDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
-    @Inject(AGENT_SERVICE) private agentService: AgentService,
-  ) {
-    this.selectedEvent = data.event;
-    this.appName = data.appName;
-    this.userId = data.userId;
-    this.sessionId = data.sessionId;
-    this.functionCallEventId = data.functionCallEventId;
-  }
+  constructor() {}
 
   argsToJson(args: any) {
     return JSON.stringify(args);
