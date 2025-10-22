@@ -240,13 +240,13 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
               ),
           ),
       take(1),
-      tap((app: string) => {
+      tap((apps: string[]|undefined) => {
         this.isLoadingApps.set(false);
         this.selectedAppControl.enable();
-        if (app?.length == 1) {
+        if (apps?.length == 1) {
           this.router.navigate([], {
             relativeTo: this.activatedRoute,
-            queryParams: {app: app[0]},
+            queryParams: {app: apps[0]},
           });
         }
       }),
