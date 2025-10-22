@@ -240,7 +240,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
               ),
           ),
       take(1),
-      tap((app) => {
+      tap((app: string) => {
         this.isLoadingApps.set(false);
         this.selectedAppControl.enable();
         if (app?.length == 1) {
