@@ -23,6 +23,26 @@
 export declare interface EvalMetric {
   metricName: string;
   threshold: number;
+  criterion?: unknown;
+}
+
+export declare interface MetricValueInfo {
+  defaultThreshold?: number;
+  minThreshold?: number;
+  maxThreshold?: number;
+  step?: number;
+}
+
+export declare interface MetricInfo {
+  metricName: string;
+  description?: string;
+  metricValueInfo?: MetricValueInfo;
+}
+
+export declare interface EvalMetricConfig extends EvalMetric {
+  description?: string;
+  metricValueInfo?: MetricValueInfo;
+  criterion?: unknown;
 }
 
 export const DEFAULT_EVAL_METRICS: EvalMetric[] = [
