@@ -90,4 +90,8 @@ export class FeatureFlagService implements FeatureFlagServiceInterface {
   isExportSessionEnabled(): Observable<boolean> {
     return of(true);
   }
+
+  isDeleteSessionEnabled(): Observable<boolean> {
+    return of(true);
+  }
 }

@@ -74,4 +74,8 @@ export class MockFeatureFlagService implements Partial<FeatureFlagService> {
   isExportSessionEnabled =
       jasmine.createSpy('isExportSessionEnabled')
           .and.returnValue(this.isExportSessionEnabledResponse);
+  isDeleteSessionEnabledResponse = new ReplaySubject<boolean>(1);
+  isDeleteSessionEnabled =
+      jasmine.createSpy('isDeleteSessionEnabled')
+          .and.returnValue(this.isDeleteSessionEnabledResponse);
 }

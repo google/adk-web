@@ -153,6 +153,7 @@ describe('ChatComponent', () => {
     mockFeatureFlagService.isSessionUrlEnabledResponse.next(true);
     mockFeatureFlagService.isApplicationSelectorEnabledResponse.next(true);
     mockFeatureFlagService.isTokenStreamingEnabledResponse.next(true);
+    mockFeatureFlagService.isDeleteSessionEnabledResponse.next(true);
 
     mockDialog = jasmine.createSpyObj('MatDialog', ['open']);
     mockSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
@@ -514,28 +515,30 @@ describe('ChatComponent', () => {
       });
     });
 
-    describe('mat-drawer', () => {
-      describe('when app selector is disabled', () => {
+    describe('delete session button', () => {
+      describe('when isDeleteSessionEnabled is false', () => {
         beforeEach(() => {
-          mockFeatureFlagService.isApplicationSelectorEnabledResponse.next(
-              false);
+          mockFeatureFlagService.isDeleteSessionEnabledResponse.next(false);
           fixture.detectChanges();
         });
 
-        it('should disable close', () => {
-          expect(component.sideDrawer().disableClose).toBe(true);
+        it('should not be visible', () => {
+          const deleteButton = fixture.debugElement.query(
+              By.css('[matTooltip="Delete current session"]'));
+          expect(deleteButton).toBeFalsy();
         });
       });
 
-      describe('when app selector is enabled', () => {
+      describe('when isDeleteSessionEnabled is true', () => {
         beforeEach(() => {
-          mockFeatureFlagService.isApplicationSelectorEnabledResponse.next(
-              true);
+          mockFeatureFlagService.isDeleteSessionEnabledResponse.next(true);
           fixture.detectChanges();
         });
 
-        it('should enable close', () => {
-          expect(component.sideDrawer().disableClose).toBe(false);
+        it('should be visible', () => {
+          const deleteButton = fixture.debugElement.query(
+              By.css('[matTooltip="Delete current session"]'));
+          expect(deleteButton).toBeTruthy();
         });
       });
     });

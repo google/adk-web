@@ -152,6 +152,7 @@
             <mat-icon>add</mat-icon>
             New Session
           </div>
+          @if (isDeleteSessionEnabledObs | async) {
           <span
             class="material-symbols-outlined toolbar-icon"
             matTooltip="Delete current session"
@@ -159,7 +160,7 @@
           >
             delete
           </span>
-          @if (isExportSessionEnabledObs | async) {
+          } @if (isExportSessionEnabledObs | async) {
           <span
             class="material-symbols-outlined toolbar-icon"
             matTooltip="Export current session"
