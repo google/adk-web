@@ -16,6 +16,9 @@
  */
 
 import {TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it,}
+
+import {initTestBed} from '../../testing/utils';
 
 import {AudioRecordingService} from './audio-recording.service';
 import {AUDIO_WORKLET_MODULE_PATH} from './interfaces/audio-recording';
@@ -35,6 +38,7 @@ describe('AudioRecordingService', () => {
   let mockAudioContext: any;
 
   beforeEach(() => {
+    initTestBed();  // required for 1p compat
     webSocketServiceSpy = new MockWebSocketService();
     mockTrack = jasmine.createSpyObj('MediaStreamTrack', ['stop']);
     mockStream = jasmine.createSpyObj('MediaStream', ['getTracks']);

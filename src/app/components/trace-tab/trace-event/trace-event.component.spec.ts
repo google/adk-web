@@ -20,6 +20,7 @@ import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import {DomSanitizer} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {of} from 'rxjs';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
 
 import {Span} from '../../../core/models/Trace';
 import {EVENT_SERVICE, EventService} from '../../../core/services/interfaces/event';
@@ -32,6 +33,7 @@ import {MockTraceService} from '../../../core/services/testing/mock-trace.servic
 import {TRACE_SERVICE, TraceService} from '../../../core/services/interfaces/trace';
 import {ViewImageDialogComponent} from '../../view-image-dialog/view-image-dialog.component';
 import {fakeAsync,
+        initTestBed,
         tick} from '../../../testing/utils';
 
 import {TraceEventComponent} from './trace-event.component';
@@ -86,6 +88,8 @@ describe('TraceEventComponent', () => {
     graphService.render.and.returnValue(Promise.resolve('svg'));
     featureFlagService = new MockFeatureFlagService();
     featureFlagService.isEventFilteringEnabled.and.returnValue(of(true));
+
+    initTestBed();  // required for 1p compat
 
     await TestBed
         .configureTestingModule({

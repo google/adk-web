@@ -16,8 +16,10 @@
  */
 
 import {TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it,}
 import {firstValueFrom} from 'rxjs';
 
+import {initTestBed} from '../../testing/utils';
 import {Span} from '../models/Trace';
 
 import {TraceService} from './trace.service';
@@ -26,6 +28,7 @@ describe('TraceService', () => {
   let service: TraceService;
 
   beforeEach(() => {
+    initTestBed();  // required for 1p compat
     TestBed.configureTestingModule({
       providers: [TraceService],
     });

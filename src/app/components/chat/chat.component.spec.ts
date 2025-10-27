@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 import {Location} from '@angular/common';
 import {HttpErrorResponse} from '@angular/common/http';
 import {Component} from '@angular/core';
@@ -40,10 +39,11 @@ import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {SESSION_SERVICE, SessionService,} from '../../core/services/interfaces/session';
 import {STREAM_CHAT_SERVICE} from '../../core/services/interfaces/stream-chat';
 import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
+import {LOCATION_SERVICE} from '../../core/services/location.service';
 import {TRACE_SERVICE, TraceService} from '../../core/services/interfaces/trace';
 import {VIDEO_SERVICE, VideoService} from '../../core/services/interfaces/video';
 import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/interfaces/websocket';
-import {LOCATION_SERVICE} from '../../core/services/location.service';
+import {MARKDOWN_COMPONENT} from '../markdown/markdown.component.interface';
 import {MockAgentService} from '../../core/services/testing/mock-agent.service';
 import {MockArtifactService} from '../../core/services/testing/mock-artifact.service';
 import {MockDownloadService} from '../../core/services/testing/mock-download.service';
@@ -59,13 +59,12 @@ import {MockStringToColorService} from '../../core/services/testing/mock-string-
 import {MockTraceService} from '../../core/services/testing/mock-trace.service';
 import {MockVideoService} from '../../core/services/testing/mock-video.service';
 import {MockWebSocketService} from '../../core/services/testing/mock-websocket.service';
-import {fakeAsync,
-        tick} from '../../testing/utils';
-import {ChatPanelComponent} from '../chat-panel/chat-panel.component';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
+import {fakeAsync, initTestBed, tick} from '../../testing/utils';
 import {EVAL_TAB_COMPONENT, EvalTabComponent,} from '../eval-tab/eval-tab.component';
-import {MARKDOWN_COMPONENT} from '../markdown/markdown.component.interface';
 import {MockMarkdownComponent} from '../markdown/testing/mock-markdown.component';
 import {SidePanelComponent} from '../side-panel/side-panel.component';
+import {ChatPanelComponent} from '../chat-panel/chat-panel.component';
 
 import {ChatComponent} from './chat.component';
 
@@ -190,6 +189,7 @@ describe('ChatComponent', () => {
       dotSrc: 'digraph {A -> B}',
     });
 
+    initTestBed();  // required for 1p compat
     await TestBed
         .configureTestingModule({
           imports: [

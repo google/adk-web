@@ -72,6 +72,13 @@ We welcome contributions from the community! Whether it's bug reports, feature r
 
 - [General contribution guideline and flow](https://google.github.io/adk-docs/contributing-guide/#questions).
 
+### Testing quirks
+
+To maintain compatibility with upstream 1p code, testing code in this repo must
+follow a few rules:
+
+- `initTestBed()` from `./src/app/testing/utils.ts` must be called before `TestBed.configureTestingModule()`
+
 ## 📄 License
 
 This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.

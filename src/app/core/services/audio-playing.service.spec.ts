@@ -16,6 +16,9 @@
  */
 
 import {TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it,}
+
+import {initTestBed} from '../../testing/utils';
 
 import {AudioPlayingService} from './audio-playing.service';
 
@@ -24,6 +27,7 @@ describe('AudioPlayingService', () => {
   let mockAudioContext: any;
 
   beforeEach(() => {
+    initTestBed();  // required for 1p compat
     mockAudioContext = {
       destination: {},
       createBuffer: jasmine.createSpy('createBuffer').and.returnValue({

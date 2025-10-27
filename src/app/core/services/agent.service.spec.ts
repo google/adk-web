@@ -17,12 +17,14 @@
 
 import {HttpClientTestingModule, HttpTestingController,} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
 import {firstValueFrom} from 'rxjs';
 import {toArray} from 'rxjs/operators';
 
 import {URLUtil} from '../../../utils/url-util';
 import {
   fakeAsync,
+  initTestBed,
 } from '../../testing/utils';
 import {createFakeLlmResponse} from '../models/testing/fake_genai_types';
 import {LlmResponse} from '../models/types';
@@ -55,6 +57,7 @@ describe('AgentService', () => {
 
   beforeEach(() => {
     spyOn(URLUtil, 'getApiServerBaseUrl').and.returnValue(API_SERVER_BASE_URL);
+    initTestBed();  // required for 1p compat
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [AgentService],

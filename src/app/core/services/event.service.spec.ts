@@ -17,8 +17,10 @@
 
 import {HttpClientTestingModule, HttpTestingController,} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it,}
 
 import {URLUtil} from '../../../utils/url-util';
+import {initTestBed} from '../../testing/utils';
 
 import {EventService} from './event.service';
 
@@ -30,6 +32,7 @@ describe('EventService', () => {
   };
   beforeEach(() => {
     spyOn(URLUtil, 'getApiServerBaseUrl').and.returnValue('http://test.com');
+    initTestBed();  // required for 1p compat
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [EventService],

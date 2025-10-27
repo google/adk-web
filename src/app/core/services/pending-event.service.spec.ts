@@ -1,4 +1,7 @@
 import {TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it,}
+
+import {initTestBed} from '../../testing/utils';
 
 import {PendingEventServiceImpl} from './pending-event.service';
 
@@ -6,6 +9,7 @@ describe('PendingEventService', () => {
   let service: PendingEventServiceImpl;
 
   beforeEach(() => {
+    initTestBed();  // required for 1p compat
     TestBed.configureTestingModule({
       providers: [PendingEventServiceImpl],
     });

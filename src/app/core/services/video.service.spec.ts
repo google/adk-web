@@ -17,6 +17,9 @@
 
 import {ElementRef, Renderer2, RendererFactory2} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, flush, it, tick,}
+
+import {fakeAsync, initTestBed,} from '../../testing/utils';
 
 import {MockWebSocketService} from './testing/mock-websocket.service';
 import {VideoService} from './video.service';
@@ -40,6 +43,7 @@ describe('VideoService', () => {
   let container: ElementRef;
 
   beforeEach(() => {
+    initTestBed();  // required for 1p compat
     webSocketServiceSpy = new MockWebSocketService();
     rendererSpy = jasmine.createSpyObj('Renderer2', [
       'createElement',
