@@ -14,17 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, OnChanges, OnInit, SimpleChange, SimpleChanges} from '@angular/core';
+import {Component, inject, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import { MatDialogTitle } from '@angular/material/dialog';
 import { MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
 import { TraceTreeComponent } from './trace-tree/trace-tree.component';
 import { KeyValuePipe } from '@angular/common';
 import {LlmRequest} from '../../core/models/types';
+import { TraceTabMessagesInjectionToken } from './trace-tab.component.i18n';
 
 @Component({
     selector: 'app-trace-tab',
     templateUrl: './trace-tab.component.html',
     styleUrl: './trace-tab.component.scss',
+    standalone: true,
     imports: [MatDialogTitle, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, TraceTreeComponent, KeyValuePipe]
 })
 
@@ -32,6 +34,7 @@ export class TraceTabComponent implements OnInit, OnChanges {
   @Input() traceData: any = [];
   invocTraces = new Map<string, any[]>();
   invocToUserMsg = new Map<string, string>();
+  protected readonly i18n = inject(TraceTabMessagesInjectionToken);
 
   constructor() {}
 

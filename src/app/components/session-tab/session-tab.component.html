@@ -15,6 +15,9 @@
 -->
 
 <div class="session-wrapper">
+  @if (sessionList.length === 0) {
+  <div class="empty-state">{{ i18n.noSessionsFound }}</div>
+  } @else {
   <div class="session-tab-container" style="margin-top: 16px">
     @for (session of sessionList; track session) {
     <div
@@ -25,7 +28,7 @@
         <div class="session-id">
           {{session.id}}
           @if ((sessionService.canEdit(userId, session) | async) === false) {
-          <mat-chip>Readonly</mat-chip>
+          <mat-chip>{{ i18n.readonlyChip }}</mat-chip>
           }
         </div>
         <div class="session-date">{{ getDate(session) }}</div>
@@ -33,4 +36,5 @@
     </div>
     }
   </div>
+  }
 </div>
