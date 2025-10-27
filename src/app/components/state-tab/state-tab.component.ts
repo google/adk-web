@@ -15,17 +15,22 @@
  * limitations under the License.
  */
 
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, inject, Input} from '@angular/core';
 import { NgxJsonViewerModule } from 'ngx-json-viewer';
+import { StateTabMessagesInjectionToken } from './state-tab.component.i18n';
 
 @Component({
     selector: 'app-state-tab',
     templateUrl: './state-tab.component.html',
     styleUrl: './state-tab.component.scss',
     imports: [NgxJsonViewerModule],
+    standalone: true,
 })
 export class StateTabComponent {
   @Input() sessionState: any = {};
+  protected readonly i18n = inject(StateTabMessagesInjectionToken);
 
-  constructor() {}
+  get isEmptyState() {
+    return !this.sessionState || Object.keys(this.sessionState).length === 0;
+  }
 }

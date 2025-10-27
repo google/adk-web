@@ -16,9 +16,10 @@
  */
 
 import {AsyncPipe, NgClass} from '@angular/common';
-import {ChangeDetectorRef, Component, EventEmitter, Inject, inject, Input, OnInit, Output} from '@angular/core';
+import {ChangeDetectorRef, Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
 import {MatChip} from '@angular/material/chips';
 import {Subject} from 'rxjs';
+import { SessionTabMessagesInjectionToken } from './session-tab.component.i18n';
 import {switchMap} from 'rxjs/operators';
 
 import {Session} from '../../core/models/Session';
@@ -29,6 +30,7 @@ import {SESSION_SERVICE} from '../../core/services/interfaces/session';
     templateUrl: './session-tab.component.html',
     styleUrl: './session-tab.component.scss',
     imports: [NgClass, AsyncPipe, MatChip],
+    standalone: true,
 })
 export class SessionTabComponent implements OnInit {
   @Input() userId: string = '';
@@ -43,6 +45,7 @@ export class SessionTabComponent implements OnInit {
   private refreshSessionsSubject = new Subject<void>();
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   protected readonly sessionService = inject(SESSION_SERVICE);
+  protected readonly i18n = inject(SessionTabMessagesInjectionToken);
 
   constructor() {
     this.refreshSessionsSubject
