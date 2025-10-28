@@ -210,7 +210,7 @@
     border: none;
     padding: 10px;
     box-sizing: content-box;
-    caret-color: white;
+    caret-color: var(--chat-panel-input-field-textarea-caret-color);
 
     &::placeholder {
       color: var(--chat-panel-input-field-textarea-placeholder-color);
