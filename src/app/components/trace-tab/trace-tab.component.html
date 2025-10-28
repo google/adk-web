@@ -14,8 +14,11 @@
  limitations under the License.
 -->
 
-<div style="padding-left: 25px; padding-right: 25px">
-  <h2 mat-dialog-title class="trace-title">Invocations</h2>
+<div class="trace-wrapper">
+  @if (invocTraces.size === 0) {
+  <div class="empty-state">{{ i18n.noInvocationsFound }}</div>
+  } @else {
+  <h2 mat-dialog-title class="trace-title">{{ i18n.invocationsTitle }}</h2>
   <div class="trace-list-wrapper">
     @for (invoc of invocTraces | keyvalue: mapOrderPreservingSort; track invoc; let i = $index) {
     <div class="trace-item">
@@ -31,4 +34,5 @@
     </div>
     }
   </div>
+  }
 </div>

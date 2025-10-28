@@ -38,6 +38,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { NgClass } from '@angular/common';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import {EvalTabMessagesInjectionToken} from './eval-tab.component.i18n';
 
 export const EVAL_TAB_COMPONENT = new InjectionToken<Type<EvalTabComponent>>(
     'EVAL_TAB_COMPONENT',
@@ -83,6 +84,7 @@ interface AppEvaluationResult {
     templateUrl: './eval-tab.component.html',
     styleUrl: './eval-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
     imports: [
         MatIcon,
         MatTooltip,
@@ -116,6 +118,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
   private readonly evalCasesSubject = new BehaviorSubject<string[]>([]);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly flagService = inject<FeatureFlagService>(FEATURE_FLAG_SERVICE);
+  protected readonly i18n = inject(EvalTabMessagesInjectionToken);
 
   displayedColumns: string[] = ['select', 'evalId', 'finalEvalStatus'];
   evalsets: any[] = [];

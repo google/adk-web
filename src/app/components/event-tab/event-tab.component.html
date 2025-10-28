@@ -19,16 +19,16 @@
     <div class="events-container">
       <div class="event-header">
         @if (!isTraceView()) {
-          <p>Conversations</p>
+          <p>{{ i18n.conversationsHeader }}</p>
         }
         @if (isTraceView()) {
-          <p>Trace</p>
+          <p>{{ i18n.traceHeader }}</p>
         }
         @if (traceData().length > 0) {
           <mat-button-toggle-group name="fontStyle" aria-label="Font Style" style="scale: 0.8" [(ngModel)]="view">
-            <mat-button-toggle value="events">Events</mat-button-toggle>
+            <mat-button-toggle value="events">{{ i18n.eventsToggle }}</mat-button-toggle>
             @if (isTraceEnabledObs | async) {
-              <mat-button-toggle value="trace">Trace</mat-button-toggle>
+              <mat-button-toggle value="trace">{{ i18n.traceToggle }}</mat-button-toggle>
             }
           </mat-button-toggle-group>
         }
@@ -48,7 +48,7 @@
           @for (invoc of spansByTraceId() | keyvalue: mapOrderPreservingSort; track invoc; let i = $index) {
             <mat-list-item (click)="openDialog(invoc.key)">
               <span class="event-index">{{i}}</span>
-              <span>Invocation {{invoc.value | invocId}}</span>
+              <span>{{ i18n.invocationPrefix }} {{invoc.value | invocId}}</span>
             </mat-list-item>
           }
         </mat-list>
@@ -56,8 +56,8 @@
     </div>
   }
   @if (eventsMap().size==0) {
-    <div>
-      <p>No conversations</p>
+    <div class="empty-state">
+      {{ i18n.noConversationsMessage }}
     </div>
   }
 </div>

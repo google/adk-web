@@ -19,9 +19,15 @@
 .events-wrapper {
   padding-left: 25px;
   padding-right: 25px;
-  color: var(--event-tab-events-wrapper-color);
   font-size: 14px;
   font-weight: 700;
+  color: var(--event-tab-events-wrapper-color);
+
+  .empty-state {
+    color: initial;
+    padding-top: 1em;
+    text-align: center;
+  }
 }
 
 .event-index {

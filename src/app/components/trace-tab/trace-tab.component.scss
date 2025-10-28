@@ -16,6 +16,17 @@
 
 @use '@angular/material' as mat;
 
+.trace-wrapper {
+  padding-left: 25px;
+  padding-right: 25px;
+
+  .empty-state {
+    padding-top: 1em;
+    text-align: center;
+    font-weight: 700;
+  }
+}
+
 .trace-container {
   width: 100%;
   white-space: nowrap;
@@ -112,23 +123,32 @@
   margin-top: 5px;
   @include mat.expansion-overrides(
     (
-      container-background-color: var(--trace-tab-trace-item-container-background-color),
-      header-focus-state-layer-color: var(--trace-tab-trace-item-header-focus-state-layer-color),
-      header-description-color: var(--trace-tab-trace-item-header-description-color),
+      container-background-color:
+        var(--trace-tab-trace-item-container-background-color),
+      header-focus-state-layer-color:
+        var(--trace-tab-trace-item-header-focus-state-layer-color),
+      header-description-color:
+        var(--trace-tab-trace-item-header-description-color),
       header-text-size: 15,
     )
   );
 
   ::ng-deep .mat-expansion-panel-header.mat-expanded:focus {
-    background-color: var(--trace-tab-mat-expansion-panel-header-focus-background-color);
+    background-color: var(
+      --trace-tab-mat-expansion-panel-header-focus-background-color
+    );
   }
 
   ::ng-deep .mat-expansion-panel-header.mat-expanded {
-    background-color: var(--trace-tab-mat-expansion-panel-header-background-color);
+    background-color: var(
+      --trace-tab-mat-expansion-panel-header-background-color
+    );
   }
 
   ::ng-deep .mat-expansion-panel-header.mat-expanded:hover {
-    background-color: var(--trace-tab-mat-expansion-panel-header-hover-background-color);
+    background-color: var(
+      --trace-tab-mat-expansion-panel-header-hover-background-color
+    );
   }
 }
 

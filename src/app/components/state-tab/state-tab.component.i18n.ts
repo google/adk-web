@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +15,25 @@
  * limitations under the License.
  */
 
-.state-wrapper {
-  padding-left: 25px;
-  padding-right: 25px;
-  margin-top: 16px;
+import {InjectionToken} from '@angular/core';
 
-  .empty-state {
-    text-align: center;
-    font-weight: 700;
-  }
-}
+/**
+ * Default English messages for StateTabComponent.
+ */
+export const STATE_TAB_MESSAGES = {
+  stateIsEmpty: 'State is empty',
+};
+
+
+/**
+ * Interface for human-readable messages displayed in the StateTabComponent.
+ */
+export type StateTabMessages = typeof STATE_TAB_MESSAGES;
+
+/**
+ * Injection token for StateTabComponent messages.
+ */
+export const StateTabMessagesInjectionToken =
+    new InjectionToken<StateTabMessages>('State Tab Messages', {
+      factory: () => STATE_TAB_MESSAGES,
+    });
