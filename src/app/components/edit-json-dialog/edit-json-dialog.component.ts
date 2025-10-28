@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-import {Component, Inject, OnInit, viewChild} from '@angular/core';
+import {Component, Inject, inject, OnInit, viewChild} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
 
 import {JsonEditorComponent} from '../json-editor/json-editor.component';
 import { CdkScrollable } from '@angular/cdk/scrolling';
+import {EditJsonDialogMessagesInjectionToken} from './edit-json-dialog.component.i18n';
 import { MatButton } from '@angular/material/button';
 
 export interface EditJsonData {
@@ -32,6 +33,7 @@ export interface EditJsonData {
     selector: 'app-edit-json-dialog',
     templateUrl: './edit-json-dialog.component.html',
     styleUrls: ['./edit-json-dialog.component.scss'],
+    standalone: true,
     imports: [
         MatDialogTitle,
         CdkScrollable,
@@ -46,6 +48,7 @@ export class EditJsonDialogComponent implements OnInit {
   jsonEditorComponent = viewChild(JsonEditorComponent);
   protected jsonString = '';
   protected functionName = '';
+  protected readonly i18n = inject(EditJsonDialogMessagesInjectionToken);
 
   constructor(
       public dialogRef: MatDialogRef<EditJsonDialogComponent>,
@@ -62,7 +65,7 @@ export class EditJsonDialogComponent implements OnInit {
       const parsedArgs = JSON.parse(this.jsonString);
       this.dialogRef.close(parsedArgs);
     } catch (e) {
-      alert('Invalid JSON: ' + e);
+      alert(this.i18n.invalidJsonAlert + e);
     }
   }
 

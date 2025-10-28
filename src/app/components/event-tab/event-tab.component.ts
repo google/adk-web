@@ -25,12 +25,14 @@ import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-
 import { FormsModule } from '@angular/forms';
 import { MatList, MatListItem } from '@angular/material/list';
 import {AsyncPipe, KeyValuePipe} from '@angular/common';
+import {EventTabMessagesInjectionToken} from './event-tab.component.i18n';
 import {InvocIdPipe} from './invoc-id.pipe';
 
 @Component({
     selector: 'app-event-tab',
     templateUrl: './event-tab.component.html',
     styleUrl: './event-tab.component.scss',
+    standalone: true,
     imports: [
         MatButtonToggleGroup,
         FormsModule,
@@ -48,6 +50,7 @@ export class EventTabComponent {
   @Output() selectedEvent = new EventEmitter<string>();
   private readonly dialog = inject(MatDialog);
   private readonly featureFlagService = inject(FEATURE_FLAG_SERVICE);
+  protected readonly i18n = inject(EventTabMessagesInjectionToken);
 
   readonly view = signal<string>('events');
   readonly isTraceView = computed(() => this.view() === 'trace');
