@@ -157,7 +157,8 @@
   @include mat.select-overrides(
     (
       placeholder-text-color: var(--side-panel-select-placeholder-text-color),
-      enabled-trigger-text-color: var(--side-panel-select-enabled-trigger-text-color),
+      enabled-trigger-text-color:
+        var(--side-panel-select-enabled-trigger-text-color),
       enabled-arrow-color: var(--side-panel-select-enabled-arrow-color),
     )
   );
@@ -177,4 +178,19 @@
   justify-content: center;
   align-items: center;
   height: 100%;
+}
+
+.request-response-loading-spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2em;
+}
+
+.request-response-empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2em;
+  font-weight: 500;
 }

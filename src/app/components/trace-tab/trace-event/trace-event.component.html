@@ -21,7 +21,7 @@
       </div>
     </mat-tab>
     <mat-tab label="Request">
-      @if (uiStateService.isEventRequestResponseLoading()) {
+      @if ((uiStateService.isEventRequestResponseLoading() | async) === true) {
         <mat-progress-spinner mode="indeterminate"/>
       } @else if (!llmRequest) {
         <div>Request is not available.</div>
@@ -32,7 +32,7 @@
       }
     </mat-tab>
     <mat-tab label="Response">
-      @if (uiStateService.isEventRequestResponseLoading()) {
+      @if ((uiStateService.isEventRequestResponseLoading() | async) === true) {
         <mat-progress-spinner mode="indeterminate"/>
       } @else if (!llmResponse) {
         <div>Response is not available.</div>

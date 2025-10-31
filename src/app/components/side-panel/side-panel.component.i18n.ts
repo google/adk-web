@@ -33,6 +33,8 @@ export const SIDE_PANEL_MESSAGES = {
   eventDetailsTabLabel: 'Event',
   requestDetailsTabLabel: 'Request',
   responseDetailsTabLabel: 'Response',
+  responseIsNotAvailable: 'Response is not available',
+  requestIsNotAvailable: 'Request is not available',
 };
 
 /**

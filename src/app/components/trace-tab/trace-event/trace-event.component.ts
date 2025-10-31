@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {AsyncPipe} from '@angular/common';
 import {Component, EventEmitter, inject, Input, OnInit, Output, signal} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {MatIconButton} from '@angular/material/button';
@@ -39,7 +40,7 @@ import {ViewImageDialogComponent} from '../../view-image-dialog/view-image-dialo
   styleUrl: './trace-event.component.scss',
   imports: [
     MatTabGroup, MatTab, NgxJsonViewerModule, MatIconButton, MatIcon,
-    MatProgressSpinner
+    MatProgressSpinner, AsyncPipe
   ]
 })
 export class TraceEventComponent implements OnInit {

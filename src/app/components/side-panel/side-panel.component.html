@@ -156,14 +156,30 @@
         </div>
       </mat-tab>
       <mat-tab label="{{ i18n.requestDetailsTabLabel }}">
-        <div class="json-viewer-container">
-          <ngx-json-viewer [json]="llmRequest()"></ngx-json-viewer>
-        </div>
+        @if ((uiStateService.isEventRequestResponseLoading() | async) === true) {
+          <div class="request-response-loading-spinner-container">
+            <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+          </div>
+        } @else if (!llmRequest()) {
+          <div class="request-response-empty-state">{{ i18n.requestIsNotAvailable }}</div>
+        } @else {
+          <div class="json-viewer-container">
+            <ngx-json-viewer [json]="llmRequest()"></ngx-json-viewer>
+          </div>
+        }
       </mat-tab>
       <mat-tab label="{{ i18n.responseDetailsTabLabel }}">
+        @if ((uiStateService.isEventRequestResponseLoading() | async) === true) {
+          <div class="request-response-loading-spinner-container">
+            <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+          </div>
+        } @else if (!llmResponse()) {
+          <div class="request-response-empty-state">{{ i18n.responseIsNotAvailable }}</div>
+        } @else {
         <div class="json-viewer-container">
           <ngx-json-viewer [json]="llmResponse()"></ngx-json-viewer>
         </div>
+        }
       </mat-tab>
     </mat-tab-group>
   </div>

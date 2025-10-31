@@ -1366,14 +1366,21 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const eventTraceParam = {id: this.selectedEvent.id, ...filter};
-    this.eventService.getEventTrace(eventTraceParam).subscribe((res) => {
-      if (res[this.llmRequestKey]) {
-        this.llmRequest = JSON.parse(res[this.llmRequestKey]);
-      }
-      if (res[this.llmResponseKey]) {
-        this.llmResponse = JSON.parse(res[this.llmResponseKey]);
-      }
-    });
+    this.uiStateService.setIsEventRequestResponseLoading(true);
+    this.eventService.getEventTrace(eventTraceParam)
+        .subscribe(
+            (res) => {
+              if (res[this.llmRequestKey]) {
+                this.llmRequest = JSON.parse(res[this.llmRequestKey]);
+              }
+              if (res[this.llmResponseKey]) {
+                this.llmResponse = JSON.parse(res[this.llmResponseKey]);
+              }
+              this.uiStateService.setIsEventRequestResponseLoading(false);
+            },
+            () => {
+              this.uiStateService.setIsEventRequestResponseLoading(false);
+            });
     this.eventService
         .getEvent(
             this.userId,
