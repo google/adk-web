@@ -15,24 +15,33 @@
  * limitations under the License.
  */
 
+import {BehaviorSubject} from 'rxjs';
+
 import {UI_STATE_SERVICE, UiStateService as UiStateServiceInterface} from '../interfaces/ui-state';
 
 /**
  * Mock UI state service.
  */
 export class MockUiStateService implements UiStateServiceInterface {
+  readonly isSessionLoadingResponse = new BehaviorSubject<boolean>(false);
+  readonly isSessionListLoadingResponse = new BehaviorSubject<boolean>(false);
+  readonly isEventRequestResponseLoadingResponse = new BehaviorSubject<boolean>(
+      false,
+  );
+
   readonly isSessionLoading =
-      jasmine.createSpy('isSessionLoading').and.returnValue(false);
+      jasmine.createSpy('isSessionLoading')
+          .and.returnValue(this.isSessionLoadingResponse);
   readonly isSessionListLoading =
-      jasmine.createSpy('isSessionListLoading').and.returnValue(false);
+      jasmine.createSpy('isSessionListLoading')
+          .and.returnValue(this.isSessionListLoadingResponse);
+  readonly isEventRequestResponseLoading =
+      jasmine.createSpy('isEventRequestResponseLoading')
+          .and.returnValue(this.isEventRequestResponseLoadingResponse);
 
   readonly setIsSessionLoading = jasmine.createSpy('setIsSessionLoading');
   readonly setIsSessionListLoading =
       jasmine.createSpy('setIsSessionListLoading');
-
-  readonly isEventRequestResponseLoading = jasmine.createSpy(
-      'isEventRequestResponseLoading',
-  );
   readonly setIsEventRequestResponseLoading =
       jasmine.createSpy('setIsEventRequestResponseLoading');
 }

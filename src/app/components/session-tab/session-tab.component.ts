@@ -20,7 +20,7 @@ import {ChangeDetectorRef, Component, EventEmitter, inject, Input, OnInit, Outpu
 import {MatChip} from '@angular/material/chips';
 import {MatProgressBar} from '@angular/material/progress-bar';
 import {Subject} from 'rxjs';
-import {debounceTime, switchMap, tap} from 'rxjs/operators';
+import {debounceTime, map, switchMap, tap} from 'rxjs/operators';
 
 import {Session} from '../../core/models/Session';
 import {SESSION_SERVICE} from '../../core/services/interfaces/session';
@@ -46,6 +46,8 @@ export class SessionTabComponent implements OnInit {
   sessionList: any[] = [];
 
   private refreshSessionsSubject = new Subject<void>();
+  private getSessionSubject = new Subject<string>();
+  private reloadSessionSubject = new Subject<string>();
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   protected readonly sessionService = inject(SESSION_SERVICE);
   protected readonly uiStateService = inject(UI_STATE_SERVICE);
@@ -78,6 +80,44 @@ export class SessionTabComponent implements OnInit {
               this.uiStateService.setIsSessionListLoading(false);
             },
         );
+
+    this.getSessionSubject
+        .pipe(
+            tap(() => {
+              this.uiStateService.setIsSessionLoading(true);
+            }),
+            switchMap(
+                (sessionId) => this.sessionService.getSession(
+                    this.userId, this.appName, sessionId)),
+            tap((res) => {
+              const session = this.fromApiResultToSession(res);
+              this.sessionSelected.emit(session);
+              this.changeDetectorRef.markForCheck();
+            }),
+            debounceTime(300),
+            )
+        .subscribe(
+            (session) => {
+              this.uiStateService.setIsSessionLoading(false);
+            },
+            (error) => {
+              this.uiStateService.setIsSessionLoading(false);
+            },
+        );
+
+    this.reloadSessionSubject
+        .pipe(
+            switchMap(
+                (sessionId) => this.sessionService.getSession(
+                    this.userId, this.appName, sessionId)),
+            tap((res) => {
+              const session = this.fromApiResultToSession(res);
+              this.sessionReloaded.emit(session);
+              this.changeDetectorRef.markForCheck();
+            }),
+            debounceTime(300),
+            )
+        .subscribe();
   }
 
   ngOnInit(): void {
@@ -87,17 +127,7 @@ export class SessionTabComponent implements OnInit {
   }
 
   getSession(sessionId: string) {
-    this.uiStateService.setIsSessionLoading(true);
-    this.sessionService.getSession(this.userId, this.appName, sessionId)
-        .subscribe(
-            (res) => {
-              const session = this.fromApiResultToSession(res);
-              this.sessionSelected.emit(session);
-              this.uiStateService.setIsSessionLoading(false);
-            },
-            () => {
-              this.uiStateService.setIsSessionLoading(false);
-            });
+    this.getSessionSubject.next(sessionId);
   }
 
   protected getDate(session: any): string {
@@ -119,11 +149,7 @@ export class SessionTabComponent implements OnInit {
   }
 
   reloadSession(sessionId: string) {
-    this.sessionService.getSession(this.userId, this.appName, sessionId)
-        .subscribe((res) => {
-          const session = this.fromApiResultToSession(res);
-          this.sessionReloaded.emit(session);
-        });
+    this.reloadSessionSubject.next(sessionId);
   }
 
   refreshSession(session?: string) {

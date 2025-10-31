@@ -130,9 +130,15 @@
       </div>
       } @else {
       <div style="display: flex">
+        @let isSessionLoading = uiStateService.isSessionLoading() | async;
+        @if (isSessionLoading === false) {
         <div class="toolbar-session-text">Session ID</div>
         <div class="toolbar-session-id">{{ sessionId }}</div>
+        } @else {
+        <div class="toolbar-session-text">Loading session...</div>
+        }
       </div>
+      @if (isSessionLoading === false) {
       <div class="toolbar-actions">
         <div class="toolbar-sse-toggle">
           <mat-slide-toggle
@@ -180,7 +186,7 @@
           }
         </div>
       </div>
-      }
+      } }
     </div>
     }
     <mat-card class="chat-card">

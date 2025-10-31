@@ -562,7 +562,7 @@ describe('SidePanelComponent', () => {
   describe('Loading state', () => {
     describe('when session is loading', () => {
       beforeEach(() => {
-        mockUiStateService.isSessionLoading.and.returnValue(true);
+        mockUiStateService.isSessionLoadingResponse.next(true);
         fixture.detectChanges();
       });
 
@@ -573,19 +573,19 @@ describe('SidePanelComponent', () => {
       });
 
       it('hides tabs container', () => {
-        expect(fixture.debugElement.query(TABS_CONTAINER_SELECTOR)).toBeNull();
+        expect(fixture.debugElement.query(TABS_CONTAINER_SELECTOR)!.nativeElement.hidden).toBeTrue();
       });
 
       it('hides details panel', () => {
         fixture.componentRef.setInput('selectedEvent', {id: 'event1'});
         fixture.detectChanges();
-        expect(fixture.debugElement.query(DETAILS_PANEL_SELECTOR)).toBeNull();
+        expect(fixture.debugElement.query(DETAILS_PANEL_SELECTOR)!.nativeElement.hidden).toBeTrue();
       });
     });
 
     describe('when session is not loading', () => {
       beforeEach(() => {
-        mockUiStateService.isSessionLoading.and.returnValue(false);
+        mockUiStateService.isSessionLoadingResponse.next(false);
         fixture.detectChanges();
       });
 
@@ -596,14 +596,14 @@ describe('SidePanelComponent', () => {
       });
 
       it('shows tabs container', () => {
-        expect(fixture.debugElement.query(TABS_CONTAINER_SELECTOR))
-            .toBeTruthy();
+        expect(fixture.debugElement.query(TABS_CONTAINER_SELECTOR)!.nativeElement.hidden)
+            .toBeFalse();
       });
 
       it('shows details panel when event is selected', () => {
         fixture.componentRef.setInput('selectedEvent', {id: 'event1'});
         fixture.detectChanges();
-        expect(fixture.debugElement.query(DETAILS_PANEL_SELECTOR)).toBeTruthy();
+        expect(fixture.debugElement.query(DETAILS_PANEL_SELECTOR)!.nativeElement.hidden).toBeFalse();
       });
     });
   });

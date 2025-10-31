@@ -44,14 +44,16 @@
 }
 }
 
-@if (uiStateService.isSessionLoading()) {
+@let isSessionLoading = uiStateService.isSessionLoading() | async;
+
+@if (isSessionLoading) {
   <div class="loading-spinner-container">
     <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
   </div>
 }
 
-@if (appName() != "" && showSidePanel() && !uiStateService.isSessionLoading()) {
-<div class="tabs-container">
+@if (appName() != "" && showSidePanel()) {
+<div class="tabs-container" [hidden]="isSessionLoading">
   <mat-tab-group
     (selectedTabChange)="tabChange.emit($event)">
     @let sessionTabReorderingEnabled = isSessionsTabReorderingEnabledObs | async;
@@ -123,8 +125,8 @@
     </app-session-tab>
   </ng-template>
 </div>
-} @if (selectedEvent() && showSidePanel() && !uiStateService.isSessionLoading()) {
-<div class="details-panel-container">
+} @if (selectedEvent() && showSidePanel()) {
+<div class="details-panel-container" [hidden]="isSessionLoading">
   <div class="details-content">
     <div style="display: flex; justify-content: flex-end; margin-top: 10px">
       <mat-paginator

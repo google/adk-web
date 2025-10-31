@@ -16,6 +16,8 @@
  */
 
 import {inject, Injectable, signal} from '@angular/core';
+import {BehaviorSubject, Observable, of as observableOf} from 'rxjs';
+import {map, shareReplay, withLatestFrom} from 'rxjs/operators';
 
 import {FEATURE_FLAG_SERVICE} from './interfaces/feature-flag';
 import {UiStateService as UiStateServiceInterface} from './interfaces/ui-state';
@@ -27,41 +29,48 @@ import {UiStateService as UiStateServiceInterface} from './interfaces/ui-state';
   providedIn: 'root',
 })
 export class UiStateService implements UiStateServiceInterface {
-  private readonly _isSessionLoading = signal(false);
-  private readonly _isSessionListLoading = signal(false);
-  private readonly _isEventRequestResponseLoading = signal(false);
+  private readonly _isSessionLoading = new BehaviorSubject<boolean>(false);
+  private readonly _isSessionListLoading = new BehaviorSubject<boolean>(false);
+  private readonly _isEventRequestResponseLoading =
+      new BehaviorSubject<boolean>(false);
   private readonly featureFlagService = inject(FEATURE_FLAG_SERVICE);
 
-  isSessionLoading(): boolean {
-    if (!this.featureFlagService.isLoadingAnimationsEnabled()) {
-      return false;
-    }
-    return this._isSessionLoading();
+  isSessionLoading(): Observable<boolean> {
+    return this._isSessionLoading.pipe(
+        withLatestFrom(this.featureFlagService.isLoadingAnimationsEnabled()),
+        map(([isLoading, areAnimationsEnabled]) =>
+                isLoading && areAnimationsEnabled),
+        shareReplay({bufferSize: 1, refCount: true}),
+    );
   }
 
   setIsSessionLoading(isLoading: boolean) {
-    this._isSessionLoading.set(isLoading);
+    this._isSessionLoading.next(isLoading);
   }
 
-  isSessionListLoading(): boolean {
-    if (!this.featureFlagService.isLoadingAnimationsEnabled()) {
-      return false;
-    }
-    return this._isSessionListLoading();
+  isSessionListLoading(): Observable<boolean> {
+    return this._isSessionListLoading.pipe(
+        withLatestFrom(this.featureFlagService.isLoadingAnimationsEnabled()),
+        map(([isLoading, areAnimationsEnabled]) =>
+                isLoading && areAnimationsEnabled),
+        shareReplay({bufferSize: 1, refCount: true}),
+    );
   }
 
   setIsSessionListLoading(isLoading: boolean) {
-    this._isSessionListLoading.set(isLoading);
+    this._isSessionListLoading.next(isLoading);
   }
 
-  isEventRequestResponseLoading(): boolean {
-    if (!this.featureFlagService.isLoadingAnimationsEnabled()) {
-      return false;
-    }
-    return this._isEventRequestResponseLoading();
+  isEventRequestResponseLoading(): Observable<boolean> {
+    return this._isEventRequestResponseLoading.pipe(
+        withLatestFrom(this.featureFlagService.isLoadingAnimationsEnabled()),
+        map(([isLoading, areAnimationsEnabled]) =>
+                isLoading && areAnimationsEnabled),
+        shareReplay({bufferSize: 1, refCount: true}),
+    );
   }
 
   setIsEventRequestResponseLoading(isLoading: boolean) {
-    this._isEventRequestResponseLoading.set(isLoading);
+    this._isEventRequestResponseLoading.next(isLoading);
   }
 }

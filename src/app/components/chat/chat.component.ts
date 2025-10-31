@@ -17,7 +17,7 @@
 
 import {AsyncPipe, DOCUMENT, Location, NgClass} from '@angular/common';
 import {HttpErrorResponse} from '@angular/common/http';
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, inject, Injectable, OnDestroy, OnInit, Renderer2, signal, viewChild, WritableSignal} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, Injectable, OnDestroy, OnInit, Renderer2, signal, viewChild, WritableSignal} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatButton, MatFabButton} from '@angular/material/button';
@@ -56,6 +56,7 @@ import {SESSION_SERVICE} from '../../core/services/interfaces/session';
 import {STREAM_CHAT_SERVICE} from '../../core/services/interfaces/stream-chat';
 import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
 import {TRACE_SERVICE} from '../../core/services/interfaces/trace';
+import {UI_STATE_SERVICE} from '../../core/services/interfaces/ui-state';
 import {LOCATION_SERVICE} from '../../core/services/location.service';
 import {ResizableBottomDirective} from '../../directives/resizable-bottom.directive';
 import {ResizableDrawerDirective} from '../../directives/resizable-drawer.directive';
@@ -110,7 +111,6 @@ const BIDI_STREAMING_RESTART_WARNING =
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {provide: MatPaginatorIntl, useClass: CustomPaginatorIntl},
   ],
@@ -158,6 +158,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly streamChatService = inject(STREAM_CHAT_SERVICE);
   private readonly stringToColorService = inject(STRING_TO_COLOR_SERVICE);
   private readonly traceService = inject(TRACE_SERVICE);
+  protected readonly uiStateService = inject(UI_STATE_SERVICE);
 
   chatPanel = viewChild.required(ChatPanelComponent);
   sideDrawer = viewChild.required<MatDrawer>('sideDrawer');

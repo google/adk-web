@@ -429,7 +429,7 @@ describe('ChatPanelComponent', () => {
   describe('Loading state', () => {
     describe('when session is loading', () => {
       beforeEach(() => {
-        mockUiStateService.isSessionLoading.and.returnValue(true);
+        mockUiStateService.isSessionLoadingResponse.next(true);
         fixture.detectChanges();
       });
 
@@ -450,7 +450,7 @@ describe('ChatPanelComponent', () => {
 
     describe('when session is not loading', () => {
       beforeEach(() => {
-        mockUiStateService.isSessionLoading.and.returnValue(false);
+        mockUiStateService.isSessionLoadingResponse.next(false);
         fixture.detectChanges();
       });
 

@@ -16,29 +16,28 @@
  */
 
 import {SelectionModel} from '@angular/cdk/collections';
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, input, OnChanges, OnInit, output, signal, SimpleChanges, viewChildren, InjectionToken, Type} from '@angular/core';
+import {NgClass} from '@angular/common';
+import {ChangeDetectorRef, Component, inject, InjectionToken, input, OnChanges, OnInit, output, signal, SimpleChanges, Type, viewChildren} from '@angular/core';
 import {MatCheckbox} from '@angular/material/checkbox';
 import {MatDialog} from '@angular/material/dialog';
-import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
+import {MatIcon} from '@angular/material/icon';
+import {MatProgressSpinner} from '@angular/material/progress-spinner';
+import {MatCell, MatCellDef, MatColumnDef, MatHeaderCell, MatHeaderCellDef, MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef, MatTable, MatTableDataSource} from '@angular/material/table';
+import {MatTooltip} from '@angular/material/tooltip';
 import {BehaviorSubject, of} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 
-import {DEFAULT_EVAL_METRICS, EvalMetric, EvalCase} from '../../core/models/Eval';
+import {DEFAULT_EVAL_METRICS, EvalCase, EvalMetric, Invocation} from '../../core/models/Eval';
 import {Session} from '../../core/models/Session';
-import {Invocation} from '../../core/models/Eval';
+import {FeatureFlagService} from '../../core/services/feature-flag.service';
 import {EVAL_SERVICE} from '../../core/services/interfaces/eval';
 import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
-import {FeatureFlagService} from '../../core/services/feature-flag.service';
 import {SESSION_SERVICE} from '../../core/services/interfaces/session';
 
 import {AddEvalSessionDialogComponent} from './add-eval-session-dialog/add-eval-session-dialog/add-eval-session-dialog.component';
+import {EvalTabMessagesInjectionToken} from './eval-tab.component.i18n';
 import {NewEvalSetDialogComponentComponent} from './new-eval-set-dialog/new-eval-set-dialog-component/new-eval-set-dialog-component.component';
 import {RunEvalConfigDialogComponent} from './run-eval-config-dialog/run-eval-config-dialog.component';
-import { MatIcon } from '@angular/material/icon';
-import { MatTooltip } from '@angular/material/tooltip';
-import { NgClass } from '@angular/common';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import {EvalTabMessagesInjectionToken} from './eval-tab.component.i18n';
 
 export const EVAL_TAB_COMPONENT = new InjectionToken<Type<EvalTabComponent>>(
     'EVAL_TAB_COMPONENT',
@@ -80,28 +79,27 @@ interface AppEvaluationResult {
 }
 
 @Component({
-    selector: 'app-eval-tab',
-    templateUrl: './eval-tab.component.html',
-    styleUrl: './eval-tab.component.scss',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
-    imports: [
-        MatIcon,
-        MatTooltip,
-        MatTable,
-        MatColumnDef,
-        MatHeaderCellDef,
-        MatHeaderCell,
-        MatCheckbox,
-        MatCellDef,
-        MatCell,
-        NgClass,
-        MatHeaderRowDef,
-        MatHeaderRow,
-        MatRowDef,
-        MatRow,
-        MatProgressSpinner,
-    ],
+  selector: 'app-eval-tab',
+  templateUrl: './eval-tab.component.html',
+  styleUrl: './eval-tab.component.scss',
+  standalone: true,
+  imports: [
+    MatIcon,
+    MatTooltip,
+    MatTable,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatCheckbox,
+    MatCellDef,
+    MatCell,
+    NgClass,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+    MatProgressSpinner,
+  ],
 })
 export class EvalTabComponent implements OnInit, OnChanges {
   checkboxes = viewChildren(MatCheckbox);
@@ -117,7 +115,8 @@ export class EvalTabComponent implements OnInit, OnChanges {
 
   private readonly evalCasesSubject = new BehaviorSubject<string[]>([]);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
-  private readonly flagService = inject<FeatureFlagService>(FEATURE_FLAG_SERVICE);
+  private readonly flagService =
+      inject<FeatureFlagService>(FEATURE_FLAG_SERVICE);
   protected readonly i18n = inject(EvalTabMessagesInjectionToken);
 
   displayedColumns: string[] = ['select', 'evalId', 'finalEvalStatus'];
@@ -520,8 +519,10 @@ export class EvalTabComponent implements OnInit, OnChanges {
                     this.appEvaluationResults[this.appName()] = {};
                   }
 
-                  if (!this.appEvaluationResults[this.appName()][res.evalSetId]) {
-                    this.appEvaluationResults[this.appName()][res.evalSetId] = {};
+                  if (!this.appEvaluationResults[this.appName()]
+                                                [res.evalSetId]) {
+                    this.appEvaluationResults[this.appName()][res.evalSetId] =
+                        {};
                   }
 
                   const timeStamp = res.creationTimestamp;

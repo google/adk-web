@@ -16,6 +16,7 @@
  */
 
 import {InjectionToken} from '@angular/core';
+import {Observable} from 'rxjs';
 
 // Injection token for the UI state service.
 export const UI_STATE_SERVICE =
@@ -25,10 +26,10 @@ export const UI_STATE_SERVICE =
  * Service to provide methods to handle traces.
  */
 export declare abstract class UiStateService {
-  abstract isSessionLoading(): boolean;
+  abstract isSessionLoading(): Observable<boolean>;
   abstract setIsSessionLoading(isLoading: boolean): void;
-  abstract isSessionListLoading(): boolean;
+  abstract isSessionListLoading(): Observable<boolean>;
   abstract setIsSessionListLoading(isLoading: boolean): void;
-  abstract isEventRequestResponseLoading(): boolean;
+  abstract isEventRequestResponseLoading(): Observable<boolean>;
   abstract setIsEventRequestResponseLoading(isLoading: boolean): void;
 }

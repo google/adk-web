@@ -15,11 +15,12 @@
 -->
 
 <div class="session-wrapper">
-  @if (uiStateService.isSessionListLoading()) {
+  @let isSessionListLoading = uiStateService.isSessionListLoading() | async;
+  @if (isSessionListLoading) {
   <div class="loading-spinner-container">
     <mat-progress-bar mode="indeterminate"></mat-progress-bar>
   </div>
-  } @if (!uiStateService.isSessionListLoading() && sessionList.length === 0) {
+  } @if (!isSessionListLoading && sessionList.length === 0) {
   <div class="empty-state">{{ i18n.noSessionsFound }}</div>
   } @else {
   <div class="session-tab-container" style="margin-top: 16px">

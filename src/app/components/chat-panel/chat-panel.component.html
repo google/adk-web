@@ -14,7 +14,8 @@
  limitations under the License.
 -->
 
-@if (appName != "" && !uiStateService.isSessionLoading()) {
+@let isSessionLoading = uiStateService.isSessionLoading() | async;
+@if (appName != "" && !isSessionLoading) {
 <div #autoScroll class="chat-messages">
   <div #videoContainer></div>
   @for (message of messages; track message; let i = $index) {
@@ -287,7 +288,7 @@
   </div>
   }
 </div>
-} @if (appName != "" && isChatMode && !uiStateService.isSessionLoading()) {
+} @if (appName != "" && isChatMode && !isSessionLoading) {
   @if(canEditSession()) {
   <div class="chat-input">
     <input type="file" multiple hidden (change)="fileSelect.emit($event)" #fileInput />
@@ -397,7 +398,7 @@
   }
 }
 
-@if (uiStateService.isSessionLoading()) {
+@if (isSessionLoading) {
   <div class="loading-spinner-container">
     <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
   </div>
