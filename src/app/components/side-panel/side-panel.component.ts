@@ -151,7 +151,7 @@ export class SidePanelComponent implements AfterViewInit {
     // Wait one tick until the eval tab container is ready.
     setTimeout(() => {
       this.initEvalTab();
-    });
+    }, 500);
   }
 
   /**
