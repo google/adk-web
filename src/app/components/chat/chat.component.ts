@@ -70,6 +70,7 @@ import {SessionTabComponent} from '../session-tab/session-tab.component';
 import {SidePanelComponent} from '../side-panel/side-panel.component';
 import {TraceEventComponent} from '../trace-tab/trace-event/trace-event.component';
 import {ViewImageDialogComponent} from '../view-image-dialog/view-image-dialog.component';
+import {CHAT_MESSAGES, ChatMessagesInjectionToken} from './chat.component.i18n';
 
 const ROOT_AGENT = 'root_agent';
 
@@ -113,6 +114,7 @@ const BIDI_STREAMING_RESTART_WARNING =
   styleUrl: './chat.component.scss',
   providers: [
     {provide: MatPaginatorIntl, useClass: CustomPaginatorIntl},
+    {provide: ChatMessagesInjectionToken, useValue: CHAT_MESSAGES},
   ],
   imports: [
     MatDrawerContainer,
@@ -137,6 +139,7 @@ const BIDI_STREAMING_RESTART_WARNING =
   ],
 })
 export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
+  protected readonly i18n = inject(ChatMessagesInjectionToken);
   private readonly _snackBar = inject(MatSnackBar);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly agentService = inject(AGENT_SERVICE);

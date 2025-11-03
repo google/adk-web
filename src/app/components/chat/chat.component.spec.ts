@@ -675,7 +675,7 @@ describe('ChatComponent', () => {
 
         it('should not be visible', () => {
           const deleteButton = fixture.debugElement.query(
-              By.css('[matTooltip="Delete current session"]'));
+              By.css('#toolbar-delete-session-button'));
           expect(deleteButton).toBeFalsy();
         });
       });
@@ -688,7 +688,7 @@ describe('ChatComponent', () => {
 
         it('should be visible', () => {
           const deleteButton = fixture.debugElement.query(
-              By.css('[matTooltip="Delete current session"]'));
+              By.css('#toolbar-delete-session-button'));
           expect(deleteButton).toBeTruthy();
         });
       });
