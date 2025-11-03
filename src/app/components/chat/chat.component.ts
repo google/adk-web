@@ -398,19 +398,27 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   createSession() {
-    this.sessionService.createSession(this.userId, this.appName)
-        .subscribe((res) => {
-          this.currentSessionState = res.state;
-          this.sessionId = res.id ?? '';
-          this.sessionTab?.refreshSession();
-          this.sessionTab?.reloadSession(this.sessionId);
+    this.uiStateService.setIsSessionListLoading(true);
 
-          this.isSessionUrlEnabledObs.subscribe((enabled) => {
-            if (enabled) {
-              this.updateSelectedSessionUrl();
-            }
-          });
-        });
+    this.sessionService.createSession(this.userId, this.appName)
+        .subscribe(
+            (res) => {
+              this.uiStateService.setIsSessionListLoading(false);
+
+              this.currentSessionState = res.state;
+              this.sessionId = res.id ?? '';
+              this.sessionTab?.refreshSession();
+              this.sessionTab?.reloadSession(this.sessionId);
+
+              this.isSessionUrlEnabledObs.subscribe((enabled) => {
+                if (enabled) {
+                  this.updateSelectedSessionUrl();
+                }
+              });
+            },
+            () => {
+              this.uiStateService.setIsSessionListLoading(false);
+            });
   }
 
   async sendMessage(event: Event) {

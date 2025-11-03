@@ -25,9 +25,10 @@ import {By} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
-import {BehaviorSubject, NEVER, of, Subject, throwError} from 'rxjs';
+import {BehaviorSubject, NEVER, of, ReplaySubject, Subject, throwError} from 'rxjs';
 
 import {EvalCase} from '../../core/models/Eval';
+import {Session} from '../../core/models/Session';
 import {AGENT_SERVICE, AgentService} from '../../core/services/interfaces/agent';
 import {ARTIFACT_SERVICE, ArtifactService,} from '../../core/services/interfaces/artifact';
 import {DOWNLOAD_SERVICE, DownloadService,} from '../../core/services/interfaces/download';
@@ -93,7 +94,8 @@ class MockEvalTabComponent {
   standalone: true,
   imports: [ChatComponent],
 })
-class TestHostComponent {}
+class TestHostComponent {
+}
 
 const SESSION_1_ID = 'session-1';
 const SESSION_2_ID = 'session-2';
@@ -453,20 +455,56 @@ describe('ChatComponent', () => {
 
     describe('when onNewSessionClick() is called', () => {
       beforeEach(() => {
+        mockSessionService.createSessionResponse =
+            new ReplaySubject<Session>(1);
+        mockSessionService.createSession.and.returnValue(
+            mockSessionService.createSessionResponse);
+
         component.messages.set([{role: USER_ID, text: 'hello'}]);
         component.artifacts = [{}];
         component.eventData = new Map([['1', {}]]);
         component.traceData = [{}];
         component.onNewSessionClick();
       });
-      it('should clear data', () => {
-        expect(component.messages().length).toBe(0);
-        expect(component.artifacts.length).toBe(0);
-        expect(component.eventData.size).toBe(0);
-        expect(component.traceData.length).toBe(0);
-      });
+
       it('should create new session', () => {
         expect(mockSessionService.createSession).toHaveBeenCalled();
+      });
+
+      it('should display session list spinner', () => {
+        expect(mockUiStateService.setIsSessionListLoading)
+            .toHaveBeenCalledWith(true);
+      });
+
+      describe('when session is created', () => {
+        beforeEach(() => {
+          mockSessionService.createSessionResponse.next(
+              {id: SESSION_2_ID, state: {}, events: []});
+        });
+
+        it('should clear data', () => {
+          expect(component.messages().length).toBe(0);
+          expect(component.artifacts.length).toBe(0);
+          expect(component.eventData.size).toBe(0);
+          expect(component.traceData.length).toBe(0);
+        });
+
+        it('should hide session list spinner', () => {
+          expect(mockUiStateService.setIsSessionListLoading)
+              .toHaveBeenCalledWith(false);
+        });
+      });
+
+      describe('when session is created with error', () => {
+        beforeEach(() => {
+          mockSessionService.createSessionResponse.error(
+              throwError(() => new HttpErrorResponse({status: 500})));
+          component.onNewSessionClick();
+        });
+        it('should hide session list spinner', () => {
+          expect(mockUiStateService.setIsSessionListLoading)
+              .toHaveBeenCalledWith(false);
+        });
       });
     });
 
