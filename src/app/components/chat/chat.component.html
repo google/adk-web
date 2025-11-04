@@ -212,7 +212,7 @@
         <div>
           {{ i18n.failedToLoadAgentsMessage }}
           <pre>adk web</pre>
-          in the folder that contains the agents.<br />
+          {{ i18n.runCommandInFolderMessage }}<br />
           @if (loadingError()) { {{ i18n.errorMessageLabel }} <br />
           <pre class="error">{{ loadingError() }}</pre>
           } @else {
