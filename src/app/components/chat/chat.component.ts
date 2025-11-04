@@ -377,7 +377,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         this.sessionService.getSession(this.userId, this.appName, sessionUrl)
             .pipe(take(1), catchError((error) => {
                     this.openSnackBar(
-                        'Cannot find specified session. Creating a new one.',
+                        this.i18n.cannotFindSessionMessage,
                         'OK');
                     this.createSessionAndReset();
                     return of(null);
@@ -1245,7 +1245,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
             this.appName, this.evalSetId, this.updatedEvalCase!.evalId,
             this.updatedEvalCase!)
         .subscribe((res) => {
-          this.openSnackBar('Eval case updated', 'OK');
+          this.openSnackBar(this.i18n.evalCaseUpdatedMessage, 'OK');
           this.resetEditEvalCaseVars()
         });
   }
@@ -1307,8 +1307,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   protected deleteEvalCase() {
     const dialogData: DeleteSessionDialogData = {
-      title: 'Confirm delete',
-      message: `Are you sure you want to delete ${this.evalCase!.evalId}?`,
+      title: this.i18n.confirmDeleteTitle,
+      message: this.i18n.confirmDeleteEvalCaseMessage.replace('{evalId}', this.evalCase!.evalId),
       confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
     };
@@ -1321,7 +1321,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     dialogRef.afterClosed().subscribe((result: boolean) => {
       if (result) {
         this.evalTab()?.deleteEvalCase(this.evalCase!.evalId);
-        this.openSnackBar('Eval case deleted', 'OK')
+        this.openSnackBar(this.i18n.evalCaseDeletedMessage, 'OK')
       }
     });
   }
@@ -1413,9 +1413,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   deleteSession(session: string) {
     const dialogData: DeleteSessionDialogData = {
-      title: 'Confirm delete',
+      title: this.i18n.confirmDeleteTitle,
       message:
-          `Are you sure you want to delete this session ${this.sessionId}?`,
+          this.i18n.confirmDeleteSessionMessage.replace('{sessionId}', this.sessionId),
       confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
     };
@@ -1619,18 +1619,18 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
                 JSON.parse(e.target.result as string) as Session;
             if (!sessionData.userId || !sessionData.appName ||
                 !sessionData.events) {
-              this.openSnackBar('Invalid session file format', 'OK');
+              this.openSnackBar(this.i18n.invalidSessionFileFormatMessage, 'OK');
               return;
             }
             this.sessionService
                 .importSession(
                     sessionData.userId, sessionData.appName, sessionData.events)
                 .subscribe((res) => {
-                  this.openSnackBar('Session imported', 'OK');
+                  this.openSnackBar(this.i18n.sessionImportedMessage, 'OK');
                   this.sessionTab?.refreshSession();
                 });
           } catch (error) {
-            this.openSnackBar('Error parsing session file', 'OK');
+            this.openSnackBar(this.i18n.errorParsingSessionFileMessage, 'OK');
           }
         }
       };
