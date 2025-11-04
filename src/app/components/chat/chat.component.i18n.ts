@@ -39,8 +39,18 @@ export const CHAT_MESSAGES = {
   welcomeMessage: 'Welcome to ADK!',
   selectAgentMessage: 'Select an agent on the left to begin with.',
   failedToLoadAgentsMessage: 'Failed to load agents. To get started, run',
+  runCommandInFolderMessage: 'in the folder that contains the agents.',
   errorMessageLabel: 'Error message:',
   noAgentsFoundWarning: 'Warning: No agents found in current folder.',
+  evalCaseUpdatedMessage: 'Eval case updated',
+  evalCaseDeletedMessage: 'Eval case deleted',
+  confirmDeleteTitle: 'Confirm delete',
+  confirmDeleteEvalCaseMessage: 'Are you sure you want to delete {evalId}?',
+  confirmDeleteSessionMessage: 'Are you sure you want to delete this session {sessionId}?',
+  invalidSessionFileFormatMessage: 'Invalid session file format',
+  sessionImportedMessage: 'Session imported',
+  cannotFindSessionMessage: 'Cannot find specified session. Creating a new one.',
+  errorParsingSessionFileMessage: 'Error parsing session file',
 };
 
 /**
