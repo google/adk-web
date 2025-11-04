@@ -32,6 +32,7 @@
       (click)="clickEvent.emit(i)"
       [matTooltip]="getAgentNameFromEvent(i)"
       [class]="customIconColorClass(i)"
+      [ngClass]="{ 'hidden': !getAgentNameFromEvent(i)}"
     >
       <mat-icon fontSet="material-symbols-outlined">robot_2</mat-icon>
     </button>

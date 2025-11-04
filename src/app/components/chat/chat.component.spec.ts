@@ -46,6 +46,7 @@ import {UI_STATE_SERVICE} from '../../core/services/interfaces/ui-state';
 import {VIDEO_SERVICE, VideoService} from '../../core/services/interfaces/video';
 import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/interfaces/websocket';
 import {LOCATION_SERVICE} from '../../core/services/location.service';
+import {AGENT_BUILDER_SERVICE} from '../../core/services/agent-builder.service';
 import {MockAgentService} from '../../core/services/testing/mock-agent.service';
 import {MockArtifactService} from '../../core/services/testing/mock-artifact.service';
 import {MockDownloadService} from '../../core/services/testing/mock-download.service';
@@ -108,9 +109,6 @@ const EVENT_1_ID = 'event1';
 const OK_BUTTON_TEXT = 'OK';
 const APP_QUERY_PARAM = 'app';
 const SESSION_QUERY_PARAM = 'session';
-const SSE_ERROR_RESPONSE = '{"error": "SSE error"}';
-const CALL_FUNCTION_USER_INPUT = 'call a function';
-const FUNC1_NAME = 'func1';
 const STATE_KEY = 'key';
 const STATE_VALUE = 'value';
 const TEST_MESSAGE = 'test message';
@@ -142,6 +140,7 @@ describe('ChatComponent', () => {
   let mockLocation: jasmine.SpyObj<Location>;
   let graphService: MockGraphService;
   let mockUiStateService: MockUiStateService;
+  let mockAgentBuilderService: jasmine.SpyObj<any>;
 
   beforeEach(async () => {
     mockSessionService = new MockSessionService();
@@ -181,6 +180,7 @@ describe('ChatComponent', () => {
       events: of(new NavigationEnd(1, '', '')),
     });
     mockLocation = jasmine.createSpyObj('Location', ['replaceState']);
+    mockAgentBuilderService = jasmine.createSpyObj('AgentBuilderService', ['clear', 'setLoadedAgentData']);
 
     mockActivatedRoute = {
       snapshot: {
@@ -197,6 +197,8 @@ describe('ChatComponent', () => {
       return appName;
     });
     mockAgentService.getLoadingStateResponse.next(false);
+    mockAgentService.getAgentBuilderResponse.next('');
+    mockAgentService.getAgentBuilderTmpResponse.next('');
     mockRouter.createUrlTree.and.returnValue({
       toString: () => '/?session=session-id',
     } as any);
@@ -243,7 +245,8 @@ describe('ChatComponent', () => {
             {provide: ActivatedRoute, useValue: mockActivatedRoute},
             {provide: LOCATION_SERVICE, useValue: mockLocation},
             {provide: MARKDOWN_COMPONENT, useValue: MockMarkdownComponent},
-            {provide: UI_STATE_SERVICE, useValue: mockUiStateService}
+            {provide: UI_STATE_SERVICE, useValue: mockUiStateService},
+            {provide: AGENT_BUILDER_SERVICE, useValue: mockAgentBuilderService}
           ],
         })
         .compileComponents();
@@ -251,6 +254,7 @@ describe('ChatComponent', () => {
     fixture = TestBed.createComponent(ChatComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   describe('Component Initialization', () => {
@@ -654,6 +658,7 @@ describe('ChatComponent', () => {
           expect(component.showSidePanel).toBe(false);
         });
       });
+
       describe('when panel is closed', () => {
         beforeEach(() => {
           component.showSidePanel = false;

@@ -1,0 +1,77 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<h2 mat-dialog-title>{{ isEditMode ? 'Edit Callback' : 'Add ' + callbackType + ' Callback' }}</h2>
+<mat-dialog-content>
+  <ng-container *ngIf="getCallbackInfo()">
+    <div class="callback-info-container">
+      <div class="callback-info-header" (click)="toggleCallbackInfo()">
+        <mat-icon class="callback-info-icon">info</mat-icon>
+        <div class="callback-info-title">
+          <span>Callback Information</span>
+        </div>
+        <button mat-icon-button class="callback-info-toggle" type="button" aria-label="Toggle callback information">
+          <mat-icon>{{ isCallbackInfoExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </button>
+      </div>
+      <div class="callback-info-body" [class.expanded]="isCallbackInfoExpanded">
+        <div class="callback-info-content">
+          <div class="callback-info-short">{{ getCallbackInfo()?.shortDescription }}</div>
+          <div class="callback-info-detailed">{{ getCallbackInfo()?.detailedDescription }}</div>
+        </div>
+        <div class="callback-info-link-container">
+          <a [href]="getCallbackInfo()?.docLink" target="_blank" rel="noopener noreferrer" class="callback-info-link">
+            <mat-icon>open_in_new</mat-icon>
+            <span>View Official Documentation</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="isEditMode">
+    <mat-form-field style="width: 100%;">
+      <mat-label>Callback Type</mat-label>
+      <mat-select [(ngModel)]="callbackType">
+        <mat-option *ngFor="let type of availableCallbackTypes" [value]="type">{{ type }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </ng-container>
+
+  <mat-form-field style="width: 100%;">
+    <mat-label>Callback Name</mat-label>
+    <input
+      [(ngModel)]="callbackName"
+      #callbackNameInput="ngModel"
+      (ngModelChange)="validate()"
+      [errorStateMatcher]="matcher"
+      (keydown.enter)="addCallback()"
+      matInput>
+    <mat-error *ngIf="callbackNameInput.hasError('duplicateName')">Same callback name has been used</mat-error>
+    <mat-error *ngIf="callbackNameInput.hasError('hasSpaces')">Cannot have callback consist of two words</mat-error>
+    <mat-error *ngIf="callbackNameInput.hasError('hasSpaces')">Callback function names cannot have spaces</mat-error>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button 
+    mat-raised-button color="secondary"
+    (click)="addCallback()"
+    [disabled]="createDisabled()">
+    {{ isEditMode ? 'Save' : 'Add' }}
+  </button>
+</mat-dialog-actions>

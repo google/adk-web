@@ -57,6 +57,23 @@ markdown p {
     container-color: #2b2b2f,
     subhead-color: white,
   ));
+
+  // Custom property for dialog subhead font
+  --mdc-dialog-subhead-font-family: 'Google Sans';
+  --mdc-dialog-subhead-font-style: normal;
+  --mdc-dialog-subhead-font-weight: 400;
+  --mdc-dialog-subhead-font-size: 24px;
+  --mdc-dialog-subhead-line-height: 32px;
+  --mdc-dialog-subhead-color: #E3E3E3;
+}
+
+.mat-mdc-dialog-container .mat-mdc-dialog-title.mdc-dialog__title {
+  font-family: var(--mdc-dialog-subhead-font-family);
+  font-style: var(--mdc-dialog-subhead-font-style);
+  font-weight: var(--mdc-dialog-subhead-font-weight);
+  font-size: var(--mdc-dialog-subhead-font-size);
+  line-height: var(--mdc-dialog-subhead-line-height);
+  color: var(--mdc-dialog-subhead-color);
 }
 
 :root {
@@ -249,4 +266,25 @@ markdown p {
   --trace-tree-invocation-id-container-color: #9aa0a6;
   --trace-tree-trace-row-left-span-div-color: white;
   --trace-tree-trace-row-left-is-event-row-color: #8ab4f8;
+}
+
+
+:root {
+  @include mat.form-field-overrides((
+    disabled-input-text-placeholder-color: orange,
+    filled-active-indicator-color: red,
+    outlined-outline-color: #cccccc,
+    outlined-input-text-color: #cccccc,
+    outlined-label-text-color: #cccccc,
+    outlined-hover-label-text-color: #cccccc,
+    outlined-focus-label-text-color: #cccccc,
+    outlined-disabled-label-text-color: #cccccc,
+    outlined-disabled-input-text-color: #cccccc,
+    outlined-disabled-outline-color: #cccccc,
+    outlined-caret-color: #cccccc
+  ));
+}
+
+.mdc-line-ripple {
+  display: none;
 }

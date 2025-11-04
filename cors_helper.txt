@@ -1,0 +1,46 @@
+# CORS Issue Resolution for ADK Web UI
+
+## Problem
+The ADK Web UI (Angular frontend on localhost:4200) was unable to communicate with the ADK API server due to CORS (Cross-Origin Resource Sharing) errors. The error message was:
+
+"Access to XMLHttpRequest at 'http://127.0.0.1:8000/list-apps?relative_path=./' from origin 'http://localhost:4200' has been blocked by CORS policy: No 'Access-Control-Allow-Origin'"
+
+## Root Cause
+1. The ADK Python package was not installed
+2. No virtual environment was being used
+3. The ADK API server was not running
+
+## Solution Steps
+
+### 1. Create Virtual Environment
+```bash
+python3 -m venv adk-env
+```
+
+### 2. Activate Virtual Environment and Install ADK
+```bash
+source adk-env/bin/activate && pip install google-adk==1.3.0
+```
+
+### 3. Start ADK API Server with CORS Configuration
+```bash
+source adk-env/bin/activate && cd adk-samples/python/agents && adk api_server --allow_origins=http://localhost:4200 --host=0.0.0.0 --port=8000
+```
+
+### 4. Start Angular Development Server
+```bash
+npm run serve --backend=http://localhost:8000
+```
+
+## Key Points
+- The ADK API server must be run from a directory containing agents (adk-samples/python/agents)
+- The `--allow_origins=http://localhost:4200` flag is crucial for CORS
+- The virtual environment ensures proper isolation and dependency management
+- Both servers (API server on port 8000 and Angular dev server on port 4200) must be running simultaneously
+
+## Files Modified
+- The `set-backend.js` script automatically configures the backend URL in `src/assets/config/runtime-config.json`
+- No manual CORS configuration was needed in the Angular application
+
+## Result
+The ADK Web UI now successfully loads agents and communicates with the backend API server without CORS errors.

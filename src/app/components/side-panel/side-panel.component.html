@@ -24,23 +24,37 @@
   </div>
 </div>
 @if (isApplicationSelectorEnabledObs() | async) {
-  <div class="app-select-container">
-    <mat-select
-      class="app-select"
-      (selectionChange)="appSelectionChange.emit($event)"
-      [placeholder]="isLoadingApps()() ? 'Loading...' : 'Select an agent'"
-      [formControl]="selectedAppControl()"
-    >
-      @if (apps$() | async; as availableApps) {
-        @for (appName of availableApps; track appName) {
-          <mat-option class="app-name-option" [value]="appName">{{ appName }}</mat-option>
+  <div class="app-actions">
+    <div class="app-select-container">
+      <mat-select
+        class="app-select"
+        (selectionChange)="appSelectionChange.emit($event)"
+        [placeholder]="isLoadingApps()() ? 'Loading...' : 'Select an agent'"
+        [formControl]="selectedAppControl()"
+      >
+        @if (apps$() | async; as availableApps) {
+          @for (appName of availableApps; track appName) {
+            <mat-option class="app-name-option" [value]="appName">{{ appName }}</mat-option>
+          }
         }
-      }
-      @if (selectedAppControl().value && isLoadingApps()()) {
-        <mat-option class="app-name-option" [value]="selectedAppControl().value">{{ selectedAppControl().value }}</mat-option>
-      }
-    </mat-select>
-  </div>
+        @if (selectedAppControl().value && isLoadingApps()()) {
+          <mat-option class="app-name-option" [value]="selectedAppControl().value">{{ selectedAppControl().value }}</mat-option>
+        }
+      </mat-select>
+    </div>
+    @if (!isBuilderMode()) {
+      <div class="mode-toggle-container">
+        <mat-icon (click)="openAddItemDialog.emit(true)"
+        matTooltip="Create new agent in builder mode"
+        style="cursor: pointer; margin-right: 16px;">add</mat-icon>
+        <mat-icon (click)="!disableBuilderIcon() && enterBuilderMode.emit(true)"
+          [matTooltip]="disableBuilderIcon() ? 'Thia gent was not built by builder' : 'Edit in Builder Mode'"
+          [style.cursor]="disableBuilderIcon() ? 'not-allowed' : 'pointer'"
+          [style.opacity]="disableBuilderIcon() ? '0.5' : '1'"
+          [style.margin-right.px]="32">edit</mat-icon>
+        </div>
+    }
+  </div> 
 }
 }
 

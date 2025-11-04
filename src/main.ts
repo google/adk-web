@@ -25,6 +25,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {bootstrapApplication, BrowserModule} from '@angular/platform-browser';
 import {provideAnimations} from '@angular/platform-browser/animations';
+import {provideMarkdown} from 'ngx-markdown';
 
 import {AppRoutingModule} from './app/app-routing.module';
 import {AppComponent} from './app/app.component';
@@ -70,6 +71,7 @@ import {TraceService} from './app/core/services/trace.service';
 import {VideoService} from './app/core/services/video.service';
 import {WebSocketService} from './app/core/services/websocket.service';
 import {LOGO_COMPONENT} from './app/injection_tokens';
+import {AGENT_BUILDER_SERVICE, AgentBuilderService} from './app/core/services/agent-builder.service';
 import {LOCATION_SERVICE} from './app/core/services/location.service';
 import {UiStateService} from './app/core/services/ui-state.service';
 
@@ -112,10 +114,12 @@ fetch('./assets/config/runtime-config.json')
           ...(config.logo ?
                   [{provide: LOGO_COMPONENT, useValue: CustomLogoComponent}] :
                   []),
+          { provide: AGENT_BUILDER_SERVICE, useClass: AgentBuilderService },
           {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
-          provideAnimations(),
+        provideAnimations(),
+          provideMarkdown(),
           {provide: LOCATION_SERVICE, useClass: Location},
           {provide: UI_STATE_SERVICE, useClass: UiStateService}
-        ]
+      ]
       }).catch((err) => console.error(err));
     });

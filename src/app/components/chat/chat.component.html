@@ -33,48 +33,74 @@
     >left_panel_open</span
   >
   }
-  <mat-drawer
-    class="side-drawer"
-    #sideDrawer
-    mode="side"
-    appResizableDrawer
-    [disableClose]="(isApplicationSelectorEnabledObs | async) === false"
-  >
-    <app-side-panel
-      [isApplicationSelectorEnabledObs]="isApplicationSelectorEnabledObs"
-      [apps$]="apps$"
-      [isLoadingApps]="isLoadingApps"
-      [selectedAppControl]="selectedAppControl"
-      [showSidePanel]="showSidePanel"
-      [appName]="appName"
-      [userId]="userId"
-      [sessionId]="sessionId"
-      [traceData]="traceData"
-      [eventData]="eventData"
-      [currentSessionState]="currentSessionState"
-      [artifacts]="artifacts"
-      [selectedEvent]="selectedEvent"
-      [selectedEventIndex]="selectedEventIndex"
-      [renderedEventGraph]="renderedEventGraph"
-      [rawSvgString]="rawSvgString"
-      [llmRequest]="llmRequest"
-      [llmResponse]="llmResponse"
-      (closePanel)="toggleSidePanel()"
-      (tabChange)="handleTabChange($event)"
-      (eventSelected)="selectEvent($event)"
-      (sessionSelected)="updateWithSelectedSession($event)"
-      (sessionReloaded)="updateWithSelectedSession($event)"
-      (evalCaseSelected)="updateWithSelectedEvalCase($event)"
-      (evalSetIdSelected)="updateSelectedEvalSetId($event)"
-      (returnToSession)="handleReturnToSession($event)"
-      (evalNotInstalled)="handleEvalNotInstalled($event)"
-      (page)="handlePageEvent($event)"
-      (closeSelectedEvent)="closeSelectedEvent()"
-      (openImageDialog)="openViewImageDialog($event)"
-      (appSelectionChange)="onAppSelection($event)"
-    >
-    </app-side-panel>
+  <mat-drawer class="side-drawer" #sideDrawer mode="side" appResizableDrawer>
+    @if (!isBuilderMode()) {
+      <app-side-panel
+        [isApplicationSelectorEnabledObs]="isApplicationSelectorEnabledObs"
+        [apps$]="apps$"
+        [isLoadingApps]="isLoadingApps"
+        [selectedAppControl]="selectedAppControl"
+        [showSidePanel]="showSidePanel"
+        [appName]="appName"
+        [userId]="userId"
+        [sessionId]="sessionId"
+        [traceData]="traceData"
+        [eventData]="eventData"
+        [currentSessionState]="currentSessionState"
+        [artifacts]="artifacts"
+        [selectedEvent]="selectedEvent"
+        [selectedEventIndex]="selectedEventIndex"
+        [renderedEventGraph]="renderedEventGraph"
+        [rawSvgString]="rawSvgString"
+        [llmRequest]="llmRequest"
+        [llmResponse]="llmResponse"
+        [disableBuilderIcon]="disableBuilderSwitch"
+        (closePanel)="toggleSidePanel()"
+        (tabChange)="handleTabChange($event)"
+        (eventSelected)="selectEvent($event)"
+        (sessionSelected)="updateWithSelectedSession($event)"
+        (sessionReloaded)="updateWithSelectedSession($event)"
+        (evalCaseSelected)="updateWithSelectedEvalCase($event)"
+        (evalSetIdSelected)="updateSelectedEvalSetId($event)"
+        (returnToSession)="handleReturnToSession($event)"
+        (evalNotInstalled)="handleEvalNotInstalled($event)"
+        (page)="handlePageEvent($event)"
+        (closeSelectedEvent)="closeSelectedEvent()"
+        (openImageDialog)="openViewImageDialog($event)"
+        (appSelectionChange)="onAppSelection($event)"
+        (openAddItemDialog)="openAddItemDialog()"
+        (enterBuilderMode)="enterBuilderMode()"
+      >
+      </app-side-panel>
+    } @else {
+      <app-builder-tabs 
+        [appNameInput]="appName" 
+        (exitBuilderMode)="exitBuilderMode()"
+        (closePanel)="toggleSidePanel()"
+      ></app-builder-tabs>
+      <div class="resize-handler"></div>
+    }
+    
   </mat-drawer>
+
+  <!-- Builder Mode Layout - Canvas for Diagrams -->
+  @if (isBuilderMode()) {
+  <div class="builder-mode-container">
+    <div class="builder-exit-button">
+      <button mat-icon-button (click)="saveAgentBuilder()" class="builder-mode-action-button" matTooltip="Accept">
+        <mat-icon>check</mat-icon>
+      </button>
+      <button mat-icon-button (click)="exitBuilderMode()" class="builder-mode-action-button" matTooltip="Exit Builder Mode">
+        <mat-icon>close</mat-icon>
+      </button>
+      <button mat-icon-button (click)="toggleBuilderAssistant()" class="builder-mode-action-button" matTooltip="Builder Assistant" [class.active]="showBuilderAssistant">
+        <mat-icon>assistant</mat-icon>
+      </button>
+    </div>
+    <app-canvas [showSidePanel]="showSidePanel" [showBuilderAssistant]="showBuilderAssistant" [appNameInput]="appName" (toggleSidePanelRequest)="toggleSidePanel()" (builderAssistantCloseRequest)="toggleBuilderAssistant()"></app-canvas>
+  </div>
+  } @else {
+  <!-- Test Mode Layout (existing chat interface) -->
   <div class="chat-container">
     <ng-content select="[adk-web-chat-container-top]"></ng-content>
     @if (appName != "") {
@@ -274,4 +300,5 @@
     </div>
     }
   </div>
+  }
 </mat-drawer-container>

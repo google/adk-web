@@ -40,6 +40,7 @@ import {STRING_TO_COLOR_SERVICE} from './core/services/interfaces/string-to-colo
 import {LOCATION_SERVICE} from './core/services/location.service';
 import {SESSION_SERVICE} from './core/services/interfaces/session';
 import {STREAM_CHAT_SERVICE} from './core/services/interfaces/stream-chat';
+import {AGENT_BUILDER_SERVICE} from './core/services/agent-builder.service';
 import {MockAgentService} from './core/services/testing/mock-agent.service';
 import {MockArtifactService} from './core/services/testing/mock-artifact.service';
 import {MockAudioPlayingService} from './core/services/testing/mock-audio-playing.service';
@@ -82,6 +83,7 @@ describe('AppComponent', () => {
     const safeValuesService = new MockSafeValuesService();
     const localFileService = new MockLocalFileService();
     const mockUiStateService = new MockUiStateService();
+    const mockAgentBuilderService = jasmine.createSpyObj('AgentBuilderService', ['clear', 'setLoadedAgentData']);
 
     traceService.selectedTraceRow$.next(undefined);
     traceService.hoveredMessageIndices$.next([]);
@@ -186,6 +188,10 @@ describe('AppComponent', () => {
             {
               provide: UI_STATE_SERVICE,
               useValue: mockUiStateService,
+            },
+            {
+              provide: AGENT_BUILDER_SERVICE,
+              useValue: mockAgentBuilderService,
             },
           ],
         })

@@ -1,0 +1,349 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.builder-assistant-panel {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 400px;
+  height: 100vh;
+  background: #2b2b2b;
+  border-left: 1px solid #3c3c3c;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+
+  &.hidden {
+    transform: translateX(100%);
+  }
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #3c3c3c;
+  background: #292929;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+  font-size: 16px;
+  color: #e3e3e3;
+  font-family: "Google Sans", "Helvetica Neue", sans-serif;
+
+  mat-icon {
+    color: #e3e3e3;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.close-btn {
+  color: #c4c7c5;
+  
+  &:hover {
+    color: #e8eaed;
+    background-color: rgba(138, 180, 248, 0.1);
+  }
+}
+
+.panel-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #2b2b2b;
+  overflow: hidden;
+}
+
+.assistant-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 300px;
+  color: #9aa0a6;
+
+  .large-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    color: #8ab4f8;
+  }
+
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    font-weight: 500;
+    color: #e8eaed;
+    font-family: "Google Sans", "Helvetica Neue", sans-serif;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #9aa0a6;
+  }
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-input-container {
+  padding: 16px 20px 20px 20px;
+  border-top: none;
+  background: #2b2b2b;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: #1a1a1a;
+  border-radius: 50px;
+  padding: 10px 6px 10px 18px;
+  gap: 8px;
+}
+
+.assistant-input-box {
+  flex: 1;
+  color: #e0e0e0;
+  border: none;
+  padding: 0;
+  background: transparent;
+  resize: none;
+  overflow: hidden;
+  font-family: 'Google Sans', 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  min-height: 20px;
+  max-height: 120px;
+
+  &::placeholder {
+    color: #808080;
+    font-size: 14px;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+    border-radius: 4px;
+  }
+}
+
+.send-button {
+  background-color: transparent;
+  color: #888888;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+
+  ::ng-deep .mat-mdc-button-touch-target {
+    display: none;
+  }
+
+  ::ng-deep .mat-mdc-button-persistent-ripple {
+    display: none;
+  }
+
+  &:disabled {
+    background-color: transparent;
+    color: #4a4a4a;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #b0b0b0;
+    border-radius: 50%;
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// Message styling similar to chat component
+.message-card {
+  padding: 10px 16px;
+  margin: 6px 0;
+  font-size: 14px;
+  font-weight: 400;
+  position: relative;
+  display: block;
+  box-shadow: none;
+  line-height: 1.5;
+  width: 100%;
+}
+
+.user-message {
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+
+  .message-card {
+    background-color: #1a1a1a;
+    border: 1px solid #404040;
+    border-radius: 4px;
+    color: #e3e3e3;
+    padding: 8px 12px;
+  }
+}
+
+.bot-message {
+  display: block;
+  width: 100%;
+  margin-bottom: 0;
+
+  .message-card {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    color: #d4d4d4;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.bot-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #9aa0a6;
+  margin-bottom: 8px;
+  font-family: "Google Sans", "Helvetica Neue", sans-serif;
+}
+
+.message-text {
+  white-space: pre-line;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  font-family: "Google Sans", "Helvetica Neue", sans-serif;
+  
+  // Markdown-specific styles
+  ::ng-deep {
+    p {
+      margin: 0;
+      line-height: 1.4;
+      
+      &:first-child {
+        margin-top: 0;
+      }
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+    
+    ul, ol {
+      margin: 0;
+      padding-left: 1.5em;
+    }
+    
+    li {
+      margin: 0;
+    }
+    
+    code {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 0.9em;
+    }
+    
+    pre {
+      background-color: rgba(255, 255, 255, 0.05);
+      padding: 8px 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 0.5em 0;
+      
+      code {
+        background: none;
+        padding: 0;
+      }
+    }
+    
+    blockquote {
+      border-left: 3px solid #8ab4f8;
+      padding-left: 12px;
+      margin: 0.5em 0;
+      font-style: italic;
+      color: #c4c7c5;
+    }
+    
+    strong {
+      font-weight: 600;
+    }
+    
+    em {
+      font-style: italic;
+    }
+  }
+}
+
+.loading-message {
+  display: flex;
+  align-items: center;
+  color: #9aa0a6;
+  font-family: "Google Sans", "Helvetica Neue", sans-serif;
+  padding: 0;
+  margin: 0;
+
+  .dots {
+    font-size: 24px;
+    letter-spacing: -12px;
+    animation: pulse 1.4s ease-in-out infinite;
+    display: inline-block;
+    line-height: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+

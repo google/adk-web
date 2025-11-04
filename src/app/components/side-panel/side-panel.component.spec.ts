@@ -65,8 +65,6 @@ import {SidePanelComponent} from './side-panel.component';
 
 const TABS_CONTAINER_SELECTOR = By.css('.tabs-container');
 const DETAILS_PANEL_SELECTOR = By.css('.details-panel-container');
-const HEADER_CLOSE_BUTTON_SELECTOR =
-    By.css('.drawer-header .material-symbols-outlined');
 const TAB_HEADERS_SELECTOR = By.css('[role="tab"]');
 const EVENT_TAB_SELECTOR = By.css('app-event-tab');
 const SESSION_TAB_SELECTOR = By.css('app-session-tab');
@@ -343,21 +341,6 @@ describe('SidePanelComponent', () => {
       });
       it('shows details panel', () => {
         expect(fixture.debugElement.query(DETAILS_PANEL_SELECTOR)).toBeTruthy();
-      });
-    });
-  });
-
-  describe('Header', () => {
-    describe('when close button is clicked', () => {
-      beforeEach(() => {
-        spyOn(component.closePanel, 'emit');
-        const closeButton = fixture.debugElement.query(
-            HEADER_CLOSE_BUTTON_SELECTOR,
-        );
-        closeButton.nativeElement.click();
-      });
-      it('emits closePanel event', () => {
-        expect(component.closePanel.emit).toHaveBeenCalled();
       });
     });
   });

@@ -31,4 +31,9 @@ export declare abstract class AgentService {
   abstract getLoadingState(): BehaviorSubject<boolean>;
   abstract runSse(req: AgentRunRequest): Observable<LlmResponse>;
   abstract listApps(): Observable<string[]>;
+  abstract getAgentBuilderTmp(agentName: string): any;
+  abstract getAgentBuilder(agentName: string): any;
+  abstract agentChangeCancel(appName: string): any;
+  abstract agentBuildTmp(req: any): Observable<boolean>;
+  abstract agentBuild(req: any):Observable<boolean>;
 }
