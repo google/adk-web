@@ -48,7 +48,7 @@
         matTooltip="Create new agent in builder mode"
         style="cursor: pointer; margin-right: 16px;">add</mat-icon>
         <mat-icon (click)="!disableBuilderIcon() && enterBuilderMode.emit(true)"
-          [matTooltip]="disableBuilderIcon() ? 'Thia gent was not built by builder' : 'Edit in Builder Mode'"
+          [matTooltip]="disableBuilderIcon() ? 'This agent was not built in builder mode' : 'Edit in Builder Mode'"
           [style.cursor]="disableBuilderIcon() ? 'not-allowed' : 'pointer'"
           [style.opacity]="disableBuilderIcon() ? '0.5' : '1'"
           [style.margin-right.px]="32">edit</mat-icon>
