@@ -38,6 +38,12 @@ export class WebSocketService implements WebSocketServiceInterface {
   private closeReasonSubject = new Subject<string>();
 
   connect(serverUrl: string) {
+    // Clean up previous connection if exists
+    this.closeConnection();
+
+    // Reset audio buffer for new connection
+    this.audioBuffer = [];
+
     this.socket$ = new WebSocketSubject({
       url: serverUrl,
       serializer: (msg) => JSON.stringify(msg),

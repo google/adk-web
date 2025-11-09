@@ -113,7 +113,7 @@ class CustomPaginatorIntl extends MatPaginatorIntl {
 }
 
 const BIDI_STREAMING_RESTART_WARNING =
-    'Restarting bidirectional streaming is not currently supported. Please refresh the page or start a new session.';
+    'Another streaming request is already in progress. Please stop it before starting a new one.';
 
 @Component({
   selector: 'app-chat',
@@ -213,7 +213,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly isModelThinkingSubject = new BehaviorSubject(false);
   protected readonly canEditSession = signal(true);
 
-  // TODO: Remove this once backend supports restarting bidi streaming.
   sessionHasUsedBidi = new Set<string>();
 
   eventData = new Map<string, any>();
@@ -1018,11 +1017,14 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
              {role: 'bot', text: 'Speaking...'},
     ]);
     this.sessionHasUsedBidi.add(this.sessionId);
+    this.changeDetectorRef.detectChanges();
   }
 
   stopAudioRecording() {
     this.streamChatService.stopAudioChat();
     this.isAudioRecording = false;
+    this.sessionHasUsedBidi.delete(this.sessionId);
+    this.changeDetectorRef.detectChanges();
   }
 
   toggleVideoRecording() {
@@ -1049,15 +1051,17 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.messages.update(
         messages => [...messages, {role: 'user', text: 'Speaking...'}]);
     this.sessionHasUsedBidi.add(this.sessionId);
+    this.changeDetectorRef.detectChanges();
   }
 
   stopVideoRecording() {
     const videoContainer = this.chatPanel()?.videoContainer;
-    if (!videoContainer) {
-      return;
+    if (videoContainer) {
+      this.streamChatService.stopVideoChat(videoContainer);
     }
-    this.streamChatService.stopVideoChat(videoContainer);
     this.isVideoRecording = false;
+    this.sessionHasUsedBidi.delete(this.sessionId);
+    this.changeDetectorRef.detectChanges();
   }
 
   private getAsyncFunctionsFromParts(
