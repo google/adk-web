@@ -164,7 +164,15 @@
   );
 }
 
-.app-name-option,
+.app-name-option {
+  color: var(--side-panel-app-name-option-color);
+  font-family: 'Google Sans Mono', monospace;
+  font-style: normal;
+  font-weight: 400;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
 .app-select {
   color: var(--side-panel-app-name-option-color);
   font-family: 'Google Sans Mono', monospace;
@@ -214,4 +222,10 @@
   align-items: center;
   margin-top: 2em;
   font-style: italic;
+}
+
+:host ::ng-deep .mat-mdc-tooltip .mdc-tooltip__surface {
+  max-width: 250px;
+  white-space: wrap;
+  font-size: 11px;
 }

@@ -151,3 +151,35 @@ $_rest: (
 
 $primary-palette: map.merge(map.get($_palettes, primary), $_rest);
 $tertiary-palette: map.merge(map.get($_palettes, tertiary), $_rest);
+
+// Light theme - uses lighter tones for backgrounds, darker for text
+$light-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: $primary-palette,
+    tertiary: $tertiary-palette,
+  ),
+  typography: (
+    brand-family: 'Google Sans',
+    plain-family: 'Google Sans',
+  ),
+  density: (
+    scale: 0,
+  )
+));
+
+// Dark theme - uses darker tones for backgrounds, lighter for text
+$dark-theme: mat.define-theme((
+  color: (
+    theme-type: dark,
+    primary: $primary-palette,
+    tertiary: $tertiary-palette,
+  ),
+  typography: (
+    brand-family: 'Google Sans',
+    plain-family: 'Google Sans',
+  ),
+  density: (
+    scale: 0,
+  )
+));

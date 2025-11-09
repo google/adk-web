@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '@angular/material' as mat;
 
-.new-app-title {
-  color: var(--mdc-dialog-subhead-color) !important;
-  font-family: 'Google Sans';
-  font-size: 24px;
-}
+.theme-toggle-button {
+  color: var(--side-panel-mat-icon-color);
 
-.validation-hint {
-  font-size: 12px;
-  color: var(--mdc-dialog-supporting-text-color);
+  &:hover {
+    opacity: 0.8;
+  }
 }

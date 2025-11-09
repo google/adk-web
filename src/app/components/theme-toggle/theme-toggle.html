@@ -14,10 +14,12 @@
  limitations under the License.
 -->
 
-<markdown
-  [data]="text()"
-  [ngStyle]="{
-              'font-style': thought() ? 'italic' : 'normal',
-              color: thought() ? '#9aa0a6' : 'inherit'
-            }"
-></markdown>
+<button
+  mat-icon-button
+  (click)="toggleTheme()"
+  [matTooltip]="themeTooltip"
+  class="theme-toggle-button"
+  aria-label="Toggle theme"
+>
+  <mat-icon>{{ themeIcon }}</mat-icon>
+</button>

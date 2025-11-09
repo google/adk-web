@@ -13,13 +13,16 @@
           {{ i18n.agentDevelopmentKitLabel }}
         }
       </div>
-      <span
-        class="material-symbols-outlined"
-        style="color: #c4c7c5; cursor: pointer; margin-right: 15px"
-        matTooltip="{{ i18n.collapsePanelTooltip }}"
-        (click)="closePanel.emit()"
-        >left_panel_close</span
-      >
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <app-theme-toggle></app-theme-toggle>
+        <span
+          class="material-symbols-outlined"
+          style="color: #c4c7c5; cursor: pointer; margin-right: 15px"
+          matTooltip="{{ i18n.collapsePanelTooltip }}"
+          (click)="closePanel.emit()"
+          >left_panel_close</span
+        >
+      </div>
     </div>
   </div>
 </div>
@@ -45,10 +48,12 @@
     @if (!isBuilderMode()) {
       <div class="mode-toggle-container">
         <mat-icon (click)="openAddItemDialog.emit(true)"
-        matTooltip="Create new agent in builder mode"
+        matTooltip="Create new agent"
+        matTooltipPosition="below"
         style="cursor: pointer; margin-right: 16px;">add</mat-icon>
         <mat-icon (click)="!disableBuilderIcon() && enterBuilderMode.emit(true)"
-          [matTooltip]="disableBuilderIcon() ? 'Thia gent was not built by builder' : 'Edit in Builder Mode'"
+          [matTooltip]="disableBuilderIcon() ? 'This agent was not built by builder' : 'Edit in builder mode'"
+          matTooltipPosition="below"
           [style.cursor]="disableBuilderIcon() ? 'not-allowed' : 'pointer'"
           [style.opacity]="disableBuilderIcon() ? '0.5' : '1'"
           [style.margin-right.px]="32">edit</mat-icon>
