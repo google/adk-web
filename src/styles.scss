@@ -81,13 +81,6 @@ markdown p {
 }
 
 :root {
-  @include mat.progress-spinner-overrides(
-    (
-      active-indicator-color: #a8c7fa,
-      size: 80,
-    )
-  );
-
   --chat-panel-function-event-button-background-color: white;
   --chat-panel-function-event-button-highlight-background-color: rgb(
     15,
@@ -274,6 +267,14 @@ markdown p {
   --trace-tree-invocation-id-container-color: #9aa0a6;
   --trace-tree-trace-row-left-span-div-color: white;
   --trace-tree-trace-row-left-is-event-row-color: #8ab4f8;
+
+
+  @include mat.progress-spinner-overrides(
+    (
+      active-indicator-color: #a8c7fa,
+      size: 80,
+    )
+  );
 }
 
 :root {
