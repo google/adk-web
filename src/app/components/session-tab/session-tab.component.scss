@@ -41,14 +41,18 @@
     padding: 16px;
     margin-bottom: 16px;
     margin-top: 16px;
-
-    --mat-form-field-outlined-label-text-color: var(
-      --session-tab-session-filter-container-text-color
-    );
   }
 
   .session-filter {
     width: 100%;
+
+    ::ng-deep {
+      .mdc-floating-label--float-above {
+        background-color: var(
+          --session-tab-session-filter-container-background-color
+        );
+      }
+    }
   }
 }
 
@@ -115,7 +119,6 @@
   justify-content: center;
   margin-top: 1em;
 }
-
 
 .readonly-badge {
   color: var(--chat-readonly-badge-color);
