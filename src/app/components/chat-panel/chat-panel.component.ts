@@ -28,7 +28,7 @@ import {MatMenuModule} from '@angular/material/menu';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
+import {DomSanitizer, SecurityContext, SafeHtml} from '@angular/platform-browser';
 import {NgxJsonViewerModule} from 'ngx-json-viewer';
 
 import type {EvalCase} from '../../core/models/Eval';
@@ -188,6 +188,6 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   }
 
   renderGooglerSearch(content: string) {
-    return this.sanitizer.bypassSecurityTrustHtml(content);
+    return this.sanitizer.sanitize(SecurityContext.HTML, content);
   }
 }
