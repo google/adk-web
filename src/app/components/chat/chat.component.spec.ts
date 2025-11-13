@@ -806,15 +806,92 @@ describe('ChatComponent', () => {
 
     describe('when bidi streaming is restarted', () => {
       beforeEach(() => {
-        component.sessionHasUsedBidi.add(component.sessionId);
+        component.startAudioRecording();
+        component.stopAudioRecording();
         component.startAudioRecording();
       });
-      it('should show snackbar', () => {
-        expect(mockSnackBar.open)
-            .toHaveBeenCalledWith(
-                'Restarting bidirectional streaming is not currently supported. Please refresh the page or start a new session.',
-                OK_BUTTON_TEXT,
-            );
+      it('should allow restart without error', () => {
+        expect(component.isAudioRecording).toBe(true);
+        expect(mockStreamChatService.startAudioChat).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    describe('when audio recording is stopped and restarted', () => {
+      beforeEach(() => {
+        component.startAudioRecording();
+        expect(component.sessionHasUsedBidi.has(component.sessionId)).toBe(true);
+        component.stopAudioRecording();
+      });
+      it('should remove session from sessionHasUsedBidi set', () => {
+        expect(component.sessionHasUsedBidi.has(component.sessionId)).toBe(false);
+      });
+
+      it('should allow restarting audio recording', () => {
+        component.startAudioRecording();
+        expect(mockSnackBar.open).not.toHaveBeenCalled();
+        expect(component.isAudioRecording).toBe(true);
+      });
+    });
+
+    describe('when video recording is stopped and restarted', () => {
+      beforeEach(() => {
+        component.startVideoRecording();
+        expect(component.sessionHasUsedBidi.has(component.sessionId)).toBe(true);
+        component.stopVideoRecording();
+      });
+
+      it('should remove session from sessionHasUsedBidi set', () => {
+        expect(component.sessionHasUsedBidi.has(component.sessionId)).toBe(false);
+      });
+
+      it('should allow restarting video recording', () => {
+        component.startVideoRecording();
+        expect(mockSnackBar.open).not.toHaveBeenCalled();
+        expect(component.isVideoRecording).toBe(true);
+      });
+    });
+
+    describe('when trying to start concurrent bidi streams', () => {
+      it('should prevent starting audio while already recording', () => {
+        component.startAudioRecording();
+        expect(component.isAudioRecording).toBe(true);
+
+        component.startAudioRecording();
+
+        expect(mockSnackBar.open).toHaveBeenCalledWith(
+          'Another streaming request is already in progress. Please stop it before starting a new one.',
+          'OK'
+        );
+        expect(mockStreamChatService.startAudioChat).toHaveBeenCalledTimes(1);
+      });
+
+      it('should prevent starting video while already recording', () => {
+        component.startVideoRecording();
+        expect(component.isVideoRecording).toBe(true);
+
+        component.startVideoRecording();
+
+        expect(mockSnackBar.open).toHaveBeenCalledWith(
+          'Another streaming request is already in progress. Please stop it before starting a new one.',
+          'OK'
+        );
+        expect(mockStreamChatService.startVideoChat).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('when stopping video recording without videoContainer', () => {
+      it('should still cleanup sessionHasUsedBidi', () => {
+        component.startVideoRecording();
+        expect(component.sessionHasUsedBidi.has(component.sessionId)).toBe(true);
+
+        spyOn(component, 'chatPanel').and.returnValue({
+          videoContainer: undefined
+        } as any);
+
+        component.stopVideoRecording();
+
+        expect(component.sessionHasUsedBidi.has(component.sessionId)).toBe(false);
+        expect(component.isVideoRecording).toBe(false);
       });
     });
   });
