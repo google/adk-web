@@ -241,7 +241,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     nonNullable: true,
   });
 
-  protected openBase64InNewTab = this.safeValuesService.openBase64InNewTab;
+  protected openBase64InNewTab(data: string, mimeType: string) {
+    this.safeValuesService.openBase64InNewTab(data, mimeType);
+  }
 
   // Load apps
   protected isLoadingApps: WritableSignal<boolean> = signal(false);
