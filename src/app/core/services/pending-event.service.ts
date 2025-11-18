@@ -32,7 +32,7 @@ export class PendingEventServiceImpl extends PendingEventService {
       response: {[key: string]: unknown},
       ): any {
     return {
-      'function_response': {id, name, response: {'response': response}},
+      'function_response': {id, name, response: response},
     };
   }
 }
