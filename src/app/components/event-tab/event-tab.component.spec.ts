@@ -24,7 +24,7 @@ import {MatListHarness} from '@angular/material/list/testing';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 import {Span} from '../../core/models/Trace';
-import {FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 import {MockFeatureFlagService} from '../../core/services/testing/mock-feature-flag.service';
 
 import {EventTabComponent} from './event-tab.component';

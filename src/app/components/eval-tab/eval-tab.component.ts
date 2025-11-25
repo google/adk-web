@@ -16,21 +16,27 @@
  */
 
 import {SelectionModel} from '@angular/cdk/collections';
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, input, OnChanges, OnInit, output, signal, SimpleChanges, viewChildren, Inject} from '@angular/core';
+import {NgClass} from '@angular/common';
+import {ChangeDetectorRef, Component, inject, InjectionToken, input, OnChanges, OnInit, output, signal, SimpleChanges, Type, viewChildren} from '@angular/core';
 import {MatCheckbox} from '@angular/material/checkbox';
 import {MatDialog} from '@angular/material/dialog';
-import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
+import {MatIcon} from '@angular/material/icon';
+import {MatProgressSpinner} from '@angular/material/progress-spinner';
+import {MatCell, MatCellDef, MatColumnDef, MatHeaderCell, MatHeaderCellDef, MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef, MatTable, MatTableDataSource} from '@angular/material/table';
+import {MatTooltip} from '@angular/material/tooltip';
 import {BehaviorSubject, of} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 
-import {DEFAULT_EVAL_METRICS, EvalMetric, EvalCase, EvalMetricConfig, MetricValueInfo} from '../../core/models/Eval';
+
+import {DEFAULT_EVAL_METRICS, EvalMetric, EvalCase, EvalMetricConfig, MetricValueInfo, Invocation} from '../../core/models/Eval';
 import {Session} from '../../core/models/Session';
-import {Invocation} from '../../core/models/Eval';
-import {EvalService, EVAL_SERVICE} from '../../core/services/eval.service';
-import {FeatureFlagService, FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
-import {SessionService, SESSION_SERVICE} from '../../core/services/session.service';
+import {FeatureFlagService} from '../../core/services/feature-flag.service';
+import {EVAL_SERVICE} from '../../core/services/interfaces/eval';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
+import {SESSION_SERVICE} from '../../core/services/interfaces/session';
 
 import {AddEvalSessionDialogComponent} from './add-eval-session-dialog/add-eval-session-dialog/add-eval-session-dialog.component';
+import {EvalTabMessagesInjectionToken} from './eval-tab.component.i18n';
 import {NewEvalSetDialogComponentComponent} from './new-eval-set-dialog/new-eval-set-dialog-component/new-eval-set-dialog-component.component';
 import {RunEvalConfigDialogComponent} from './run-eval-config-dialog/run-eval-config-dialog.component';
 import { MatIcon } from '@angular/material/icon';
@@ -42,6 +48,9 @@ import { MatLabel } from '@angular/material/form-field';
 import { MatSelect } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 
+export const EVAL_TAB_COMPONENT = new InjectionToken<Type<EvalTabComponent>>(
+    'EVAL_TAB_COMPONENT',
+);
 
 interface EvaluationResult {
   setId: string;
@@ -82,7 +91,6 @@ interface AppEvaluationResult {
   [key: string]: SetEvaluationResult;
 }
 
-
 @Component({
     selector: 'app-eval-tab',
     templateUrl: './eval-tab.component.html',
@@ -109,6 +117,7 @@ interface AppEvaluationResult {
         MatSelect,
         MatOption,
     ],
+  standalone: true,
 })
 export class EvalTabComponent implements OnInit, OnChanges {
   checkboxes = viewChildren(MatCheckbox);
@@ -124,7 +133,9 @@ export class EvalTabComponent implements OnInit, OnChanges {
 
   private readonly evalCasesSubject = new BehaviorSubject<string[]>([]);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
-  private readonly flagService = inject(FeatureFlagService);
+  private readonly flagService =
+      inject<FeatureFlagService>(FEATURE_FLAG_SERVICE);
+  protected readonly i18n = inject(EvalTabMessagesInjectionToken);
 
   displayedColumns: string[] = ['select', 'evalId', 'finalEvalStatus'];
   evalsets: any[] = [];
@@ -150,11 +161,10 @@ export class EvalTabComponent implements OnInit, OnChanges {
   readonly dialog = inject(MatDialog);
 
   protected appEvaluationResults: AppEvaluationResult = {};
+  private readonly evalService = inject(EVAL_SERVICE);
+  private readonly sessionService = inject(SESSION_SERVICE);
 
-  constructor(
-      @Inject(EVAL_SERVICE) private evalService: EvalService,
-      @Inject(SESSION_SERVICE) private sessionService: SessionService,
-  ) {
+  constructor() {
     this.evalCasesSubject.subscribe((evalCases: string[]) => {
       if (!this.selectedEvalCase() && this.deletedEvalCaseIndex >= 0 &&
           evalCases.length > 0) {
@@ -391,6 +401,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
             if (sets !== null) {
               this.shouldShowTab.emit(true);
               this.evalsets = sets;
+              this.changeDetectorRef.detectChanges();
             }
           });
       ;
@@ -406,6 +417,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
     dialogRef.afterClosed().subscribe((needRefresh) => {
       if (needRefresh) {
         this.getEvalSet();
+        this.changeDetectorRef.detectChanges();
       }
     });
   }
@@ -424,6 +436,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
     dialogRef.afterClosed().subscribe((needRefresh) => {
       if (needRefresh) {
         this.listEvalCases();
+        this.changeDetectorRef.detectChanges();
       }
     });
   }
@@ -468,6 +481,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
           this.currentEvalResultBySet.set(this.selectedEvalSet, res);
 
           this.getEvaluationResult();
+          this.changeDetectorRef.detectChanges();
         });
   }
 
@@ -703,6 +717,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
           this.deletedEvalCaseIndex = this.evalCases.indexOf(evalCaseId);
           this.selectedEvalCase.set(null);
           this.listEvalCases();
+          this.changeDetectorRef.detectChanges();
         });
   }
 
@@ -723,8 +738,10 @@ export class EvalTabComponent implements OnInit, OnChanges {
                     this.appEvaluationResults[this.appName()] = {};
                   }
 
-                  if (!this.appEvaluationResults[this.appName()][res.evalSetId]) {
-                    this.appEvaluationResults[this.appName()][res.evalSetId] = {};
+                  if (!this.appEvaluationResults[this.appName()]
+                                                [res.evalSetId]) {
+                    this.appEvaluationResults[this.appName()][res.evalSetId] =
+                        {};
                   }
 
                   const timeStamp = res.creationTimestamp;
@@ -756,6 +773,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
 
                   this.appEvaluationResults[this.appName()][res.evalSetId][timeStamp] =
                       uiEvaluationResult;
+                  this.changeDetectorRef.detectChanges();
                 });
           }
         });

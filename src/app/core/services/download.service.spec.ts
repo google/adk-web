@@ -16,6 +16,9 @@
  */
 
 import {TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it,}
+
+import {initTestBed} from '../../testing/utils';
 
 import {DownloadService} from './download.service';
 import {SAFE_VALUES_SERVICE} from './interfaces/safevalues';
@@ -36,6 +39,7 @@ describe('DownloadService', () => {
   let safeValuesService: MockSafeValuesService;
 
   beforeEach(() => {
+    initTestBed();  // required for 1p compat
     TestBed.configureTestingModule({
       providers: [
         DownloadService,

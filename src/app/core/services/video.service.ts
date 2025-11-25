@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-import {ElementRef, Inject, Injectable, InjectionToken, Renderer2, RendererFactory2} from '@angular/core';
+import {ElementRef, Injectable, Renderer2, RendererFactory2} from '@angular/core';
 
 import {LiveRequest} from '../models/LiveRequest';
-
-export const VIDEO_SERVICE = new InjectionToken<VideoService>('VideoService');
+import {VideoService as VideoServiceInterface} from './interfaces/video';
 
 @Injectable({
   providedIn: 'root',
 })
-export class VideoService {
+export class VideoService implements VideoServiceInterface {
   private mediaRecorder!: MediaRecorder;
   private stream!: MediaStream;
   private renderer: Renderer2;
@@ -38,6 +37,10 @@ export class VideoService {
   }
 
   createVideoElement(container: ElementRef) {
+    if (!container?.nativeElement) {
+      return;
+    }
+
     this.clearVideoElement(container);
 
     this.videoElement = this.renderer.createElement('video');
@@ -54,7 +57,9 @@ export class VideoService {
 
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({video: true});
-      this.videoElement.srcObject = this.stream;
+      if (this.videoElement) {
+        this.videoElement.srcObject = this.stream;
+      }
 
       this.mediaRecorder = new MediaRecorder(this.stream, {
         mimeType: 'video/webm',
@@ -84,6 +89,11 @@ export class VideoService {
   private async captureFrame(): Promise<Blob> {
     return new Promise((resolve, reject) => {
       try {
+        if (!this.videoElement) {
+          reject(new Error('Video element not available'));
+          return;
+        }
+
         const canvas = document.createElement('canvas');
         canvas.width = this.videoElement.videoWidth;
         canvas.height = this.videoElement.videoHeight;

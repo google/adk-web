@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
-export {tick, fakeAsync} from '@angular/core/testing';
+/** @fileoverview Utils for 1p<->3p test compatibility. */
 
+export {fakeAsync, tick} from '@angular/core/testing';
 
+/** no-op in 3p, but required for 1p compatibility. */
+export function initTestBed() {}

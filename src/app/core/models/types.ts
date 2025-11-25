@@ -23,11 +23,13 @@ export declare interface Blob {
 }
 
 export declare interface FunctionCall {
+  id?: string;
   name: string;
   args: {[key: string]: any};
 }
 
 export declare interface FunctionResponse {
+  id?: string;
   name: string;
   response: {[key: string]: any};
 }
@@ -37,12 +39,25 @@ export declare interface FileData {
   fileUri: string;
 }
 
+export declare interface ExecutableCode {
+  language: 'UNKNOWN'|'PYTHON';
+  code: string;
+}
+
+export declare interface CodeExecutionResult {
+  outcome: 'UNKNOWN'|'OK'|'FAILED'|'DEADLINE_EXCEEDED';
+  output: string;
+}
+
 export declare interface Part {
   text?: string;
   inlineData?: Blob;
   functionCall?: FunctionCall;
   functionResponse?: FunctionResponse;
+  thought?: boolean;
   fileData?: FileData;
+  executableCode?: ExecutableCode;
+  codeExecutionResult?: CodeExecutionResult;
 }
 
 export declare interface GenAiContent {
@@ -58,11 +73,13 @@ export declare interface LlmResponse {
   content: GenAiContent;
   error?: string;
   errorMessage?: string;
+  errorCode?: string;
   longRunningToolIds?: string[];
 }
 
 export declare interface EventActions {
   message?: string;
+  artifactDelta?: any;
   functionCall?: FunctionCall;
   functionResponse?: FunctionResponse;
   finishReason?: string;

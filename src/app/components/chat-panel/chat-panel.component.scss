@@ -224,16 +224,21 @@
   padding: 10px;
   width: 60%;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .input-field {
   flex-grow: 1;
+  position: relative;
+  z-index: 1;
 
   textarea {
     color: var(--chat-panel-input-field-textarea-color);
     border: none;
     padding: 10px;
     box-sizing: content-box;
+    caret-color: var(--chat-panel-input-field-textarea-caret-color);
 
     &::placeholder {
       color: var(--chat-panel-input-field-textarea-placeholder-color);
@@ -416,4 +421,11 @@ button.video-rec-btn {
   &.recording {
     background-color: var(--chat-panel-eval-fail-color);
   }
+}
+
+.loading-spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 }

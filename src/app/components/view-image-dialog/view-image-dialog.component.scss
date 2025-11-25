@@ -1,3 +1,9 @@
+:host {
+  display: block;
+  background-color: var(--mdc-dialog-container-color);
+  padding: 16px;
+}
+
 .close-button {
   position: absolute;
   top: 5px;
@@ -8,7 +14,7 @@
   padding: 8px;
   border-radius: 50%;
   transition: background-color 0.2s ease;
-  color: var(--eval-tab-status-card-separator-color); /* Icon color */
+  color: var(--mdc-dialog-supporting-text-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -16,8 +22,7 @@
   margin-bottom: 15px;
 
   &:hover {
-    background-color: var(--audio-player-container-background-color);
-    color: var(--chat-panel-bot-message-message-card-background-color);
+    background-color: var(--builder-tool-item-hover-background-color);
   }
 
   svg {

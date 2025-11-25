@@ -1,0 +1,24 @@
+:host {
+  display: block;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  width: 400px;
+}
+
+::ng-deep .cm-editor {
+  height: 200px;
+  outline: none !important;
+  border-radius: 3px; /* Match host border-radius */
+}
+
+/* Style the linting tooltips to match the dark theme */
+::ng-deep .cm-tooltip-lint {
+  background-color: #3a3f4b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #c9d1d9;
+}
+
+/* Style the error underline */
+::ng-deep .cm-diagnostic-error {
+  border-bottom: 1.5px dotted #e06c75;
+}

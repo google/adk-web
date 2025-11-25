@@ -15,23 +15,26 @@
  * limitations under the License.
  */
 
-import {MarkdownModule} from 'ngx-markdown';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {SimpleChange} from '@angular/core';
-import {ComponentFixture, fakeAsync, TestBed, tick} from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
+import {fakeAsync, initTestBed, tick} from '../../testing/utils';
 import {MatDialogModule} from '@angular/material/dialog';
 import {By} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {of} from 'rxjs';
 
-import {FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
-import {StringToColorServiceImpl} from '../../core/services/string-to-color.service';
+import {UI_STATE_SERVICE, UiStateService} from '../../core/services/interfaces/ui-state';
 import {MockFeatureFlagService} from '../../core/services/testing/mock-feature-flag.service';
 import {MockStringToColorService} from '../../core/services/testing/mock-string-to-color.service';
-import {ChatPanelComponent} from './chat-panel.component';
+import {MockUiStateService} from '../../core/services/testing/mock-ui-state.service';
 import {MARKDOWN_COMPONENT} from '../markdown/markdown.component.interface';
-import {MarkdownComponent} from '../markdown/markdown.component';
+import {MockMarkdownComponent} from '../markdown/testing/mock-markdown.component';
+
+import {ChatPanelComponent} from './chat-panel.component';
 
 const USER_ID = 'user';
 const FUNC1_NAME = 'func1';
@@ -40,14 +43,23 @@ describe('ChatPanelComponent', () => {
   let component: ChatPanelComponent;
   let fixture: ComponentFixture<ChatPanelComponent>;
   let mockFeatureFlagService: MockFeatureFlagService;
+  let mockUiStateService: MockUiStateService;
+  let mockStringToColorService: MockStringToColorService;
 
   beforeEach(async () => {
     mockFeatureFlagService = new MockFeatureFlagService();
+    mockUiStateService = new MockUiStateService();
 
     mockFeatureFlagService.isMessageFileUploadEnabledResponse.next(true);
     mockFeatureFlagService.isManualStateUpdateEnabledResponse.next(true);
     mockFeatureFlagService.isBidiStreamingEnabledResponse.next(true);
 
+    mockStringToColorService = new MockStringToColorService();
+    mockStringToColorService.stc.and.returnValue('rgb(255, 0, 0)');
+
+    initTestBed();  // required for 1p compat
+
+    initTestBed();  // required for 1p compat
     await TestBed
         .configureTestingModule({
           imports: [
@@ -55,15 +67,15 @@ describe('ChatPanelComponent', () => {
             MatDialogModule,
             NoopAnimationsModule,
             HttpClientTestingModule,
-            MarkdownModule.forRoot(),
           ],
           providers: [
             {
               provide: STRING_TO_COLOR_SERVICE,
-              useClass: StringToColorServiceImpl,
+              useValue: mockStringToColorService,
             },
-            {provide: MARKDOWN_COMPONENT, useValue: MarkdownComponent},
+            {provide: MARKDOWN_COMPONENT, useValue: MockMarkdownComponent},
             {provide: FEATURE_FLAG_SERVICE, useValue: mockFeatureFlagService},
+            {provide: UI_STATE_SERVICE, useValue: mockUiStateService},
           ],
         })
         .compileComponents();
@@ -279,6 +291,14 @@ describe('ChatPanelComponent', () => {
       expect(component.clickEvent.emit).toHaveBeenCalledWith(0);
     });
 
+    it('should disable bot icon when eventId is not set', () => {
+      component.messages = [{role: 'bot', text: 'message'}];
+      fixture.detectChanges();
+      const botIcon =
+          fixture.debugElement.query(By.css('button[mat-mini-fab]'));
+      expect(botIcon.nativeElement.disabled).toBeTrue();
+    });
+
     it('should emit clickEvent when function call button is clicked', () => {
       component.messages =
           [{role: 'bot', functionCall: {name: 'func1'}, eventId: '1'}];
@@ -389,6 +409,71 @@ describe('ChatPanelComponent', () => {
               b.nativeElement.querySelector('mat-icon')?.textContent?.trim() ===
               'videocam');
       expect(button!.nativeElement.disabled).toBeTrue();
+    });
+
+    describe('when canEditSession is false', () => {
+      beforeEach(() => {
+        fixture.componentRef.instance.canEditSession.set(false);
+        fixture.detectChanges();
+      });
+
+      it('should not render the chat input', () => {
+        const textarea = fixture.debugElement.query(By.css('textarea'));
+        expect(textarea).toBeFalsy();
+      });
+    });
+
+    describe('when canEditSession is true', () => {
+      beforeEach(() => {
+        fixture.componentRef.instance.canEditSession.set(true);
+        fixture.detectChanges();
+      });
+
+      it('should render the chat input', () => {
+        const textarea = fixture.debugElement.query(By.css('textarea'));
+        expect(textarea).toBeTruthy();
+      });
+    });
+  });
+
+  describe('Loading state', () => {
+    describe('when session is loading', () => {
+      beforeEach(() => {
+        mockUiStateService.isSessionLoadingResponse.next(true);
+        fixture.detectChanges();
+      });
+
+      it('should show loading spinner', () => {
+        const spinner =
+            fixture.debugElement.query(By.css('mat-progress-spinner'));
+        expect(spinner).toBeTruthy();
+      });
+
+      it('should not show chat content', () => {
+        const chatMessages =
+            fixture.debugElement.query(By.css('.chat-messages'));
+        const chatInput = fixture.debugElement.query(By.css('.chat-input'));
+        expect(chatMessages).toBeFalsy();
+        expect(chatInput).toBeFalsy();
+      });
+    });
+
+    describe('when session is not loading', () => {
+      beforeEach(() => {
+        mockUiStateService.isSessionLoadingResponse.next(false);
+        fixture.detectChanges();
+      });
+
+
+    it('should show chat content', () => {
+      const spinner =
+          fixture.debugElement.query(By.css('mat-progress-spinner'));
+      const chatMessages = fixture.debugElement.query(By.css('.chat-messages'));
+      const chatInput = fixture.debugElement.query(By.css('.chat-input'));
+      expect(spinner).toBeFalsy();
+      expect(chatMessages).toBeTruthy();
+      expect(chatInput).toBeTruthy();
+    });
     });
   });
 });

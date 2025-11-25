@@ -23,7 +23,10 @@ import {EventService} from '../event.service';
 
 @Injectable()
 export class MockEventService implements Partial<EventService> {
-  getEventTraceResponse = new ReplaySubject<Span>(1);
+  getEventTraceResponse = new ReplaySubject<{
+    'gcp.vertex.agent.llm_request': string,
+    'gcp.vertex.agent.llm_response': string,
+  }>(1);
   getEventTrace = jasmine.createSpy('getEventTrace')
                       .and.returnValue(this.getEventTraceResponse);
   getTraceResponse = new ReplaySubject<Span[]>(1);

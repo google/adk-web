@@ -16,20 +16,20 @@
  */
 
 import {HttpClient} from '@angular/common/http';
-import {Injectable, InjectionToken} from '@angular/core';
+import {Injectable, inject} from '@angular/core';
 import {Observable} from 'rxjs';
 
 import {URLUtil} from '../../../utils/url-util';
 import {EvalCase} from '../models/Eval';
-
-export const EVAL_SERVICE = new InjectionToken<EvalService>('EvalService');
+import {EvalService as EvalServiceInterface} from './interfaces/eval';
 
 @Injectable({
   providedIn: 'root',
 })
-export class EvalService {
+export class EvalService implements EvalServiceInterface {
+  protected http = inject(HttpClient);
+
   apiServerDomain = URLUtil.getApiServerBaseUrl();
-  constructor(private http: HttpClient) {}
 
   getEvalSets(appName: string) {
     if (this.apiServerDomain != undefined) {

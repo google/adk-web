@@ -27,6 +27,78 @@
   background-color: var(--chat-drawer-container-background-color);
 }
 
+.drawer-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  @include mat.button-overrides((filled-container-color: #89b4f8,
+      filled-label-text-color: black,
+    ));
+
+  .mat-icon {
+    width: 36px;
+    height: 36px;
+    color: #bdc1c6;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .drawer-logo {
+    margin-left: 9px;
+    display: flex;
+    align-items: center;
+
+    img {
+      margin-right: 9px;
+    }
+
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 24px;
+    letter-spacing: 0.1px;
+  }
+}
+
+.drawer-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  @include mat.button-overrides((filled-container-color: #89b4f8,
+      filled-label-text-color: black,
+    ));
+
+  .mat-icon {
+    width: 36px;
+    height: 36px;
+    color: #bdc1c6;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .drawer-logo {
+    margin-left: 9px;
+    display: flex;
+    align-items: center;
+
+    img {
+      margin-right: 9px;
+    }
+
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 24px;
+    letter-spacing: 0.1px;
+  }
+}
+
 .chat-container {
   width: 100%;
   height: 100%;
@@ -93,6 +165,7 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
+
   .message-card {
     background-color: var(--chat-user-message-message-card-background-color);
     align-self: flex-end;
@@ -104,6 +177,7 @@
 .bot-message {
   display: flex;
   align-items: center;
+
   .message-card {
     background-color: var(--chat-bot-message-message-card-background-color);
     align-self: flex-start;
@@ -346,6 +420,25 @@ button {
   font-size: 14px;
 }
 
+.app-select-container {
+  width: 35%;
+  background-color: #212123;
+  height: 30px;
+  display: flex;
+  justify-content: space-between;
+  padding-left: 20px;
+  padding-right: 20px;
+  border-radius: 10px;
+  padding-top: 5px;
+}
+
+.app-select-container {
+  @include mat.select-overrides((placeholder-text-color: #8ab4f8,
+      enabled-trigger-text-color: #8ab4f8,
+      enabled-arrow-color: #8ab4f8,
+    ));
+}
+
 .adk-checkbox {
   position: fixed;
   bottom: 0;
@@ -373,6 +466,7 @@ button {
   margin-left: auto;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .toolbar-session-text {
@@ -386,6 +480,7 @@ button {
   text-transform: uppercase;
   margin-left: 20px;
   padding-top: 4px;
+  flex-shrink: 0;
 }
 
 .toolbar-session-id {
@@ -397,6 +492,7 @@ button {
   line-height: 20px;
   letter-spacing: 0.25px;
   margin-left: 5px;
+  flex-shrink: 0;
 }
 
 .toolbar-icon {
@@ -407,7 +503,7 @@ button {
   margin-right: 16px;
 }
 
-.toolbar-new-sesison {
+#toolbar-new-session-button {
   font-size: 14px;
   margin-right: 16px;
   color: var(--chat-toolbar-new-session-color);
@@ -417,10 +513,14 @@ button {
 }
 
 .toolbar-sse-toggle {
-  @include mat.slide-toggle-overrides(
-    (
-      label-text-size: 14px,
+  @include mat.slide-toggle-overrides((label-text-size: 14px,
       label-text-color: var(--chat-toolbar-sse-toggle-label-text-color),
+      unselected-track-color: var(--chat-toolbar-sse-toggle-unselected-track-color),
+      unselected-focus-track-color: var(--chat-toolbar-sse-toggle-unselected-track-color),
+      unselected-hover-track-color: var(--chat-toolbar-sse-toggle-unselected-track-color),
+      unselected-handle-color: var(--chat-toolbar-sse-toggle-unselected-handle-color),
+      unselected-focus-handle-color: var(--chat-toolbar-sse-toggle-unselected-handle-color),
+      unselected-hover-handle-color: var(--chat-toolbar-sse-toggle-unselected-handle-color),
       selected-track-color: var(--chat-toolbar-sse-toggle-selected-track-color),
       selected-focus-track-color: var(--chat-toolbar-sse-toggle-selected-track-color),
       selected-hover-track-color: var(--chat-toolbar-sse-toggle-selected-track-color),
@@ -431,8 +531,46 @@ button {
       track-width: 46px,
       track-outline-color: var(--chat-toolbar-sse-toggle-track-outline-color),
       with-icon-handle-size: 20px,
-    )
-  );
+    ));
+}
+
+:host ::ng-deep pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.readonly-badge {
+  color: var(--chat-readonly-badge-color);
+  background-color: var(--chat-readonly-badge-background-color);
+  border-radius: 4px;
+  padding: 1px 6px;
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  gap: 4px;
+  white-space: nowrap;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    padding-top: 1px;
+    flex-shrink: 0;
+  }
+}
+
+.readonly-session-message {
+  display: block;
+  color: var(--chat-toolbar-session-text-color);
+  margin-left: 1em;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0.3px;
+  flex-shrink: 1;
 }
 
 ::ng-deep .mat-drawer-content {
@@ -441,4 +579,127 @@ button {
 
 ::ng-deep .mat-drawer {
   border-right: 1px solid var(--chat-mat-drawer-border-right-color) !important;
+}
+
+// Builder mode container and exit button
+.builder-mode-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--builder-container-background-color);
+}
+
+.builder-exit-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
+}
+
+.builder-mode-action-button {
+  background-color: var(--builder-secondary-background-color) !important;
+  color: var(--builder-text-tertiary-color) !important;
+  border-radius: 50% !important;
+  transition: all 0.2s ease !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border: 1px solid var(--builder-tool-item-border-color) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  &:hover {
+    background-color: var(--builder-tool-item-hover-background-color) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  &.active {
+    background-color: var(--builder-button-primary-background-color) !important;
+    color: white !important;
+    border-color: var(--builder-button-primary-background-color) !important;
+  }
+
+  .mat-mdc-button-touch-target {
+    display: none !important;
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// Ensure canvas component takes full width in builder mode
+app-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+}
+
+.build-mode-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background-color: var(--builder-container-background-color);
+}
+
+.build-left-panel,
+.build-right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--builder-tertiary-background-color);
+  border: 1px solid var(--builder-border-color);
+  margin: 10px;
+  border-radius: 8px;
+}
+
+.build-panel-header {
+  background-color: var(--builder-secondary-background-color);
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--builder-border-color);
+  border-radius: 8px 8px 0 0;
+
+  h3 {
+    margin: 0;
+    color: var(--builder-text-primary-color);
+    font-size: 16px;
+    font-weight: 500;
+    font-family: 'Google Sans', 'Helvetica Neue', sans-serif;
+  }
+}
+
+.build-panel-content {
+  flex: 1;
+  padding: 20px;
+  color: var(--builder-text-secondary-color);
+  overflow-y: auto;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+.app-name-option,
+.app-select {
+  color: var(--builder-text-secondary-color);
+  font-family: 'Google Sans Mono', monospace;
+  font-style: normal;
+  font-weight: 400;
+  padding-left: unset;
 }

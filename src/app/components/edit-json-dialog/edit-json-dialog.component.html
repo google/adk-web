@@ -16,12 +16,12 @@
 
 <div class="dialog-container">
   <h2 mat-dialog-title>{{ data.dialogHeader }}</h2>
-  <mat-dialog-content>
+  <mat-dialog-content class="editor">
     {{ functionName }}
     <app-json-editor [jsonString]="jsonString"></app-json-editor>
   </mat-dialog-content>
   <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close>Cancel</button>
-    <button mat-button cdkFocusInitial (click)="onSave()">Save</button>
+    <button mat-button mat-dialog-close>{{ i18n.cancelButton }}</button>
+    <button mat-button cdkFocusInitial (click)="onSave()">{{ i18n.saveButton }}</button>
   </mat-dialog-actions>
 </div>

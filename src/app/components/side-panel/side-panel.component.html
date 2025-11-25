@@ -13,44 +13,82 @@
           {{ i18n.agentDevelopmentKitLabel }}
         }
       </div>
-      <span
-        class="material-symbols-outlined"
-        style="color: #c4c7c5; cursor: pointer; margin-right: 15px"
-        matTooltip="{{ i18n.collapsePanelTooltip }}"
-        (click)="closePanel.emit()"
-        >left_panel_close</span
-      >
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <app-theme-toggle></app-theme-toggle>
+        <span
+          class="material-symbols-outlined"
+          style="color: #c4c7c5; cursor: pointer; margin-right: 15px"
+          matTooltip="{{ i18n.collapsePanelTooltip }}"
+          (click)="closePanel.emit()"
+          >left_panel_close</span
+        >
+      </div>
     </div>
   </div>
 </div>
-@if (isApplicationSelectorEnabledObs | async) {
-  <div class="app-select-container">
-    <mat-select
-      class="app-select"
-      (selectionChange)="appSelectionChange.emit($event)"
-      [placeholder]="isLoadingApps() ? 'Loading...' : 'Select an agent'"
-      [formControl]="selectedAppControl"
-    >
-      @if (apps$ | async; as availableApps) {
-        @for (appName of availableApps; track appName) {
-          <mat-option class="app-name-option" [value]="appName">{{ appName }}</mat-option>
+@if (isApplicationSelectorEnabledObs() | async) {
+  <div class="app-actions">
+    <div class="app-select-container">
+      <mat-select
+        class="app-select"
+        (selectionChange)="appSelectionChange.emit($event)"
+        [placeholder]="isLoadingApps()() ? 'Loading...' : 'Select an agent'"
+        [formControl]="selectedAppControl()"
+      >
+        @if (apps$() | async; as availableApps) {
+          @for (appName of availableApps; track appName) {
+            <mat-option class="app-name-option" [value]="appName">{{ appName }}</mat-option>
+          }
         }
-      }
-      @if (selectedAppControl.value && isLoadingApps()) {
-        <mat-option class="app-name-option" [value]="selectedAppControl.value">{{ selectedAppControl.value }}</mat-option>
-      }
-    </mat-select>
+        @if (selectedAppControl().value && isLoadingApps()()) {
+          <mat-option class="app-name-option" [value]="selectedAppControl().value">{{ selectedAppControl().value }}</mat-option>
+        }
+      </mat-select>
+    </div>
+    @if (!isBuilderMode()) {
+      <div class="mode-toggle-container">
+        <mat-icon (click)="openAddItemDialog.emit(true)"
+        matTooltip="Create new agent"
+        matTooltipPosition="below"
+        style="cursor: pointer; margin-right: 16px;">add</mat-icon>
+        <mat-icon (click)="!disableBuilderIcon() && enterBuilderMode.emit(true)"
+          [matTooltip]="disableBuilderIcon() ? 'This agent was not built by builder' : 'Edit in Builder Mode'"
+          [style.cursor]="disableBuilderIcon() ? 'not-allowed' : 'pointer'"
+          [style.opacity]="disableBuilderIcon() ? '0.5' : '1'"
+          [style.margin-right.px]="32">edit</mat-icon>
+        </div>
+    }
+  </div> 
+}
+}
+
+@let isSessionLoading = uiStateService.isSessionLoading() | async;
+
+@if (isSessionLoading) {
+  <div class="loading-spinner-container">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
   </div>
 }
-} @if (appName != "" && showSidePanel) {
-<div class="tabs-container">
-  <mat-tab-group (selectedTabChange)="tabChange.emit($event)">
+
+@if (appName() != "" && showSidePanel()) {
+<div class="tabs-container" [hidden]="isSessionLoading">
+  <mat-tab-group
+    (selectedTabChange)="tabChange.emit($event)">
+    @let sessionTabReorderingEnabled = isSessionsTabReorderingEnabledObs | async;
+    @if (sessionTabReorderingEnabled) {
+      <mat-tab class="tabs-header">
+        <ng-template mat-tab-label>
+          <span class="tab-label">{{ i18n.sessionsTabLabel }}</span>
+        </ng-template>
+        <ng-container *ngTemplateOutlet="sessionsTabBody"></ng-container>
+      </mat-tab>
+    }
     @if (isTraceEnabledObs | async) {
       <mat-tab class="tabs-header">
         <ng-template mat-tab-label>
           <span class="tab-label">{{ i18n.traceTabLabel }}</span>
         </ng-template>
-        <app-trace-tab [traceData]="traceData"></app-trace-tab>
+        <app-trace-tab [traceData]="traceData()"></app-trace-tab>
       </mat-tab>
     }
     <mat-tab class="tabs-header">
@@ -58,8 +96,8 @@
         <span class="tab-label">{{ i18n.eventsTabLabel }}</span>
       </ng-template>
       <app-event-tab
-        [eventsMap]="eventData"
-        [traceData]="traceData"
+        [eventsMap]="eventData()"
+        [traceData]="traceData()"
         (selectedEvent)="eventSelected.emit($event)"
       ></app-event-tab>
     </mat-tab>
@@ -67,57 +105,53 @@
       <ng-template mat-tab-label>
         <span class="tab-label">{{ i18n.stateTabLabel }}</span>
       </ng-template>
-      <app-state-tab [sessionState]="currentSessionState"></app-state-tab>
+      <app-state-tab [sessionState]="currentSessionState()"></app-state-tab>
     </mat-tab>
     @if (isArtifactsTabEnabledObs | async) {
       <mat-tab>
         <ng-template mat-tab-label>
           <span class="tab-label">{{ i18n.artifactsTabLabel }}</span>
         </ng-template>
-        <app-artifact-tab [artifacts]="artifacts"> </app-artifact-tab>
+        <app-artifact-tab [artifacts]="artifacts()"> </app-artifact-tab>
       </mat-tab>
     }
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <span class="tab-label">{{ i18n.sessionsTabLabel }}</span>
-      </ng-template>
-      <app-session-tab
-        [userId]="userId"
-        [appName]="appName"
-        [sessionId]="sessionId"
-        (sessionSelected)="sessionSelected.emit($event)"
-        (sessionReloaded)="sessionReloaded.emit($event)"
-      >
-      </app-session-tab>
-    </mat-tab>
+    @if (!sessionTabReorderingEnabled) {
+      <mat-tab class="tabs-header">
+        <ng-template mat-tab-label>
+          <span class="tab-label">{{ i18n.sessionsTabLabel }}</span>
+        </ng-template>
+        <ng-container *ngTemplateOutlet="sessionsTabBody"></ng-container>
+      </mat-tab>
+    }
     @if (isEvalEnabledObs | async) {
       <mat-tab>
         <ng-template mat-tab-label>
           <span class="tab-label">{{ i18n.evalTabLabel }}</span>
         </ng-template>
-        <app-eval-tab
-          [appName]="appName"
-          [userId]="userId"
-          [sessionId]="sessionId"
-          (sessionSelected)="sessionSelected.emit($event)"
-          (evalCaseSelected)="evalCaseSelected.emit($event)"
-          (evalSetIdSelected)="evalSetIdSelected.emit($event)"
-          (shouldReturnToSession)="returnToSession.emit($event)"
-          (evalNotInstalledMsg)="evalNotInstalled.emit($event)"
-        ></app-eval-tab>
+        <ng-container #evalTabContainer></ng-container>
       </mat-tab>
     }
   </mat-tab-group>
+  <ng-template #sessionsTabBody>
+    <app-session-tab
+      [userId]="userId()"
+      [appName]="appName()"
+      [sessionId]="sessionId()"
+      (sessionSelected)="sessionSelected.emit($event)"
+      (sessionReloaded)="sessionReloaded.emit($event)"
+    >
+    </app-session-tab>
+  </ng-template>
 </div>
-} @if (this.selectedEvent && showSidePanel) {
-<div class="details-panel-container">
+} @if (selectedEvent() && showSidePanel()) {
+<div class="details-panel-container" [hidden]="isSessionLoading">
   <div class="details-content">
     <div style="display: flex; justify-content: flex-end; margin-top: 10px">
       <mat-paginator
         class="event-paginator"
-        [length]="eventData.size"
+        [length]="eventData().size"
         [pageSize]="1"
-        [pageIndex]="selectedEventIndex"
+        [pageIndex]="selectedEventIndex()"
         (page)="page.emit($event)"
         [attr.aria-label]="i18n.selectEventAriaLabel"
       >
@@ -131,23 +165,39 @@
     <mat-tab-group>
       <mat-tab label="{{ i18n.eventDetailsTabLabel }}">
         <div class="event-graph-container">
-          @if (renderedEventGraph) {
-          <div [innerHtml]="renderedEventGraph" (click)="openImageDialog.emit(rawSvgString)"></div>
+          @if (renderedEventGraph()) {
+          <div [innerHtml]="renderedEventGraph()" (click)="openImageDialog.emit(rawSvgString())"></div>
           }
         </div>
         <div class="json-viewer-container">
-          <ngx-json-viewer [json]="selectedEvent"></ngx-json-viewer>
+          <ngx-json-viewer [json]="selectedEvent()"></ngx-json-viewer>
         </div>
       </mat-tab>
       <mat-tab label="{{ i18n.requestDetailsTabLabel }}">
-        <div class="json-viewer-container">
-          <ngx-json-viewer [json]="llmRequest"></ngx-json-viewer>
-        </div>
+        @if ((uiStateService.isEventRequestResponseLoading() | async) === true) {
+          <div class="request-response-loading-spinner-container">
+            <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+          </div>
+        } @else if (!llmRequest()) {
+          <div class="request-response-empty-state">{{ i18n.requestIsNotAvailable }}</div>
+        } @else {
+          <div class="json-viewer-container">
+            <ngx-json-viewer [json]="llmRequest()"></ngx-json-viewer>
+          </div>
+        }
       </mat-tab>
       <mat-tab label="{{ i18n.responseDetailsTabLabel }}">
+        @if ((uiStateService.isEventRequestResponseLoading() | async) === true) {
+          <div class="request-response-loading-spinner-container">
+            <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+          </div>
+        } @else if (!llmResponse()) {
+          <div class="request-response-empty-state">{{ i18n.responseIsNotAvailable }}</div>
+        } @else {
         <div class="json-viewer-container">
-          <ngx-json-viewer [json]="llmResponse"></ngx-json-viewer>
+          <ngx-json-viewer [json]="llmResponse()"></ngx-json-viewer>
         </div>
+        }
       </mat-tab>
     </mat-tab-group>
   </div>

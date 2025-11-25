@@ -18,10 +18,10 @@
 import {Injectable} from '@angular/core';
 import {of, ReplaySubject} from 'rxjs';
 
-import {FeatureFlagService} from '../feature-flag.service';
+import {FeatureFlagService} from '../interfaces/feature-flag';
 
 @Injectable()
-export class MockFeatureFlagService implements Partial<FeatureFlagService> {
+export class MockFeatureFlagService implements FeatureFlagService {
   isImportSessionEnabledResponse = new ReplaySubject<boolean>(1);
   isImportSessionEnabled =
       jasmine.createSpy('isImportSessionEnabled')
@@ -45,17 +45,15 @@ export class MockFeatureFlagService implements Partial<FeatureFlagService> {
       jasmine.createSpy('isApplicationSelectorEnabled')
           .and.returnValue(this.isApplicationSelectorEnabledResponse);
   isTraceEnabledResponse = new ReplaySubject<boolean>(1);
-  isTraceEnabled =
-      jasmine.createSpy('isTraceEnabled')
-          .and.returnValue(this.isTraceEnabledResponse);
+  isTraceEnabled = jasmine.createSpy('isTraceEnabled')
+                       .and.returnValue(this.isTraceEnabledResponse);
   isArtifactsTabEnabledResponse = new ReplaySubject<boolean>(1);
   isArtifactsTabEnabled =
       jasmine.createSpy('isArtifactsTabEnabled')
           .and.returnValue(this.isArtifactsTabEnabledResponse);
   isEvalEnabledResponse = new ReplaySubject<boolean>(1);
-  isEvalEnabled =
-      jasmine.createSpy('isEvalEnabled')
-          .and.returnValue(this.isEvalEnabledResponse);
+  isEvalEnabled = jasmine.createSpy('isEvalEnabled')
+                      .and.returnValue(this.isEvalEnabledResponse);
   isTokenStreamingEnabledResponse = new ReplaySubject<boolean>(1);
   isTokenStreamingEnabled =
       jasmine.createSpy('isTokenStreamingEnabled')
@@ -72,4 +70,36 @@ export class MockFeatureFlagService implements Partial<FeatureFlagService> {
   isBidiStreamingEnabled =
       jasmine.createSpy('isBidiStreamingEnabled')
           .and.returnValue(this.isBidiStreamingEnabledResponse);
+  isExportSessionEnabledResponse = new ReplaySubject<boolean>(1);
+  isExportSessionEnabled =
+      jasmine.createSpy('isExportSessionEnabled')
+          .and.returnValue(this.isExportSessionEnabledResponse);
+  isEventFilteringEnabledResponse = new ReplaySubject<boolean>(1);
+  isEventFilteringEnabled =
+      jasmine.createSpy('isEventFilteringEnabled')
+          .and.returnValue(this.isEventFilteringEnabledResponse);
+  isDeleteSessionEnabledResponse = new ReplaySubject<boolean>(1);
+  isDeleteSessionEnabled =
+      jasmine.createSpy('isDeleteSessionEnabled')
+          .and.returnValue(this.isDeleteSessionEnabledResponse);
+  isLoadingAnimationsEnabledResponse = new ReplaySubject<boolean>(1);
+  isLoadingAnimationsEnabled =
+      jasmine.createSpy('isLoadingAnimationsEnabled')
+          .and.returnValue(this.isLoadingAnimationsEnabledResponse);
+  isSessionsTabReorderingEnabledResponse = new ReplaySubject<boolean>(1);
+  isSessionsTabReorderingEnabled =
+      jasmine.createSpy('isSessionsTabReorderingEnabled')
+          .and.returnValue(this.isSessionsTabReorderingEnabledResponse);
+  isSessionFilteringEnabledResponse = new ReplaySubject<boolean>(1);
+  isSessionFilteringEnabled =
+      jasmine.createSpy('isSessionFilteringEnabled')
+          .and.returnValue(this.isSessionFilteringEnabledResponse);
+  isSessionReloadOnNewMessageEnabledResponse = new ReplaySubject<boolean>(1);
+  isSessionReloadOnNewMessageEnabled =
+      jasmine.createSpy('isSessionReloadOnNewMessageEnabled')
+          .and.returnValue(this.isSessionReloadOnNewMessageEnabledResponse);
+  isUserIdOnToolbarEnabledResponse = new ReplaySubject<boolean>(1);
+  isUserIdOnToolbarEnabled =
+      jasmine.createSpy('isUserIdOnToolbarEnabled')
+          .and.returnValue(this.isUserIdOnToolbarEnabledResponse);
 }

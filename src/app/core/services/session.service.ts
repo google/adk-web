@@ -17,17 +17,18 @@
 
 import {HttpClient} from '@angular/common/http';
 import {Injectable, InjectionToken} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
+import {map} from 'rxjs/operators';
 
 import {URLUtil} from '../../../utils/url-util';
 import {Session} from '../models/Session';
 
-export const SESSION_SERVICE = new InjectionToken<SessionService>('SessionService');
+import {ListResponse, SessionService as SessionServiceInterface} from './interfaces/session';
 
 @Injectable({
   providedIn: 'root',
 })
-export class SessionService {
+export class SessionService implements SessionServiceInterface {
   apiServerDomain = URLUtil.getApiServerBaseUrl();
   constructor(private http: HttpClient) {}
 
@@ -40,14 +41,23 @@ export class SessionService {
     return new Observable<Session>();
   }
 
-  listSessions(userId: string, appName: string) {
+  listSessions(userId: string, appName: string):
+      Observable<ListResponse<Session>> {
     if (this.apiServerDomain != undefined) {
       const url =
           this.apiServerDomain + `/apps/${appName}/users/${userId}/sessions`;
 
-      return this.http.get<any>(url);
+      return this.http.get<any>(url).pipe(map((res) => {
+        return {
+          items: res as Session[],
+          nextPageToken: '',
+        };
+      }));
     }
-    return new Observable<Session[]>();
+    return of<ListResponse<Session>>({
+      items: [] as Session[],
+      nextPageToken: '',
+    });
   }
 
   deleteSession(userId: string, appName: string, sessionId: string) {
@@ -66,8 +76,8 @@ export class SessionService {
 
   importSession(userId: string, appName: string, events: any[]) {
     if (this.apiServerDomain != undefined) {
-      const url = this.apiServerDomain +
-          `/apps/${appName}/users/${userId}/sessions`;
+      const url =
+          this.apiServerDomain + `/apps/${appName}/users/${userId}/sessions`;
 
       return this.http.post<Session>(url, {
         appName: appName,
@@ -77,5 +87,9 @@ export class SessionService {
     }
 
     return new Observable<Session>();
+  }
+
+  canEdit(userId: string, session: Session): Observable<boolean> {
+    return of(true);
   }
 }

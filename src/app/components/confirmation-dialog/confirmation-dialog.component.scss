@@ -1,0 +1,166 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '@angular/material' as mat;
+
+mat-dialog-content {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--mdc-dialog-supporting-text-color);
+
+  p {
+    color: var(--mdc-dialog-supporting-text-color);
+  }
+}
+
+// Form field and input styling for dialogs
+:host ::ng-deep {
+  .mat-mdc-form-field {
+    @include mat.form-field-overrides(
+      (
+        filled-container-color: var(--builder-form-field-background-color),
+        filled-label-text-color: var(--mdc-dialog-supporting-text-color),
+        filled-focus-label-text-color: var(--builder-text-link-color),
+        filled-hover-label-text-color: var(--mdc-dialog-supporting-text-color),
+      )
+    );
+  }
+
+  .mat-mdc-input-element {
+    color: var(--mdc-dialog-supporting-text-color) !important;
+    caret-color: var(--mdc-dialog-supporting-text-color) !important;
+  }
+
+  .mat-mdc-input-element::placeholder {
+    color: var(--builder-text-muted-color) !important;
+    opacity: 0 !important;
+  }
+
+  // Show placeholder only when focused and empty
+  .mat-mdc-input-element:focus::placeholder {
+    opacity: 0.6 !important;
+  }
+
+  .mat-mdc-form-field-hint {
+    color: var(--builder-text-muted-color) !important;
+  }
+}
+
+.tool-info-container {
+  background-color: rgba(138, 180, 248, 0.08);
+  border: 1px solid rgba(138, 180, 248, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.tool-info-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 0;
+
+  &:hover {
+    .tool-info-title {
+      color: #a7c8ff;
+    }
+  }
+}
+
+.tool-info-icon {
+  color: #8ab4f8;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.tool-info-title {
+  flex: 1;
+  font-weight: 500;
+  color: #8ab4f8;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.tool-info-toggle {
+  color: #8ab4f8;
+  margin: -8px;
+
+  mat-icon {
+    transition: transform 0.2s ease;
+  }
+}
+
+.tool-info-body {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height 0.3s ease,
+    opacity 0.2s ease,
+    margin-top 0.3s ease;
+
+  &.expanded {
+    max-height: 500px;
+    opacity: 1;
+    margin-top: 12px;
+  }
+}
+
+.tool-info-content {
+  flex: 1;
+}
+
+.tool-info-short {
+  font-weight: 500;
+  color: var(--mdc-dialog-supporting-text-color) !important;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.tool-info-detailed {
+  color: var(--mdc-dialog-supporting-text-color) !important;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.tool-info-link-container {
+  margin-top: 12px;
+}
+
+.tool-info-link {
+  color: #8ab4f8;
+  text-decoration: none;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #a7c8ff;
+  }
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}

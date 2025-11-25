@@ -1,0 +1,100 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '@angular/material' as mat;
+
+.dialog-title {
+  color: var(--mdc-dialog-subhead-color) !important;
+  font-family: 'Google Sans';
+  font-size: 24px;
+}
+
+.tool-categories-container {
+  padding: 16px 0;
+}
+
+.tool-category {
+  margin-bottom: 24px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.category-title {
+  font-family: 'Google Sans';
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--mdc-dialog-supporting-text-color);
+  margin: 0 0 12px 0;
+  padding-left: 8px;
+}
+
+.tool-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.tool-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--builder-tool-item-background-color);
+  border: 1px solid var(--builder-tool-item-border-color);
+  min-width: 0;
+
+  &:hover {
+    background-color: var(--builder-tool-item-hover-background-color);
+  }
+
+  &.selected {
+    background-color: rgba(138, 180, 248, 0.2);
+    border: 1px solid #8ab4f8;
+  }
+
+  .tool-icon {
+    color: #8ab4f8;
+    margin-right: 12px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .tool-name {
+    font-family: 'Google Sans';
+    font-size: 14px;
+    color: var(--mdc-dialog-supporting-text-color) !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.args-editor-container {
+  padding: 16px 0;
+}
+
+.args-editor-title {
+  font-family: 'Google Sans';
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--mdc-dialog-supporting-text-color);
+  margin: 0 0 16px 0;
+}

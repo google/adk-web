@@ -80,3 +80,11 @@ export declare interface EvalCase {
   sessionInput: any;
   creationTimestamp: number;
 }
+
+export declare interface EvalSet {
+  evalSetId: string;
+  name?: string;
+  description?: string;
+  evalCases: EvalCase[];
+  creationTimestamp: number;
+}

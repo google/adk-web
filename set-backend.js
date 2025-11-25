@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +22,7 @@ const backendUrl = process.env.npm_config_backend;
 
 if (!backendUrl) {
     console.error('Missing --backend argument');
-    console.error('Usage: npm run serve --backend=http://localhost:8000');
+    console.error('Usage: npm run serve --backend=http://127.0.0.1:8000');
     process.exit(1);
 }
 

@@ -17,17 +17,22 @@
 
 import {HttpClientTestingModule, HttpTestingController,} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it,}
 
 import {URLUtil} from '../../../utils/url-util';
+import {initTestBed} from '../../testing/utils';
 
 import {EventService} from './event.service';
 
 describe('EventService', () => {
   let service: EventService;
   let httpTestingController: HttpTestingController;
-
+  const EVENT_ID = {
+    id: 'trace1',
+  };
   beforeEach(() => {
     spyOn(URLUtil, 'getApiServerBaseUrl').and.returnValue('http://test.com');
+    initTestBed();  // required for 1p compat
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [EventService],
@@ -46,7 +51,7 @@ describe('EventService', () => {
 
   describe('getEventTrace', () => {
     it('should call GET /debug/trace/{id}', () => {
-      service.getEventTrace('trace1').subscribe();
+      service.getEventTrace(EVENT_ID).subscribe();
       const req = httpTestingController.expectOne(
           'http://test.com/debug/trace/trace1',
       );

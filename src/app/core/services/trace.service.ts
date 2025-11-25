@@ -14,22 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable, InjectionToken } from '@angular/core';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { Span } from '../models/Trace';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject, Subject} from 'rxjs';
+import {Span} from '../models/Trace';
+import {TraceService as TraceServiceInterface} from './interfaces/trace';
 
-export const TRACE_SERVICE = new InjectionToken<TraceService>('TraceService');
-
-@Injectable({ providedIn: 'root' })
-export class TraceService {
+@Injectable({providedIn: 'root'})
+export class TraceService implements TraceServiceInterface {
     private selectedTraceRowSource = new BehaviorSubject<Span | undefined>(undefined);
     selectedTraceRow$ = this.selectedTraceRowSource.asObservable();
 
     private eventDataSource = new BehaviorSubject<Map<string, any> | undefined>(undefined);
     eventData$ = this.eventDataSource.asObservable();
 
-    private hoveredMessageIndiciesSource = new BehaviorSubject<number[]>([]);
-    hoveredMessageIndicies$ = this.hoveredMessageIndiciesSource.asObservable();
+    private hoveredMessageIndicesSource = new BehaviorSubject<number[]>([]);
+    hoveredMessageIndices$ = this.hoveredMessageIndicesSource.asObservable();
 
     private messagesSource = new BehaviorSubject<any[]>([]);
     messages$ = this.messagesSource.asObservable();
@@ -48,7 +47,7 @@ export class TraceService {
 
     setHoveredMessages(span: Span | undefined, invocationId: string) {
         if (!span) {
-            this.hoveredMessageIndiciesSource.next([]);
+            this.hoveredMessageIndicesSource.next([]);
             return;
         }
 
@@ -82,12 +81,12 @@ export class TraceService {
                 }
             }
         }
-        this.hoveredMessageIndiciesSource.next(messageIndices);
+        this.hoveredMessageIndicesSource.next(messageIndices);
     }
 
     resetTraceService() {
         this.eventDataSource.next(undefined);
         this.messagesSource.next([]);
-        this.hoveredMessageIndiciesSource.next([])
+        this.hoveredMessageIndicesSource.next([])
     }
 }

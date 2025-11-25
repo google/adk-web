@@ -21,14 +21,26 @@
       </div>
     </mat-tab>
     <mat-tab label="Request">
+      @if ((uiStateService.isEventRequestResponseLoading() | async) === true) {
+        <mat-progress-spinner mode="indeterminate"/>
+      } @else if (!llmRequest) {
+        <div>Request is not available.</div>
+      } @else {
       <div class="json-viewer-container">
         <ngx-json-viewer [json]="llmRequest"></ngx-json-viewer>
       </div>
+      }
     </mat-tab>
     <mat-tab label="Response">
-      <div class="json-viewer-container">
-        <ngx-json-viewer [json]="llmResponse"></ngx-json-viewer>
-      </div>
+      @if ((uiStateService.isEventRequestResponseLoading() | async) === true) {
+        <mat-progress-spinner mode="indeterminate"/>
+      } @else if (!llmResponse) {
+        <div>Response is not available.</div>
+      } @else {
+        <div class="json-viewer-container">
+          <ngx-json-viewer [json]="llmResponse"></ngx-json-viewer>
+        </div>
+      }
     </mat-tab>
     <mat-tab label="Graph">
       <div class="event-graph-container">

@@ -15,7 +15,12 @@
  */
 
 .state-wrapper {
-    padding-left: 25px;
-    padding-right: 25px;
-    margin-top: 16px;
+  padding-left: 25px;
+  padding-right: 25px;
+  margin-top: 16px;
+
+  .empty-state {
+    text-align: center;
+    font-style: italic;
+  }
 }

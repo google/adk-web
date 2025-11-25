@@ -17,21 +17,21 @@
 <div class="eval-container">
   @if (selectedEvalSet == '') {
     <div class="eval-set-actions">
-      <div>All eval sets</div>
-      <mat-icon style="cursor: pointer;" (click)="openNewEvalSetDialog()" matTooltip="Create new evaluation set">add</mat-icon>
+      <div>{{ i18n.allEvalSetsHeader }}</div>
+      <mat-icon style="cursor: pointer;" (click)="openNewEvalSetDialog()" [matTooltip]="i18n.createNewEvalSetTooltip">add</mat-icon>
     </div>
   }
   @if (evalsets.length == 0) {
     <div>
       <div class="empty-eval-info">
         <div class="info-title">
-          Create New Evaluation Set
+          {{ i18n.createNewEvalSetTitle }}
         </div>
         <div class="info-detail">
-          An evaluation set is a curated collection of evaluation cases, where each case includes input-output examples for assessing agent performance.
+          {{ i18n.evalSetDescription }}
         </div>
         <div class="info-create" (click)="openNewEvalSetDialog()">
-          Create Evaluation Set
+          {{ i18n.createEvalSetButton }}
         </div>
       </div>
     </div>
@@ -94,8 +94,8 @@
                 }
               </div>
               <div class="evaluation-tab-header">
-                <button class="run-eval-btn" (click)="openEvalConfigDialog()">Run Evaluation</button>
-                <mat-icon class="evaluation-history-icon" (click)="toggleEvalHistoryButton()" matTooltip="View eval run history">history</mat-icon>
+                <button class="run-eval-btn" (click)="openEvalConfigDialog()">{{ i18n.runEvaluationButton }}</button>
+                <mat-icon class="evaluation-history-icon" (click)="toggleEvalHistoryButton()" [matTooltip]="i18n.viewEvalRunHistoryTooltip">history</mat-icon>
               </div>
               <div class="mat-table-container" style="margin-top:16px;">
                 <table mat-table [dataSource]="dataSource">
@@ -115,19 +115,19 @@
                   </ng-container>
                   <!-- Column Definitions -->
                   <ng-container matColumnDef="evalId">
-                    <th mat-header-cell *matHeaderCellDef> Case ID </th>
+                    <th mat-header-cell *matHeaderCellDef> {{ i18n.caseIdHeader }} </th>
                     <td mat-cell class="eval-case-id" [class.selected-eval-case]="element === selectedEvalCase()?.evalId" *matCellDef="let element" (click)="getEvalCase(element)"> {{element}} </td>
                   </ng-container>
                   <ng-container matColumnDef="finalEvalStatus">
-                    <th mat-header-cell *matHeaderCellDef> Result </th>
+                    <th mat-header-cell *matHeaderCellDef> {{ i18n.resultHeader }} </th>
                     <td mat-cell *matCellDef="let element">
                       @if (getEvalResultForCase(element)) {
                         <button
-                          [ngClass]="getEvalResultForCase(element) == 1 ? 'result-btn pass': 'result-btn fail'" (click)="getSession(element)" matTooltip="View eval run result">
+                          [ngClass]="getEvalResultForCase(element) == 1 ? 'result-btn pass': 'result-btn fail'" (click)="getSession(element)" [matTooltip]="i18n.viewEvalRunResultTooltip">
                           <span class="material-symbols-outlined">
                             {{ getEvalResultForCase(element) == 1 ? "check": "close" }}
                           </span>
-                          <div style="padding-top: 4px;">{{getEvalResultForCase(element) == 1 ? "Pass": "Fail"}} </div>
+                          <div style="padding-top: 4px;">{{getEvalResultForCase(element) == 1 ? i18n.passStatus: i18n.failStatus}} </div>
                         </button>
                       }
                     </td>
@@ -148,11 +148,11 @@
                       <div class="status-card__info">
                         <div class="status-card__timestamp">{{ formatTimestamp(evalResult.timestamp) }}</div>
                         <div class="status-card__summary">
-                          <span class="status-card__passed">{{ getPassCountForCurrentResult(evalResult.evaluationResults.evaluationResults) }} Passed</span>
+                          <span class="status-card__passed">{{ getPassCountForCurrentResult(evalResult.evaluationResults.evaluationResults) }} {{ i18n.passedSuffix }}</span>
                           @if (getFailCountForCurrentResult(evalResult.evaluationResults.evaluationResults) > 0) {
                             <div>
                               <span class="status-card__separator">|</span>
-                              <span class="status-card__failed">{{ getFailCountForCurrentResult(evalResult.evaluationResults.evaluationResults) }} Failed</span>
+                              <span class="status-card__failed">{{ getFailCountForCurrentResult(evalResult.evaluationResults.evaluationResults) }} {{ i18n.failedSuffix }}</span>
                             </div>
                           }
                         </div>
@@ -188,7 +188,7 @@
                                 <span class="material-symbols-outlined">
                                   {{ evalResult.finalEvalStatus == 1 ? "check": "close" }}
                                 </span>
-                                <div style="padding-top: 4px;">{{ evalResult.finalEvalStatus == 1 ? "PASS": "FAIL"}} </div>
+                                <div style="padding-top: 4px;">{{ evalResult.finalEvalStatus == 1 ? i18n.passStatusCaps : i18n.failStatusCaps}} </div>
                               </button>
                             </div>
                             @if (evalResult.overallEvalMetricResults?.length) {
@@ -235,7 +235,7 @@
           <div class="save-session-btn-detail">
             <mat-icon>add</mat-icon>
             <div class="save-session-btn-text">
-              Add current session to {{selectedEvalSet}}
+              {{ i18n.addSessionToSetButtonPrefix }} {{selectedEvalSet}}
             </div>
           </div>
         </button>

@@ -157,17 +157,75 @@
   @include mat.select-overrides(
     (
       placeholder-text-color: var(--side-panel-select-placeholder-text-color),
-      enabled-trigger-text-color: var(--side-panel-select-enabled-trigger-text-color),
+      enabled-trigger-text-color:
+        var(--side-panel-select-enabled-trigger-text-color),
       enabled-arrow-color: var(--side-panel-select-enabled-arrow-color),
     )
   );
 }
 
-.app-name-option,
+.app-name-option {
+  color: var(--side-panel-app-name-option-color);
+  font-family: 'Google Sans Mono', monospace;
+  font-style: normal;
+  font-weight: 400;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
 .app-select {
   color: var(--side-panel-app-name-option-color);
   font-family: 'Google Sans Mono', monospace;
   font-style: normal;
   font-weight: 400;
   padding-left: unset;
+}
+
+.mode-toggle-container {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.build-mode-button {
+  margin: 0 4px;
+  &.mat-mdc-unelevated-button {
+    height: 30px;
+  }
+}
+
+.app-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  margin-left: 10px;
+}
+
+.loading-spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.request-response-loading-spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2em;
+}
+
+.request-response-empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2em;
+  font-style: italic;
+}
+
+:host ::ng-deep .mat-mdc-tooltip .mdc-tooltip__surface {
+  max-width: 250px;
+  white-space: wrap;
+  font-size: 11px;
 }

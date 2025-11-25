@@ -19,6 +19,7 @@ import {Injectable} from '@angular/core';
 import {of, ReplaySubject} from 'rxjs';
 
 import {AgentService} from '../agent.service';
+import {Event as AdkEvent} from '../../models/types';
 
 @Injectable()
 export class MockAgentService implements Partial<AgentService> {
@@ -35,6 +36,22 @@ export class MockAgentService implements Partial<AgentService> {
   getLoadingState = jasmine.createSpy('getLoadingState')
                         .and.returnValue(this.getLoadingStateResponse);
 
-  runSseResponse = new ReplaySubject<string>(1);
+  runSseResponse = new ReplaySubject<AdkEvent>(1);
   runSse = jasmine.createSpy('runSse').and.returnValue(this.runSseResponse);
+
+  getAgentBuilderResponse = new ReplaySubject<string>(1);
+  getAgentBuilder = jasmine.createSpy('getAgentBuilder')
+                        .and.returnValue(this.getAgentBuilderResponse);
+
+  getAgentBuilderTmpResponse = new ReplaySubject<string>(1);
+  getAgentBuilderTmp = jasmine.createSpy('getAgentBuilderTmp')
+                           .and.returnValue(this.getAgentBuilderTmpResponse);
+
+  getSubAgentBuilderResponse = new ReplaySubject<string>(1);
+  getSubAgentBuilder = jasmine.createSpy('getSubAgentBuilder')
+                           .and.returnValue(this.getSubAgentBuilderResponse);
+
+  agentBuildTmp = jasmine.createSpy('agentBuildTmp').and.returnValue(of(true));
+  agentBuild = jasmine.createSpy('agentBuild').and.returnValue(of(true));
+  agentChangeCancel = jasmine.createSpy('agentChangeCancel').and.returnValue(of(true));
 }

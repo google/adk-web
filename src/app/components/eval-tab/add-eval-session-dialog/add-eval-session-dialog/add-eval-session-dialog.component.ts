@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import {Component, Inject} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
-import { uuidv4 } from 'uuidv7';
-import {EvalService, EVAL_SERVICE} from '../../../../core/services/eval.service';
+import {uuidv4} from 'uuidv7';
+import {EVAL_SERVICE} from '../../../../core/services/interfaces/eval';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatFormField } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
@@ -42,19 +42,18 @@ import { MatButton } from '@angular/material/button';
     ],
 })
 export class AddEvalSessionDialogComponent {
+  private readonly evalService = inject(EVAL_SERVICE);
+  readonly data: {
+    appName: string;
+    userId: string;
+    sessionId: string;
+    evalSetId: string;
+  } = inject(MAT_DIALOG_DATA);
+  readonly dialogRef = inject(MatDialogRef<AddEvalSessionDialogComponent>);
+
   newCaseId: string = 'case' + uuidv4().slice(0, 6);
 
-  constructor(
-    @Inject(EVAL_SERVICE) private evalService: EvalService,
-    @Inject(MAT_DIALOG_DATA)
-    public data: {
-      appName: string;
-      userId: string;
-      sessionId: string;
-      evalSetId: string;
-    },
-    public dialogRef: MatDialogRef<AddEvalSessionDialogComponent>,
-  ) {}
+  constructor() {}
 
   createNewEvalCase() {
     if (!this.newCaseId || this.newCaseId == '') {

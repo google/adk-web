@@ -22,9 +22,10 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { NewEvalSetDialogComponentComponent } from './new-eval-set-dialog-component.component';
-import { EVAL_SERVICE, EvalService } from '../../../../core/services/eval.service';
+import { EvalService } from '../../../../core/services/eval.service';
 import { of } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import {EVAL_SERVICE} from '../../../../core/services/interfaces/eval';
 
 describe('NewEvalSetDialogComponentComponent', () => {
   let component: NewEvalSetDialogComponentComponent;

@@ -22,9 +22,10 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { AddEvalSessionDialogComponent } from './add-eval-session-dialog.component';
-import { EVAL_SERVICE, EvalService } from '../../../../core/services/eval.service';
+import { EvalService } from '../../../../core/services/eval.service';
 import { of } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import {EVAL_SERVICE} from '../../../../core/services/interfaces/eval';
 
 describe('AddEvalSessionDialogComponent', () => {
   let component: AddEvalSessionDialogComponent;

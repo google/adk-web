@@ -18,15 +18,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { EvalTabComponent } from './eval-tab.component';
-import { EVAL_SERVICE, EvalService } from '../../core/services/eval.service';
-import { SESSION_SERVICE, SessionService } from '../../core/services/session.service';
+import { EvalService } from '../../core/services/eval.service';
+import { SessionService } from '../../core/services/session.service';
 import { of } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import {
-  FEATURE_FLAG_SERVICE,
   FeatureFlagService,
 } from '../../core/services/feature-flag.service';
+import {EVAL_SERVICE} from '../../core/services/interfaces/eval';
+import {SESSION_SERVICE} from '../../core/services/interfaces/session';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 
 describe('EvalTabComponent', () => {
   let component: EvalTabComponent;

@@ -1,0 +1,70 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<h2 mat-dialog-title class="dialog-title">
+  @if (showArgsEditor) {
+    Configure {{ selectedBuiltInTool }}
+  } @else {
+    {{ isEditMode ? 'Edit Built-in Tool' : 'Add Built-in Tool' }}
+  }
+</h2>
+
+<mat-dialog-content>
+  @if (!showArgsEditor) {
+    <div class="tool-categories-container">
+      @for (category of toolCategories; track category.name) {
+        <div class="tool-category">
+          <h3 class="category-title">{{ category.name }}</h3>
+          <div class="tool-list">
+            @for (tool of category.tools; track tool) {
+              <div
+                class="tool-item"
+                [class.selected]="selectedBuiltInTool === tool"
+                (click)="onToolSelected(tool)">
+                <mat-icon class="tool-icon">{{ getToolIcon(tool) }}</mat-icon>
+                <span class="tool-name">{{ tool }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="args-editor-container">
+      <h3 class="args-editor-title">Configure Tool Arguments</h3>
+      <app-json-editor
+        [jsonString]="toolArgsString">
+      </app-json-editor>
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (showArgsEditor) {
+    @if (!isEditMode) {
+      <button mat-button (click)="backToToolSelection()">Back</button>
+    }
+    <button mat-button (click)="saveArgs()">{{ isEditMode ? 'Save' : 'Create' }}</button>
+  } @else {
+    <button mat-button (click)="cancel()">Cancel</button>
+    <button
+      mat-button
+      cdkFocusInitial
+      (click)="addTool()">
+      {{ isEditMode ? 'Save' : 'Create' }}
+    </button>
+  }
+</mat-dialog-actions>

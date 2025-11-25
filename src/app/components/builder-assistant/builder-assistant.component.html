@@ -1,0 +1,88 @@
+<!--
+Copyright 2025 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<div class="builder-assistant-panel" [class.hidden]="!isVisible">
+  <div class="panel-header">
+    <div class="panel-title">
+      <mat-icon>auto_awesome</mat-icon>
+      <span>Assistant</span>
+    </div>
+    <button
+      mat-icon-button
+      class="close-btn"
+      (click)="onClosePanel()"
+      matTooltip="Close assistant panel">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="panel-content">
+    <div class="chat-messages" #chatMessages>
+      @if (messages.length === 0) {
+        <div class="assistant-placeholder">
+          <mat-icon class="large-icon">smart_toy</mat-icon>
+          <h3>Assistant Ready</h3>
+          <p>Your builder assistant is ready to help you build agents.</p>
+        </div>
+      } @else {
+        @for (message of messages; track message; let i = $index) {
+          <div [ngClass]="{
+            'user-message': message.role === 'user',
+            'bot-message': message.role === 'bot'
+          }">
+            <mat-card class="message-card">
+              @if (message.isLoading) {
+                <div class="loading-message">
+                  <span class="dots">・・・</span>
+                </div>
+              } @else {
+                @if (message.role === 'bot') {
+                  <div class="bot-label">Assistant</div>
+                  <ng-container [ngComponentOutlet]="markdownComponent" [ngComponentOutletInputs]="{text: message.text!, thought: false}"></ng-container>
+                } @else {
+                  <div class="message-text">{{message.text}}</div>
+                }
+              }
+            </mat-card>
+          </div>
+        }
+      }
+    </div>
+
+    <div class="chat-input-container">
+      <div class="input-wrapper">
+        <textarea
+          class="assistant-input-box"
+          cdkTextareaAutosize
+          cdkAutosizeMinRows="1"
+          cdkAutosizeMaxRows="5"
+          [(ngModel)]="userMessage"
+          placeholder="Ask Gemini to build your agent"
+          (keydown)="onKeyDown($event)"
+          [disabled]="isGenerating"
+        ></textarea>
+        <button
+          mat-icon-button
+          (click)="sendMessage(userMessage.trim())"
+          [disabled]="!userMessage.trim() || isGenerating"
+          class="send-button"
+          matTooltip="Send message">
+          <mat-icon>send</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -15,7 +15,11 @@
 -->
 
 <div class="state-wrapper">
-    <div>
-        <ngx-json-viewer [json]="sessionState"></ngx-json-viewer>
-    </div>
+  @if (isEmptyState) {
+  <div class="empty-state">{{ i18n.stateIsEmpty }}</div>
+  } @else {
+  <div>
+    <ngx-json-viewer [json]="sessionState"></ngx-json-viewer>
+  </div>
+  }
 </div>

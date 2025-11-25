@@ -17,7 +17,7 @@
 
 import {TextFieldModule} from '@angular/cdk/text-field';
 import {CommonModule, DOCUMENT, NgClass, NgStyle} from '@angular/common';
-import {AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, EventEmitter, inject, Inject, Input, OnChanges, Output, Renderer2, signal, SimpleChanges, ViewChild, Type} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, EventEmitter, inject, Inject, Input, OnChanges, Output, Renderer2, signal, SimpleChanges, Type, ViewChild} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
@@ -26,13 +26,15 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {NgxJsonViewerModule} from 'ngx-json-viewer';
 
 import type {EvalCase} from '../../core/models/Eval';
-import {FEATURE_FLAG_SERVICE} from '../../core/services/feature-flag.service';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 import {STRING_TO_COLOR_SERVICE} from '../../core/services/interfaces/string-to-color';
+import {UI_STATE_SERVICE} from '../../core/services/interfaces/ui-state';
 import {MediaType,} from '../artifact-tab/artifact-tab.component';
 import {AudioPlayerComponent} from '../audio-player/audio-player.component';
 import {MARKDOWN_COMPONENT, MarkdownComponentInterface} from '../markdown/markdown.component.interface';
@@ -47,10 +49,22 @@ const ROOT_AGENT = 'root_agent';
   styleUrl: './chat-panel.component.scss',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, MatIconModule, MatCardModule,
-    MatProgressBarModule, MatButtonModule, MatInputModule, TextFieldModule,
-    MatFormFieldModule, MatMenuModule, NgxJsonViewerModule,
-    AudioPlayerComponent, MatTooltipModule, NgClass, NgStyle,
+    CommonModule,
+    FormsModule,
+    MatIconModule,
+    MatCardModule,
+    MatProgressBarModule,
+    MatButtonModule,
+    MatInputModule,
+    TextFieldModule,
+    MatFormFieldModule,
+    MatMenuModule,
+    MatProgressSpinnerModule,
+    NgxJsonViewerModule,
+    AudioPlayerComponent,
+    MatTooltipModule,
+    NgClass,
+    NgStyle,
   ],
 })
 export class ChatPanelComponent implements OnChanges, AfterViewInit {
@@ -101,9 +115,10 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   scrollInterrupted = false;
   private previousMessageCount = 0;
   protected readonly i18n = inject(ChatPanelMessagesInjectionToken);
+  protected readonly uiStateService = inject(UI_STATE_SERVICE);
   private readonly stringToColorService = inject(STRING_TO_COLOR_SERVICE);
   readonly markdownComponent: Type<MarkdownComponentInterface> = inject(
-    MARKDOWN_COMPONENT,
+      MARKDOWN_COMPONENT,
   );
   private readonly featureFlagService = inject(FEATURE_FLAG_SERVICE);
   readonly MediaType = MediaType;
@@ -114,6 +129,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
       this.featureFlagService.isManualStateUpdateEnabled();
   readonly isBidiStreamingEnabledObs =
       this.featureFlagService.isBidiStreamingEnabled();
+  readonly canEditSession = signal(true);
 
   constructor(private sanitizer: DomSanitizer) {}
 
@@ -162,7 +178,8 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   customIconColorClass(i: number) {
     const agentName = this.getAgentNameFromEvent(i);
     return agentName !== ROOT_AGENT ?
-        `custom-icon-color-${this.stringToColorService.stc(agentName).replace('#', '')}` :
+        `custom-icon-color-${
+            this.stringToColorService.stc(agentName).replace('#', '')}` :
         '';
   }
 

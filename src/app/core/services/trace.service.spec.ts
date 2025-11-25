@@ -16,8 +16,10 @@
  */
 
 import {TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it,}
 import {firstValueFrom} from 'rxjs';
 
+import {initTestBed} from '../../testing/utils';
 import {Span} from '../models/Trace';
 
 import {TraceService} from './trace.service';
@@ -26,6 +28,7 @@ describe('TraceService', () => {
   let service: TraceService;
 
   beforeEach(() => {
+    initTestBed();  // required for 1p compat
     TestBed.configureTestingModule({
       providers: [TraceService],
     });
@@ -74,7 +77,7 @@ describe('TraceService', () => {
   describe('setHoveredMessages', () => {
     it('should set hovered indices to empty if span is undefined', async () => {
       service.setHoveredMessages(undefined, 'inv1');
-      const indices = await firstValueFrom(service.hoveredMessageIndicies$);
+      const indices = await firstValueFrom(service.hoveredMessageIndices$);
       expect(indices).toEqual([]);
     });
 
@@ -95,7 +98,7 @@ describe('TraceService', () => {
          service.setMessages(messages);
          service.setEventData(eventData);
          service.setHoveredMessages(span as Span, 'inv1');
-         const indices = await firstValueFrom(service.hoveredMessageIndicies$);
+         const indices = await firstValueFrom(service.hoveredMessageIndices$);
          expect(indices).toEqual([1]);
        });
 
@@ -116,7 +119,7 @@ describe('TraceService', () => {
          service.setMessages(messages);
          service.setEventData(eventData);
          service.setHoveredMessages(span as Span, 'inv1');
-         const indices = await firstValueFrom(service.hoveredMessageIndicies$);
+         const indices = await firstValueFrom(service.hoveredMessageIndices$);
          expect(indices).toEqual([1]);
        });
   });
@@ -136,10 +139,10 @@ describe('TraceService', () => {
       expect(messages).toEqual([]);
     });
 
-    it('should reset hoveredMessageIndicies to empty array', async () => {
+    it('should reset hoveredMessageIndices to empty array', async () => {
       service.setHoveredMessages({} as Span, 'inv1');
       service.resetTraceService();
-      const indices = await firstValueFrom(service.hoveredMessageIndicies$);
+      const indices = await firstValueFrom(service.hoveredMessageIndices$);
       expect(indices).toEqual([]);
     });
   });

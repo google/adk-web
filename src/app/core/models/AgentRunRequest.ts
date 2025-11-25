@@ -18,7 +18,7 @@
 export declare interface AgentRunRequest {
   appName: string;
   userId: string;
-  sessionId: string;
+  sessionId: string | undefined;
   newMessage: {
     parts: Array<{
       text?: string,

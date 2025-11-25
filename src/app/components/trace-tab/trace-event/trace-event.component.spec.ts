@@ -15,20 +15,28 @@
  * limitations under the License.
  */
 
-import {ComponentFixture, fakeAsync, TestBed, tick,} from '@angular/core/testing';
+import {ComponentFixture,  TestBed,} from '@angular/core/testing';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import {DomSanitizer} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {of} from 'rxjs';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
 
 import {Span} from '../../../core/models/Trace';
-import {EVENT_SERVICE, EventService} from '../../../core/services/event.service';
-import {GRAPH_SERVICE, GraphService} from '../../../core/services/graph.service';
+import {EVENT_SERVICE, EventService} from '../../../core/services/interfaces/event';
+import {FEATURE_FLAG_SERVICE} from '../../../core/services/interfaces/feature-flag';
+import {GRAPH_SERVICE, GraphService} from '../../../core/services/interfaces/graph';
+import {UI_STATE_SERVICE} from '../../../core/services/interfaces/ui-state';
 import {MockEventService} from '../../../core/services/testing/mock-event.service';
+import {MockFeatureFlagService} from '../../../core/services/testing/mock-feature-flag.service';
 import {MockGraphService} from '../../../core/services/testing/mock-graph.service';
 import {MockTraceService} from '../../../core/services/testing/mock-trace.service';
-import {TRACE_SERVICE, TraceService} from '../../../core/services/trace.service';
+import {MockUiStateService} from '../../../core/services/testing/mock-ui-state.service';
+import {TRACE_SERVICE, TraceService} from '../../../core/services/interfaces/trace';
 import {ViewImageDialogComponent} from '../../view-image-dialog/view-image-dialog.component';
+import {fakeAsync,
+        initTestBed,
+        tick} from '../../../testing/utils';
 
 import {TraceEventComponent} from './trace-event.component';
 
@@ -49,6 +57,8 @@ describe('TraceEventComponent', () => {
   let matDialog: jasmine.SpyObj<MatDialog>;
   let domSanitizer: jasmine.SpyObj<DomSanitizer>;
   let graphService: MockGraphService;
+  let featureFlagService: MockFeatureFlagService;
+  let uiStateService: MockUiStateService;
 
   const span: Span = {
     name: 'test-span',
@@ -64,16 +74,12 @@ describe('TraceEventComponent', () => {
   beforeEach(async () => {
     traceService = new MockTraceService();
     eventService = new MockEventService();
+    uiStateService = new MockUiStateService();
 
     traceService.selectedTraceRow$.next(span);
     traceService.eventData$.next(
         new Map<string, any>([[EVENT_ID, EVENT_DATA]]));
     eventService.getEventTraceResponse.next({
-      name: 'test-span',
-      trace_id: 'trace-id',
-      span_id: 'span-id',
-      start_time: 1,
-      end_time: 2,
       'gcp.vertex.agent.llm_request': '{"data": "request"}',
       'gcp.vertex.agent.llm_response': '{"data": "response"}',
     });
@@ -84,6 +90,10 @@ describe('TraceEventComponent', () => {
     ]);
     graphService = new MockGraphService();
     graphService.render.and.returnValue(Promise.resolve('svg'));
+    featureFlagService = new MockFeatureFlagService();
+    featureFlagService.isEventFilteringEnabled.and.returnValue(of(true));
+
+    initTestBed();  // required for 1p compat
 
     await TestBed
         .configureTestingModule({
@@ -93,6 +103,8 @@ describe('TraceEventComponent', () => {
             {provide: TRACE_SERVICE, useValue: traceService},
             {provide: EVENT_SERVICE, useValue: eventService},
             {provide: GRAPH_SERVICE, useValue: graphService},
+            {provide: FEATURE_FLAG_SERVICE, useValue: featureFlagService},
+            {provide: UI_STATE_SERVICE, useValue: uiStateService},
             {
               provide: DomSanitizer,
               useValue: domSanitizer,
@@ -125,7 +137,17 @@ describe('TraceEventComponent', () => {
     });
 
     it('should call event service to get trace for the selected row', () => {
-      expect(eventService.getEventTrace).toHaveBeenCalledWith(EVENT_ID);
+      expect(eventService.getEventTrace).toHaveBeenCalledWith({id: EVENT_ID});
+    });
+
+    it('should set loading state for event trace', () => {
+      expect(uiStateService.setIsEventRequestResponseLoading)
+          .toHaveBeenCalledWith(true);
+      expect(uiStateService.setIsEventRequestResponseLoading)
+          .toHaveBeenCalledWith(false);
+      const calls =
+          uiStateService.setIsEventRequestResponseLoading.calls.allArgs();
+      expect(calls).toEqual([[true], [false]]);
     });
 
     it('should call event service to get event details for the selected row',
@@ -146,6 +168,32 @@ describe('TraceEventComponent', () => {
     it('should parse LLM response from the event trace', () => {
       expect(component.llmResponse).toEqual({data: 'response'});
     });
+
+    it('should call getEventTrace with event and parse llm request/response',
+       () => {
+         const invocationId = 'inv-1';
+         const startTime = 123456789000000;
+         const llmRequest = {prompt: 'test prompt'};
+         const llmResponse = {response: 'test response'};
+         eventService.getEventTraceResponse.next({
+           'gcp.vertex.agent.llm_request': JSON.stringify(llmRequest),
+            'gcp.vertex.agent.llm_response': JSON.stringify(llmResponse),
+         });
+
+         traceService.selectedTraceRow$.next({
+           ...span,
+           invoc_id: invocationId,
+           start_time: startTime,
+         });
+
+         expect(eventService.getEventTrace).toHaveBeenCalledWith({
+          id: EVENT_ID,
+           invocationId,
+           timestamp: startTime / 1000000,
+         });
+         expect(component.llmRequest).toEqual(llmRequest);
+         expect(component.llmResponse).toEqual(llmResponse);
+       });
   });
 
   describe('getEventIdFromSpan()', () => {

@@ -15,22 +15,16 @@
  * limitations under the License.
  */
 
-import {inject, Injectable, InjectionToken} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {Observable, of, pipe} from 'rxjs';
 import {map} from 'rxjs/operators';
-
-export const IMPORT_SESSION = 'import_session';
-export const EDIT_FUNCTION_ARGS = 'edit_function_args';
-export const SESSION_URL = 'session_url';
-export const A2A_CARD = 'a2a_card';
-
-export const FEATURE_FLAG_SERVICE = new InjectionToken<FeatureFlagService>('FeatureFlagService');
+import {A2A_CARD, EDIT_FUNCTION_ARGS, FeatureFlagService as FeatureFlagServiceInterface, IMPORT_SESSION, SESSION_URL} from './interfaces/feature-flag';
 
 @Injectable({
   providedIn: 'root'
 })
-export class FeatureFlagService {
+export class FeatureFlagService implements FeatureFlagServiceInterface {
   private route = inject(ActivatedRoute);
 
   constructor() {}
@@ -90,6 +84,38 @@ export class FeatureFlagService {
   }
 
   isBidiStreamingEnabled(): Observable<boolean> {
+    return of(true);
+  }
+
+  isExportSessionEnabled(): Observable<boolean> {
+    return of(true);
+  }
+
+  isEventFilteringEnabled(): Observable<boolean> {
+    return of(false);
+  }
+
+  isDeleteSessionEnabled(): Observable<boolean> {
+    return of(true);
+  }
+
+  isLoadingAnimationsEnabled(): Observable<boolean> {
+    return of(true);
+  }
+
+  isSessionsTabReorderingEnabled(): Observable<boolean> {
+    return of(false);
+  }
+
+  isSessionFilteringEnabled(): Observable<boolean> {
+    return of(false);
+  }
+
+  isSessionReloadOnNewMessageEnabled(): Observable<boolean> {
+    return of(false);
+  }
+
+  isUserIdOnToolbarEnabled(): Observable<boolean> {
     return of(true);
   }
 }

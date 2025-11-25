@@ -17,14 +17,54 @@
 .session-wrapper {
   padding-left: 25px;
   padding-right: 25px;
-  color: var(--session-tab-session-wrapper-color);
   font-size: 14px;
   font-weight: 700;
+  color: var(--session-tab-session-wrapper-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+
+  .empty-state {
+    color: initial;
+    padding-top: 1em;
+    text-align: center;
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  .session-filter-container {
+    background-color: var(
+      --session-tab-session-filter-container-background-color
+    );
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    margin-top: 16px;
+  }
+
+  .session-filter {
+    width: 100%;
+
+    ::ng-deep {
+      .mdc-floating-label--float-above {
+        background-color: var(
+          --session-tab-session-filter-container-background-color
+        );
+      }
+    }
+  }
+}
+
+.session-tab-container {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .session-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   border: none;
   background-color: var(--session-tab-session-item-background-color);
   border-radius: 8px;
@@ -36,6 +76,10 @@
   }
   &.current {
     background-color: var(--session-tab-session-item-current-background-color);
+  }
+
+  mat-chip {
+    margin-right: 11px;
   }
 }
 
@@ -61,4 +105,38 @@
 
 .session-info {
   padding: 11px;
+}
+
+.loading-spinner-container {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 2em;
+  width: 100%;
+}
+
+.load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 1em;
+}
+
+.readonly-badge {
+  color: var(--chat-readonly-badge-color);
+  background-color: var(--chat-readonly-badge-background-color);
+  border-radius: 4px;
+  padding: 1px 6px;
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  gap: 4px;
+  white-space: nowrap;
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    padding-top: 1px;
+    flex-shrink: 0;
+  }
 }

@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Inject, Input} from '@angular/core';
+import {Component, inject, Input} from '@angular/core';
 
 import {Span} from '../../../core/models/Trace';
-import {TRACE_SERVICE, TraceService} from '../../../core/services/trace.service';
+import {TRACE_SERVICE} from '../../../core/services/interfaces/trace';
 
 @Component({
   selector: 'app-trace-tree',
@@ -41,8 +41,9 @@ export class TraceTreeComponent {
     ['call_llm', 'chat'],
   ]);
   selectedRow: Span|undefined = undefined;
+  private readonly traceService = inject(TRACE_SERVICE);
 
-  constructor(@Inject(TRACE_SERVICE) private traceService: TraceService) {}
+  constructor() {}
 
   ngOnInit(): void {
     this.tree = this.buildSpanTree(this.spans);

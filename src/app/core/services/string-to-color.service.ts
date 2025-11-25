@@ -17,14 +17,15 @@
 
 import {Injectable, InjectionToken} from '@angular/core';
 import stc from 'string-to-color';
-
-import {StringToColorService} from './interfaces/string-to-color';
+import {StringToColorService as StringToColorServiceInterface} from './interfaces/string-to-color';
 
 /**
  * Service to convert a string to a color.
  */
-@Injectable({providedIn: 'root'})
-export class StringToColorServiceImpl implements StringToColorService {
+@Injectable({
+  providedIn: 'root',
+})
+export class StringToColorServiceImpl implements StringToColorServiceInterface {
   /**
    * Converts a string to a color, e.g. 'my string' -> '#8c8526ff'.
    */

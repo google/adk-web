@@ -16,8 +16,11 @@
  */
 
 import {TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it,}
 
-import {AUDIO_PLAYING_SERVICE} from './audio-playing.service';
+import {initTestBed} from '../../testing/utils';
+
+import {AUDIO_PLAYING_SERVICE} from './interfaces/audio-playing';
 import {MockAudioPlayingService} from './testing/mock-audio-playing.service';
 import {WebSocketService} from './websocket.service';
 
@@ -26,6 +29,7 @@ describe('WebSocketService', () => {
   let mockAudioPlayingService: MockAudioPlayingService;
 
   beforeEach(() => {
+    initTestBed();  // required for 1p compat
     mockAudioPlayingService = new MockAudioPlayingService();
 
     TestBed.configureTestingModule({

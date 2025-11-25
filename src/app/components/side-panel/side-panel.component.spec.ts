@@ -27,28 +27,44 @@ import {By} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ActivatedRoute, Router} from '@angular/router';
 import {of} from 'rxjs';
-
-import {AGENT_SERVICE, AgentService} from '../../core/services/agent.service';
-import {ARTIFACT_SERVICE, ArtifactService,} from '../../core/services/artifact.service';
-import {AUDIO_RECORDING_SERVICE, AudioRecordingService} from '../../core/services/audio-recording.service';
-import {DOWNLOAD_SERVICE, DownloadService,} from '../../core/services/download.service';
-import {EVAL_SERVICE, EvalService} from '../../core/services/eval.service';
-import {EVENT_SERVICE, EventService} from '../../core/services/event.service';
-import {FEATURE_FLAG_SERVICE, FeatureFlagService,} from '../../core/services/feature-flag.service';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
+import {
+  EVAL_TAB_COMPONENT,
+  EvalTabComponent,
+} from '../eval-tab/eval-tab.component';
+import {AgentService} from '../../core/services/agent.service';
+import {ArtifactService} from '../../core/services/artifact.service';
+import {AudioRecordingService} from '../../core/services/audio-recording.service';
+import {DownloadService} from '../../core/services/download.service';
+import {EvalService} from '../../core/services/eval.service';
+import {EventService} from '../../core/services/event.service';
+import {FeatureFlagService} from '../../core/services/feature-flag.service';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
-import {SESSION_SERVICE, SessionService,} from '../../core/services/session.service';
+import {SessionService} from '../../core/services/session.service';
 import {MockFeatureFlagService} from '../../core/services/testing/mock-feature-flag.service';
 import {MockSafeValuesService} from '../../core/services/testing/mock-safevalues.service';
-import {TRACE_SERVICE, TraceService} from '../../core/services/trace.service';
-import {VIDEO_SERVICE, VideoService} from '../../core/services/video.service';
-import {WEBSOCKET_SERVICE, WebSocketService,} from '../../core/services/websocket.service';
+import {MockUiStateService} from '../../core/services/testing/mock-ui-state.service';
+import {TraceService} from '../../core/services/trace.service';
+import {VideoService} from '../../core/services/video.service';
+import {WebSocketService} from '../../core/services/websocket.service';
+import {AGENT_SERVICE} from '../../core/services/interfaces/agent';
+import {ARTIFACT_SERVICE} from '../../core/services/interfaces/artifact';
+import {AUDIO_RECORDING_SERVICE} from '../../core/services/interfaces/audio-recording';
+import {DOWNLOAD_SERVICE} from '../../core/services/interfaces/download';
+import {EVAL_SERVICE} from '../../core/services/interfaces/eval';
+import {EVENT_SERVICE} from '../../core/services/interfaces/event';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
+import {SESSION_SERVICE} from '../../core/services/interfaces/session';
+import {TRACE_SERVICE} from '../../core/services/interfaces/trace';
+import {UI_STATE_SERVICE, UiStateService as UiStateServiceInterface} from '../../core/services/interfaces/ui-state';
+import {VIDEO_SERVICE} from '../../core/services/interfaces/video';
+import {WEBSOCKET_SERVICE} from '../../core/services/interfaces/websocket';
+import {initTestBed} from '../../testing/utils';
 
 import {SidePanelComponent} from './side-panel.component';
 
 const TABS_CONTAINER_SELECTOR = By.css('.tabs-container');
 const DETAILS_PANEL_SELECTOR = By.css('.details-panel-container');
-const HEADER_CLOSE_BUTTON_SELECTOR =
-    By.css('.drawer-header .material-symbols-outlined');
 const TAB_HEADERS_SELECTOR = By.css('[role="tab"]');
 const EVENT_TAB_SELECTOR = By.css('app-event-tab');
 const SESSION_TAB_SELECTOR = By.css('app-session-tab');
@@ -75,6 +91,7 @@ describe('SidePanelComponent', () => {
   let mockEvalService: jasmine.SpyObj<EvalService>;
   let mockTraceService: jasmine.SpyObj<TraceService>;
   let mockAgentService: jasmine.SpyObj<AgentService>;
+  let mockUiStateService: MockUiStateService;
   let mockFeatureFlagService: MockFeatureFlagService;
   let mockDialog: jasmine.SpyObj<MatDialog>;
   let mockSnackBar: jasmine.SpyObj<MatSnackBar>;
@@ -132,13 +149,14 @@ describe('SidePanelComponent', () => {
         ['setEventData', 'setMessages', 'selectedRow', 'setHoveredMessages'],
         {
           selectedTraceRow$: of(null),
-          hoveredMessageIndicies$: of([]),
+          hoveredMessageIndices$: of([]),
         },
     );
     mockAgentService = jasmine.createSpyObj(
         'AgentService',
         ['listApps', 'getApp', 'getLoadingState', 'setApp', 'runSse'],
     );
+    mockUiStateService = new MockUiStateService();
     mockFeatureFlagService = new MockFeatureFlagService();
     mockDialog = jasmine.createSpyObj('MatDialog', ['open']);
     mockSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
@@ -151,7 +169,10 @@ describe('SidePanelComponent', () => {
       queryParams: of({}),
     };
     mockEvalService.getEvalSets.and.returnValue(of([]));
-    mockSessionService.listSessions.and.returnValue(of([]));
+    mockSessionService.listSessions.and.returnValue(of({
+      items: [],
+      nextPageToken: '',
+    }));
     mockEvalService.listEvalResults.and.returnValue(of([]));
     mockFeatureFlagService.isEditFunctionArgsEnabled.and.returnValue(of(false));
     mockFeatureFlagService.isImportSessionEnabled.and.returnValue(of(false));
@@ -166,10 +187,12 @@ describe('SidePanelComponent', () => {
     mockFeatureFlagService.isManualStateUpdateEnabled.and.returnValue(of(true));
     mockFeatureFlagService.isBidiStreamingEnabled.and.returnValue(of(true));
 
+    initTestBed();  // required for 1p compatibility
     await TestBed
         .configureTestingModule({
           imports: [SidePanelComponent, MatDialogModule, NoopAnimationsModule],
           providers: [
+            {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
             {provide: SESSION_SERVICE, useValue: mockSessionService},
             {provide: ARTIFACT_SERVICE, useValue: mockArtifactService},
             {
@@ -183,6 +206,7 @@ describe('SidePanelComponent', () => {
             {provide: EVAL_SERVICE, useValue: mockEvalService},
             {provide: TRACE_SERVICE, useValue: mockTraceService},
             {provide: AGENT_SERVICE, useValue: mockAgentService},
+            {provide: UI_STATE_SERVICE, useValue: mockUiStateService},
             {provide: FEATURE_FLAG_SERVICE, useValue: mockFeatureFlagService},
             {provide: MatDialog, useValue: mockDialog},
             {provide: MatSnackBar, useValue: mockSnackBar},
@@ -191,13 +215,12 @@ describe('SidePanelComponent', () => {
             {provide: Location, useValue: mockLocation},
             {provide: SAFE_VALUES_SERVICE, useClass: MockSafeValuesService},
           ],
-        })
-        .compileComponents();
+        });
 
     fixture = TestBed.createComponent(SidePanelComponent);
     component = fixture.componentInstance;
-    component.appName = 'test-app';
-    component.showSidePanel = true;
+    fixture.componentRef.setInput('appName', 'test-app');
+    fixture.componentRef.setInput('showSidePanel', true);
     fixture.detectChanges();
   });
 
@@ -215,8 +238,8 @@ describe('SidePanelComponent', () => {
 
   describe('App Selector', () => {
     beforeEach(() => {
-      component.isApplicationSelectorEnabledObs = of(true);
-      component.apps$ = of(['app1', 'app2']);
+      fixture.componentRef.setInput('isApplicationSelectorEnabledObs', of(true));
+      fixture.componentRef.setInput('apps$', of(['app1', 'app2']));
       fixture.detectChanges();
     });
 
@@ -289,7 +312,7 @@ describe('SidePanelComponent', () => {
   describe('Rendering', () => {
     describe('when appName is empty', () => {
       beforeEach(() => {
-        component.appName = '';
+        fixture.componentRef.setInput('appName', '');
         fixture.detectChanges();
       });
       it('does not show tabs container', () => {
@@ -306,7 +329,7 @@ describe('SidePanelComponent', () => {
 
     describe('when selectedEvent is undefined', () => {
       beforeEach(() => {
-        component.selectedEvent = undefined;
+        fixture.componentRef.setInput('selectedEvent', undefined);
         fixture.detectChanges();
       });
       it('does not show details panel', () => {
@@ -316,7 +339,7 @@ describe('SidePanelComponent', () => {
 
     describe('when selectedEvent is defined', () => {
       beforeEach(() => {
-        component.selectedEvent = {id: 'event1'};
+        fixture.componentRef.setInput('selectedEvent', {id: 'event1'});
         fixture.detectChanges();
       });
       it('shows details panel', () => {
@@ -325,22 +348,28 @@ describe('SidePanelComponent', () => {
     });
   });
 
-  describe('Header', () => {
-    describe('when close button is clicked', () => {
-      beforeEach(() => {
-        spyOn(component.closePanel, 'emit');
-        const closeButton = fixture.debugElement.query(
-            HEADER_CLOSE_BUTTON_SELECTOR,
-        );
-        closeButton.nativeElement.click();
-      });
-      it('emits closePanel event', () => {
-        expect(component.closePanel.emit).toHaveBeenCalled();
-      });
-    });
-  });
-
   describe('Tabs', () => {
+    it('when sessionsTabReordering is disabled, Session tab should be the 4th tab',
+       () => {
+         const tabGroup = fixture.debugElement.query(By.directive(MatTabGroup));
+         const tabLabels = tabGroup.queryAll(By.css('.tab-label'));
+         const sessionsLabel = tabLabels[SESSIONS_TAB_INDEX];
+         expect(sessionsLabel.nativeElement.textContent.trim())
+             .toEqual('Sessions');
+       });
+
+    it('when sessionsTabReordering is enabled, Session tab should be the 0th tab',
+       () => {
+         mockFeatureFlagService.isSessionsTabReorderingEnabledResponse.next(
+             true);
+         fixture.detectChanges();
+         const tabGroup = fixture.debugElement.query(By.directive(MatTabGroup));
+         const tabLabels = tabGroup.queryAll(By.css('.tab-label'));
+         const sessionsLabel = tabLabels[0];
+         expect(sessionsLabel.nativeElement.textContent.trim())
+             .toEqual('Sessions');
+       });
+
     describe('when tab is changed', () => {
       beforeEach(() => {
         spyOn(component.tabChange, 'emit');
@@ -415,8 +444,10 @@ describe('SidePanelComponent', () => {
           beforeEach(() => {
             spyOn(component.evalCaseSelected, 'emit');
             const evalTab = fixture.debugElement.query(EVAL_TAB_SELECTOR);
-            evalTab.triggerEventHandler(
-                'evalCaseSelected', {evalId: 'eval1'} as any);
+            evalTab.componentInstance.evalCaseSelected.emit({
+              evalId: 'eval1',
+            } as any);
+            fixture.detectChanges();
           });
           it('emits evalCaseSelected', () => {
             expect(component.evalCaseSelected.emit).toHaveBeenCalledWith({
@@ -429,7 +460,8 @@ describe('SidePanelComponent', () => {
           beforeEach(() => {
             spyOn(component.evalSetIdSelected, 'emit');
             const evalTab = fixture.debugElement.query(EVAL_TAB_SELECTOR);
-            evalTab.triggerEventHandler('evalSetIdSelected', 'set1');
+            evalTab.componentInstance.evalSetIdSelected.emit('set1');
+            fixture.detectChanges();
           });
           it('emits evalSetIdSelected', () => {
             expect(component.evalSetIdSelected.emit)
@@ -441,7 +473,8 @@ describe('SidePanelComponent', () => {
           beforeEach(() => {
             spyOn(component.returnToSession, 'emit');
             const evalTab = fixture.debugElement.query(EVAL_TAB_SELECTOR);
-            evalTab.triggerEventHandler('shouldReturnToSession', true);
+            evalTab.componentInstance.shouldReturnToSession.emit(true);
+            fixture.detectChanges();
           });
           it('emits returnToSession', () => {
             expect(component.returnToSession.emit).toHaveBeenCalledWith(true);
@@ -452,7 +485,8 @@ describe('SidePanelComponent', () => {
           beforeEach(() => {
             spyOn(component.evalNotInstalled, 'emit');
             const evalTab = fixture.debugElement.query(EVAL_TAB_SELECTOR);
-            evalTab.triggerEventHandler('evalNotInstalledMsg', 'error');
+            evalTab.componentInstance.evalNotInstalledMsg.emit('error');
+            fixture.detectChanges();
           });
           it('emits evalNotInstalled', () => {
             expect(component.evalNotInstalled.emit)
@@ -465,7 +499,7 @@ describe('SidePanelComponent', () => {
 
   describe('Details Panel', () => {
     beforeEach(() => {
-      component.selectedEvent = {id: 'event1'};
+      fixture.componentRef.setInput('selectedEvent', {id: 'event1'});
       fixture.detectChanges();
     });
 
@@ -497,7 +531,7 @@ describe('SidePanelComponent', () => {
 
     describe('when event graph is clicked', () => {
       beforeEach(async () => {
-        component.renderedEventGraph = '<div>graph</div>';
+        fixture.componentRef.setInput('renderedEventGraph', '<div>graph</div>');
         fixture.detectChanges();
         await fixture.whenStable();
         fixture.detectChanges();
@@ -507,6 +541,55 @@ describe('SidePanelComponent', () => {
       });
       it('emits openImageDialog', () => {
         expect(component.openImageDialog.emit).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Loading state', () => {
+    describe('when session is loading', () => {
+      beforeEach(() => {
+        mockUiStateService.isSessionLoadingResponse.next(true);
+        fixture.detectChanges();
+      });
+
+      it('shows loading spinner', () => {
+        const spinner =
+            fixture.debugElement.query(By.css('mat-progress-spinner'));
+        expect(spinner).toBeTruthy();
+      });
+
+      it('hides tabs container', () => {
+        expect(fixture.debugElement.query(TABS_CONTAINER_SELECTOR)!.nativeElement.hidden).toBeTrue();
+      });
+
+      it('hides details panel', () => {
+        fixture.componentRef.setInput('selectedEvent', {id: 'event1'});
+        fixture.detectChanges();
+        expect(fixture.debugElement.query(DETAILS_PANEL_SELECTOR)!.nativeElement.hidden).toBeTrue();
+      });
+    });
+
+    describe('when session is not loading', () => {
+      beforeEach(() => {
+        mockUiStateService.isSessionLoadingResponse.next(false);
+        fixture.detectChanges();
+      });
+
+      it('hides loading spinner', () => {
+        const spinner =
+            fixture.debugElement.query(By.css('mat-progress-spinner'));
+        expect(spinner).toBeFalsy();
+      });
+
+      it('shows tabs container', () => {
+        expect(fixture.debugElement.query(TABS_CONTAINER_SELECTOR)!.nativeElement.hidden)
+            .toBeFalse();
+      });
+
+      it('shows details panel when event is selected', () => {
+        fixture.componentRef.setInput('selectedEvent', {id: 'event1'});
+        fixture.detectChanges();
+        expect(fixture.debugElement.query(DETAILS_PANEL_SELECTOR)!.nativeElement.hidden).toBeFalse();
       });
     });
   });

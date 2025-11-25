@@ -17,18 +17,20 @@
 
 import {ElementRef} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it,}
 
 import {URLUtil} from '../../../utils/url-util';
 import {fakeAsync,
+        initTestBed,
         tick} from '../../testing/utils';
 
-import {AUDIO_RECORDING_SERVICE} from './audio-recording.service';
+import {AUDIO_RECORDING_SERVICE} from './interfaces/audio-recording';
 import {StreamChatService} from './stream-chat.service';
 import {MockAudioRecordingService} from './testing/mock-audio-recording.service';
 import {MockVideoService} from './testing/mock-video.service';
 import {MockWebSocketService} from './testing/mock-websocket.service';
-import {VIDEO_SERVICE} from './video.service';
-import {WEBSOCKET_SERVICE} from './websocket.service';
+import {VIDEO_SERVICE} from './interfaces/video';
+import {WEBSOCKET_SERVICE} from './interfaces/websocket';
 
 describe('StreamChatService', () => {
   let service: StreamChatService;
@@ -39,6 +41,7 @@ describe('StreamChatService', () => {
 
 
   beforeEach(() => {
+    initTestBed();  // required for 1p compat
     spyOn(URLUtil, 'getWSServerUrl').and.returnValue('localhost:9876');
     mockWebSocketService = new MockWebSocketService();
     mockAudioRecordingService = new MockAudioRecordingService();

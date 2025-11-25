@@ -16,15 +16,14 @@
  */
 
 import {HttpClient} from '@angular/common/http';
-import {Injectable, InjectionToken} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {URLUtil} from '../../../utils/url-util';
-
-export const ARTIFACT_SERVICE = new InjectionToken<ArtifactService>('ArtifactService');
+import {ArtifactService as ArtifactServiceInterface} from './interfaces/artifact';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ArtifactService {
+export class ArtifactService implements ArtifactServiceInterface {
   apiServerDomain = URLUtil.getApiServerBaseUrl();
   constructor(private http: HttpClient) {}
 

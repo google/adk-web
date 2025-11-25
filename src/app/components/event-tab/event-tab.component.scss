@@ -19,9 +19,17 @@
 .events-wrapper {
   padding-left: 25px;
   padding-right: 25px;
-  color: var(--event-tab-events-wrapper-color);
   font-size: 14px;
   font-weight: 700;
+  color: var(--event-tab-events-wrapper-color);
+
+  .empty-state {
+    color: initial;
+    padding-top: 1em;
+    text-align: center;
+    font-weight: 400;
+    font-style: italic;
+  }
 }
 
 .event-index {
@@ -59,7 +67,8 @@
   @include mat.list-overrides(
     (
       active-indicator-color: var(--event-tab-event-list-active-indicator-color),
-      list-item-container-color: var(--event-tab-event-list-list-item-container-color),
+      list-item-container-color:
+        var(--event-tab-event-list-list-item-container-color),
       list-item-label-text-size: 14px,
       list-item-label-text-weight: 400,
       list-item-one-line-container-height: 52px,

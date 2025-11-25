@@ -17,9 +17,13 @@
 
 import {TestBed} from '@angular/core/testing';
 import {ActivatedRoute, Params} from '@angular/router';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it,}
 import {BehaviorSubject, firstValueFrom} from 'rxjs';
 
-import {A2A_CARD, EDIT_FUNCTION_ARGS, FeatureFlagService, IMPORT_SESSION,} from './feature-flag.service';
+import {initTestBed} from '../../testing/utils';
+
+import {FeatureFlagService} from './feature-flag.service';
+import {A2A_CARD, EDIT_FUNCTION_ARGS, IMPORT_SESSION,} from './interfaces/feature-flag';
 
 class MockActivatedRoute {
   queryParams = new BehaviorSubject<Params>({});
@@ -31,6 +35,7 @@ describe('FeatureFlagService', () => {
 
   beforeEach(() => {
     activatedRoute = new MockActivatedRoute();
+    initTestBed();  // required for 1p compat
     TestBed.configureTestingModule({
       providers: [
         FeatureFlagService,

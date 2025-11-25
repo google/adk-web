@@ -16,18 +16,17 @@
  */
 
 import {HttpClient} from '@angular/common/http';
-import {Injectable, NgZone, InjectionToken} from '@angular/core';
+import {Injectable, NgZone} from '@angular/core';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {URLUtil} from '../../../utils/url-util';
 import {AgentRunRequest} from '../models/AgentRunRequest';
 import {LlmResponse} from '../models/types';
-
-export const AGENT_SERVICE = new InjectionToken<AgentService>('AgentService');
+import {AgentService as AgentServiceInterface} from './interfaces/agent';
 
 @Injectable({
   providedIn: 'root',
 })
-export class AgentService {
+export class AgentService implements AgentServiceInterface {
   apiServerDomain = URLUtil.getApiServerBaseUrl();
   private _currentApp = new BehaviorSubject<string>('');
   currentApp = this._currentApp.asObservable();
@@ -115,5 +114,65 @@ export class AgentService {
       return this.http.get<string[]>(url);
     }
     return new Observable<[]>();
+  }
+
+  agentBuild(req: any): Observable<boolean> {
+    if (this.apiServerDomain != undefined) {
+      const url =
+        this.apiServerDomain + `/builder/save`;
+      return this.http.post<any>(url, req);
+    }
+    return new Observable<false>();
+  }
+
+  agentBuildTmp(req: any): Observable<boolean> {
+    if (this.apiServerDomain != undefined) {
+      const url =
+        this.apiServerDomain + `/builder/save?tmp=true`;
+      return this.http.post<any>(url, req);
+    }
+    return new Observable<false>();
+  }
+
+  getAgentBuilder(agentName: string) {
+    if (this.apiServerDomain != undefined) {
+      const url = 
+        this.apiServerDomain + `/builder/app/${agentName}?ts=${Date.now()}`
+      return this.http.get(url, {
+        responseType: 'text'
+      });
+    }
+    return new Observable<"">();
+  }
+
+  getAgentBuilderTmp(agentName: string) {
+    if (this.apiServerDomain != undefined) {
+      const url = 
+        this.apiServerDomain + `/builder/app/${agentName}?ts=${Date.now()}&tmp=true`
+      return this.http.get(url, {
+        responseType: 'text'
+      });
+    }
+    return new Observable<"">();
+  }
+
+  getSubAgentBuilder(appName: string, relativePath: string) {
+    if (this.apiServerDomain != undefined) {
+      let url = 
+        this.apiServerDomain + `/builder/app/${appName}?ts=${Date.now()}&file_path=${relativePath}&tmp=true`
+      return this.http.get(url, {
+        responseType: 'text'
+      });
+    }
+    return new Observable<"">();
+  }
+
+  agentChangeCancel(appName: string) {
+    if (this.apiServerDomain != undefined) {
+      let url = 
+        this.apiServerDomain + `/builder/app/${appName}/cancel`
+      return this.http.post<any>(url, {});
+    }
+    return new Observable<false>();
   }
 }

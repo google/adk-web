@@ -1,0 +1,329 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<div style="margin-top: 20px; margin-left: 20px; display: flex">
+  <div style="width: 100%">
+    <div class="drawer-header">
+      <div class="drawer-logo">
+        <img src="assets/ADK-512-color.svg" width="32px" height="32px" />
+          Agent Development Kit
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; margin-right: 15px;">
+        <app-theme-toggle></app-theme-toggle>
+        <span
+          class="material-symbols-outlined"
+          style="color: #c4c7c5; cursor: pointer;"
+          matTooltip="Collapse panel"
+          (click)="closePanel.emit()"
+          >left_panel_close</span
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="builder-tabs-container">
+  <div class="builder-tab-content">
+    @if (hierarchyPath.length > 0) {
+      <div class="agent-breadcrumb-container">
+        @for (agent of hierarchyPath; track agent.name; let i = $index) {
+          <div 
+            class="breadcrumb-chip"
+            [class.current-agent]="currentSelectedAgent?.name === agent.name"
+            (click)="selectAgentFromBreadcrumb(agent)">
+            @if (i === 0 && isInAgentToolContext()) {
+              AgentTool: {{agent.name}}
+            } @else {
+              {{agent.name}}
+            }
+          </div>
+          @if (i < hierarchyPath.length - 1) {
+            <mat-icon class="breadcrumb-arrow">chevron_right</mat-icon>
+          }
+        }
+      </div>
+    }
+    <div class="content-wrapper">
+      <div class="builder-panel-wrapper">
+        <div class="panel-title">
+          Configuration
+        </div>
+        <div>
+          @if (agentConfig) {
+            <div class="config-form">
+              <div class="form-row">
+                <mat-form-field class="agent-name-field">
+                  <mat-label>Agent Name</mat-label>
+                  <input matInput [(ngModel)]="agentConfig.name" [disabled]="agentConfig.isRoot"/>
+                </mat-form-field>
+
+                <mat-form-field class="agent-type-field">
+                  <mat-label>Agent Type</mat-label>
+                  <mat-select [(ngModel)]="agentConfig.agent_class" disabled>
+                    @for (type of agentTypes; track type) {
+                    <mat-option [value]="type">{{type}}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              @if (agentConfig.agent_class === 'LlmAgent') {
+                <mat-form-field>
+                  <mat-label>Model</mat-label>
+                  <mat-select [(ngModel)]="agentConfig.model">
+                    @for (model of models; track model) {
+                    <mat-option [value]="model">{{model}}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              }
+
+              @if (agentConfig.agent_class === 'LlmAgent') {
+                <mat-form-field>
+                  <mat-label>Instructions</mat-label>
+                  <textarea matInput rows="5" [(ngModel)]="agentConfig.instruction"></textarea>
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Description (optional)</mat-label>
+                  <textarea matInput rows="3" [(ngModel)]="agentConfig.description"></textarea>
+                </mat-form-field>
+              }
+
+              @if (agentConfig.agent_class === 'LoopAgent') {
+                <mat-form-field>
+                  <mat-label>Max Iteration</mat-label>
+                  <input matInput type="number" [(ngModel)]="agentConfig.max_iterations" min="1"/>
+                </mat-form-field>
+              }
+
+              @if (agentConfig.isAgentTool) {
+                <mat-checkbox [(ngModel)]="agentConfig.skip_summarization">Skip summarization</mat-checkbox>
+              }
+            </div>
+          } 
+        </div>
+      </div>
+
+      @if (agentConfig?.agent_class === 'LlmAgent') {
+        <div class="builder-panel-wrapper">
+          <div class="panel-title">
+            <div>
+              Tools
+            </div>
+            <div>
+              <button
+                mat-icon-button
+                type="button"
+                class="panel-action-button"
+                [matMenuTriggerFor]="toolsMenu"
+                #agentMenuTrigger="matMenuTrigger"
+                aria-label="Add tool"
+              >
+                <mat-icon>add</mat-icon>
+              </button>
+              <mat-menu #toolsMenu="matMenu">
+                  <button
+                    mat-menu-item
+                    (click)="addTool('Function tool')"
+                    [matTooltip]="toolMenuTooltips('Function tool')"
+                    matTooltipPosition="right"
+                  >
+                    <span>Function tool</span>
+                  </button>
+                  <button
+                    mat-menu-item
+                    (click)="addTool('Built-in tool')"
+                    [matTooltip]="toolMenuTooltips('Built-in tool')"
+                    matTooltipPosition="right"
+                  >
+                    <span>Built-in tool</span>
+                  </button>
+                  <button
+                    mat-menu-item
+                    (click)="createAgentTool()"
+                    [matTooltip]="toolMenuTooltips('Agent tool')"
+                    matTooltipPosition="right"
+                  >
+                    <span>Agent tool</span>
+                  </button>
+                </mat-menu>
+            </div>
+          </div>
+          @if (toolsMap$ | async; as toolsMap) {
+              @if (agentConfig && toolsMap.get(agentConfig.name) && toolsMap.get(agentConfig.name)!.length > 0) {
+                <div class="tools-chips-container">
+                  <mat-chip-set aria-label="Tools">
+                    @for (tool of toolsMap.get(agentConfig.name)!; track tool) {
+                      <mat-chip (click)="selectTool(tool)" class="tool-chip">
+                        <mat-icon class="tool-icon" matChipAvatar>{{ getToolIcon(tool) }}</mat-icon>
+                        <span class="tool-chip-name">{{tool.name}}</span>
+                        <button matChipRemove (click)="deleteTool(agentConfig.name, tool); $event.stopPropagation()" aria-label="Remove tool">
+                          <mat-icon>cancel</mat-icon>
+                        </button>
+                      </mat-chip>
+                    }
+                  </mat-chip-set>
+                </div>
+              }
+            }
+        </div>
+      }
+      <div class="builder-panel-wrapper">
+        <div class="panel-title">
+          <div>
+            Sub Agents
+          </div>
+          <div>
+            <button
+              mat-icon-button
+              type="button"
+              class="panel-action-button"
+              [matMenuTriggerFor]="subAgentMenu"
+              aria-label="Add sub agent"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+            <mat-menu #subAgentMenu="matMenu">
+              <button
+                mat-menu-item
+                (click)="addSubAgentWithType('LlmAgent')"
+              >
+                <mat-icon>psychology</mat-icon>
+                <span>LLM Agent</span>
+              </button>
+              <button
+                mat-menu-item
+                (click)="addSubAgentWithType('SequentialAgent')"
+              >
+                <mat-icon>more_horiz</mat-icon>
+                <span>Sequential Agent</span>
+              </button>
+              <button
+                mat-menu-item
+                (click)="addSubAgentWithType('LoopAgent')"
+              >
+                <mat-icon>sync</mat-icon>
+                <span>Loop Agent</span>
+              </button>
+              <button
+                mat-menu-item
+                (click)="addSubAgentWithType('ParallelAgent')"
+              >
+                <mat-icon>density_medium</mat-icon>
+                <span>Parallel Agent</span>
+              </button>
+            </mat-menu>
+          </div>
+        </div>
+        @if (agentConfig && agentConfig.sub_agents && agentConfig.sub_agents.length > 0) {
+          <div class="tools-chips-container">
+            <mat-chip-set aria-label="Sub Agents">
+              @for (subAgent of agentConfig.sub_agents; track subAgent.name) {
+                <mat-chip (click)="selectAgent(subAgent)" class="tool-chip">
+                  <mat-icon class="tool-icon" matChipAvatar>{{ getAgentIcon(subAgent.agent_class) }}</mat-icon>
+                  <span class="tool-chip-name">{{subAgent.name}}</span>
+                  <button matChipRemove (click)="deleteSubAgent(subAgent.name); $event.stopPropagation()" aria-label="Remove sub agent">
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              }
+            </mat-chip-set>
+          </div>
+        }
+      </div>
+      <div class="builder-panel-wrapper">
+        <div class="panel-title">
+          <div>
+            Callbacks
+          </div>
+          <div>
+            <button
+              mat-icon-button
+              type="button"
+              class="panel-action-button"
+              [matMenuTriggerFor]="callbacksMenu"
+              aria-label="Add callback"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+            <mat-menu #callbacksMenu="matMenu">
+              <div class="menu-header">Agent Lifecycle</div>
+              <button mat-menu-item (click)="addCallback('before_agent')" [matTooltip]="callbackMenuTooltips('before_agent')" matTooltipPosition="right">
+                <span>Before Agent</span>
+              </button>
+              <button mat-menu-item (click)="addCallback('after_agent')" [matTooltip]="callbackMenuTooltips('after_agent')" matTooltipPosition="right">
+                <span>After Agent</span>
+              </button>
+              @if (agentConfig?.agent_class === 'LlmAgent') {
+                <mat-divider></mat-divider>
+                <div class="menu-header">Model (LLM) Interaction</div>
+                <button mat-menu-item (click)="addCallback('before_model')" [matTooltip]="callbackMenuTooltips('before_model')" matTooltipPosition="right">
+                  <span>Before Model</span>
+                </button>
+                <button mat-menu-item (click)="addCallback('after_model')" [matTooltip]="callbackMenuTooltips('after_model')" matTooltipPosition="right">
+                  <span>After Model</span>
+                </button>
+                <mat-divider></mat-divider>
+                <div class="menu-header">Tool Execution</div>
+                <button mat-menu-item (click)="addCallback('before_tool')" [matTooltip]="callbackMenuTooltips('before_tool')" matTooltipPosition="right">
+                  <span>Before Tool</span>
+                </button>
+                <button mat-menu-item (click)="addCallback('after_tool')" [matTooltip]="callbackMenuTooltips('after_tool')" matTooltipPosition="right">
+                  <span>After Tool</span>
+                </button>
+              }
+            </mat-menu>
+          </div>
+        </div>
+        @if (callbacksMap$ | async; as callbacksMap) {
+          @if (agentConfig && callbacksMap.get(agentConfig.name) && callbacksMap.get(agentConfig.name)!.length > 0) {
+            <div class="tools-chips-container callbacks-list">
+              <mat-chip-set aria-label="Callbacks">
+                @for (callback of callbacksMap.get(agentConfig.name)!; track callback) {
+                  <div class="callback-row" (click)="editCallback(callback)">
+                    <mat-chip class="callback-chip">
+                      <span class="chip-content">
+                        <span class="chip-type">{{ callback.type }}</span>
+                        <span class="chip-name">{{ callback.name }}</span>
+                      </span>
+                    </mat-chip>
+                    <button
+                      mat-icon-button
+                      class="callback-remove"
+                      (click)="deleteCallback(agentConfig.name, callback); $event.stopPropagation()"
+                      aria-label="Remove callback"
+                    >
+                      <mat-icon>remove</mat-icon>
+                    </button>
+                  </div>
+                }
+              </mat-chip-set>
+            </div>
+          }
+        }
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button mat-raised-button color="secondary" class="save-button" (click)="saveChanges()">
+        Save
+      </button>
+      <button mat-button class="cancel-button" (click)="cancelChanges()">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>

@@ -17,9 +17,11 @@
 
 import {HttpClientTestingModule, HttpTestingController,} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it,}
 import {firstValueFrom} from 'rxjs';
 
 import {URLUtil} from '../../../utils/url-util';
+import {initTestBed} from '../../testing/utils';
 
 import {ArtifactService} from './artifact.service';
 
@@ -39,6 +41,7 @@ describe('ArtifactService', () => {
 
   beforeEach(() => {
     spyOn(URLUtil, 'getApiServerBaseUrl').and.returnValue(API_SERVER_BASE_URL);
+    initTestBed();  // required for 1p compat
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [ArtifactService],

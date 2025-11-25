@@ -23,7 +23,7 @@ import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import {MatIcon} from '@angular/material/icon';
 import {MatSelect} from '@angular/material/select';
 
-import {DOWNLOAD_SERVICE, DownloadService} from '../../core/services/download.service';
+import {DOWNLOAD_SERVICE, DownloadService} from '../../core/services/interfaces/download';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {AudioPlayerComponent} from '../audio-player/audio-player.component';
 import {ViewImageDialogComponent} from '../view-image-dialog/view-image-dialog.component';

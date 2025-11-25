@@ -24,6 +24,6 @@ export const LOCAL_FILE_SERVICE = new InjectionToken<LocalFileService>(
 /**
  * Service to provide methods to handle local files.
  */
-export abstract class LocalFileService {
+export declare abstract class LocalFileService {
   abstract createMessagePartFromFile(file: File): Promise<any>;
 }
