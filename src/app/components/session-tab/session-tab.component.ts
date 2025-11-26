@@ -19,17 +19,15 @@ import {AsyncPipe, NgClass} from '@angular/common';
 import {ChangeDetectorRef, Component, EventEmitter, inject, Input, OnInit, Output, signal,} from '@angular/core';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
-import {MatChip} from '@angular/material/chips';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatIcon, MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
 import {MatProgressBar} from '@angular/material/progress-bar';
 import {ActivatedRoute} from '@angular/router';
-import {BehaviorSubject, combineLatest, of, Subject} from 'rxjs';
+import {of, Subject} from 'rxjs';
 import {catchError, debounceTime, map, switchMap, tap,} from 'rxjs/operators';
 
 import {Session} from '../../core/models/Session';
-import {FeatureFlagService} from '../../core/services/feature-flag.service';
 import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 import {SESSION_SERVICE} from '../../core/services/interfaces/session';
 import {UI_STATE_SERVICE} from '../../core/services/interfaces/ui-state';
@@ -43,7 +41,6 @@ import {SessionTabMessagesInjectionToken} from './session-tab.component.i18n';
   imports: [
     NgClass,
     AsyncPipe,
-    MatChip,
     MatProgressBar,
     MatIcon,
     MatFormFieldModule,

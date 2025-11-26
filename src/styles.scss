@@ -174,13 +174,6 @@ html.light-theme {
 
 // Dark theme dialog overrides
 html.dark-theme {
-  @include mat.dialog-overrides(
-    (
-      container-color: #2b2b2f,
-      subhead-color: white,
-    )
-  );
-
   // Custom property for dialog subhead font
   --mdc-dialog-subhead-font-family: 'Google Sans';
   --mdc-dialog-subhead-font-style: normal;
@@ -188,17 +181,17 @@ html.dark-theme {
   --mdc-dialog-subhead-font-size: 24px;
   --mdc-dialog-subhead-line-height: 32px;
   --mdc-dialog-subhead-color: #e3e3e3;
+
+  @include mat.dialog-overrides(
+    (
+      container-color: #2b2b2f,
+      subhead-color: white,
+    )
+  );
 }
 
 // Light theme dialog overrides
 html.light-theme {
-  @include mat.dialog-overrides(
-    (
-      container-color: #ffffff,
-      subhead-color: #202124,
-    )
-  );
-
   // Custom property for dialog subhead font
   --mdc-dialog-subhead-font-family: 'Google Sans';
   --mdc-dialog-subhead-font-style: normal;
@@ -206,6 +199,13 @@ html.light-theme {
   --mdc-dialog-subhead-font-size: 24px;
   --mdc-dialog-subhead-line-height: 32px;
   --mdc-dialog-subhead-color: #202124;
+
+  @include mat.dialog-overrides(
+    (
+      container-color: #ffffff,
+      subhead-color: #202124,
+    )
+  );
 }
 
 .mat-mdc-dialog-container .mat-mdc-dialog-title.mdc-dialog__title {
@@ -219,13 +219,6 @@ html.light-theme {
 
 // Dark theme progress spinner and custom properties
 html.dark-theme {
-  @include mat.progress-spinner-overrides(
-    (
-      active-indicator-color: #a8c7fa,
-      size: 80,
-    )
-  );
-
   --chat-panel-function-event-button-background-color: white;
   --chat-panel-function-event-button-highlight-background-color: rgb(
     15,
@@ -506,17 +499,18 @@ html.dark-theme {
   --builder-tool-item-background-color: rgba(255, 255, 255, 0.05);
   --builder-tool-item-border-color: rgba(255, 255, 255, 0.1);
   --builder-tool-item-hover-background-color: rgba(255, 255, 255, 0.1);
-}
 
-// Light theme progress spinner and custom properties
-html.light-theme {
   @include mat.progress-spinner-overrides(
     (
-      active-indicator-color: #305f9d,
+      active-indicator-color: #a8c7fa,
       size: 80,
     )
   );
 
+}
+
+// Light theme progress spinner and custom properties
+html.light-theme {
   --chat-panel-function-event-button-background-color: #202124;
   --chat-panel-function-event-button-highlight-background-color: #0f5223;
   --chat-panel-function-event-button-highlight-border-color: #0f5223;
@@ -793,6 +787,13 @@ html.light-theme {
   --builder-tool-item-background-color: #f6f3f3;
   --builder-tool-item-border-color: #c8c6c6;
   --builder-tool-item-hover-background-color: #dcd9d9;
+
+  @include mat.progress-spinner-overrides(
+    (
+      active-indicator-color: #305f9d,
+      size: 80,
+    )
+  );
 }
 
 // Form field overrides for dark theme

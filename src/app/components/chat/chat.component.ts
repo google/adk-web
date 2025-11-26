@@ -15,19 +15,17 @@
  * limitations under the License.
  */
 
-import {AsyncPipe, DOCUMENT, Location, NgClass} from '@angular/common';
+import {AsyncPipe, DOCUMENT, NgClass} from '@angular/common';
 import {HttpErrorResponse} from '@angular/common/http';
 import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, Injectable, OnDestroy, OnInit, Renderer2, signal, viewChild, WritableSignal} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatButton, MatFabButton} from '@angular/material/button';
 import {MatCard} from '@angular/material/card';
-import {MatOption} from '@angular/material/core';
 import {MatDialog} from '@angular/material/dialog';
 import {MatDivider} from '@angular/material/divider';
 import {MatIcon} from '@angular/material/icon';
 import {MatPaginatorIntl} from '@angular/material/paginator';
-import {MatSelect} from '@angular/material/select';
 import {MatDrawer, MatDrawerContainer} from '@angular/material/sidenav';
 import {MatSlideToggle} from '@angular/material/slide-toggle';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -43,7 +41,6 @@ import {AgentRunRequest} from '../../core/models/AgentRunRequest';
 import {EvalCase} from '../../core/models/Eval';
 import {Session, SessionState} from '../../core/models/Session';
 import {Event as AdkEvent, Part} from '../../core/models/types';
-import {AgentBuilderService} from '../../core/services/agent-builder.service';
 import {AGENT_SERVICE} from '../../core/services/interfaces/agent';
 import {AGENT_BUILDER_SERVICE} from '../../core/services/interfaces/agent-builder';
 import {ARTIFACT_SERVICE} from '../../core/services/interfaces/artifact';
@@ -71,10 +68,7 @@ import {EditJsonDialogComponent} from '../edit-json-dialog/edit-json-dialog.comp
 import {EvalTabComponent} from '../eval-tab/eval-tab.component';
 import {PendingEventDialogComponent} from '../pending-event-dialog/pending-event-dialog.component';
 import {DeleteSessionDialogComponent, DeleteSessionDialogData,} from '../session-tab/delete-session-dialog/delete-session-dialog.component';
-import {SessionTabComponent} from '../session-tab/session-tab.component';
 import {SidePanelComponent} from '../side-panel/side-panel.component';
-import {SidePanelMessagesInjectionToken} from '../side-panel/side-panel.component.i18n';
-import {ThemeToggle} from '../theme-toggle/theme-toggle';
 import {TraceEventComponent} from '../trace-tab/trace-event/trace-event.component';
 import {ViewImageDialogComponent} from '../view-image-dialog/view-image-dialog.component';
 
@@ -145,7 +139,6 @@ const BIDI_STREAMING_RESTART_WARNING =
     SidePanelComponent,
     CanvasComponent,
     BuilderTabsComponent,
-    ThemeToggle,
   ],
 })
 export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
