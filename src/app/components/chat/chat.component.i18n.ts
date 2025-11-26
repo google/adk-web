@@ -28,6 +28,7 @@ export const CHAT_MESSAGES = {
   editEvalCaseTooltip: 'Edit current eval case',
   deleteEvalCaseTooltip: 'Delete current eval case',
   sessionIdLabel: 'Session ID',
+  userIdLabel: 'User ID',
   loadingSessionLabel: 'Loading session...',
   tokenStreamingLabel: 'Token Streaming',
   createNewSessionTooltip: 'Create a new Session',
@@ -43,7 +44,7 @@ export const CHAT_MESSAGES = {
   noAgentsFoundWarning: 'Warning: No agents found in current folder.',
   cannotEditSessionMessage:
       'Chat is disabled to prevent changes to the end user\'s session.',
-  readOnlyBadgeLabel: 'Read only',
+  readOnlyBadgeLabel: 'Read-only',
 };
 
 /**

@@ -1,5 +1,4 @@
 /**
- * @license
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,24 +14,29 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
+.theme-toggle-button {
+  color: var(--side-panel-mat-icon-color);
 
-import {PendingEventService} from './interfaces/pendingevent';
+  &:hover {
+    opacity: 0.8;
+  }
+}
 
-/**
- * Service to provide methods to handle pending events.
- */
-@Injectable({
-  providedIn: 'root',
-})
-export class PendingEventServiceImpl extends PendingEventService {
-  createFunctionResponse(
-      id: string,
-      name: string,
-      response: {[key: string]: unknown},
-      ): any {
-    return {
-      'function_response': {id, name, response: response},
-    };
+// Builder mode styling - when used with builder-mode-action-button class
+:host.builder-mode-action-button .theme-toggle-button {
+  background-color: var(--builder-secondary-background-color);
+  color: var(--builder-text-tertiary-color);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  margin-right: 0px !important;
+
+  &:hover {
+    background-color: var(--builder-hover-background-color);
+    color: var(--builder-text-primary-color);
+    opacity: 1;
+  }
+
+  mat-icon {
+    font-size: 20px;
   }
 }

@@ -99,7 +99,10 @@ describe('SessionService', () => {
       const req = httpTestingController.expectOne(SESSIONS_PATH);
       req.flush([]);
       const result = await resultP;
-      expect(result).toEqual([]);
+      expect(result).toEqual({
+        items: [],
+        nextPageToken: '',
+      });
     });
   });
 

@@ -16,7 +16,7 @@
 @use '@angular/material' as mat;
 
 .dialog-title {
-  color: white !important;
+  color: var(--mdc-dialog-supporting-text-color) !important;
   font-family: 'Google Sans';
   font-size: 24px;
 }

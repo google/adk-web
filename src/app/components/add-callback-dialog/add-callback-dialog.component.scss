@@ -116,15 +116,16 @@ mat-form-field {
 
 .callback-info-short {
   font-weight: 500;
-  color: #e3e3e3;
+  color: var(--mat-dialog-content-text-color);
   margin-bottom: 8px;
   line-height: 1.4;
 }
 
 .callback-info-detailed {
-  color: #c4c7ca;
+  color: var(--mat-dialog-content-text-color);
   font-size: 14px;
   line-height: 1.5;
+  opacity: 0.8;
 }
 
 .callback-info-link-container {

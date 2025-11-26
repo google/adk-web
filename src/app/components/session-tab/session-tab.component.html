@@ -15,12 +15,20 @@
 -->
 
 <div class="session-wrapper">
-  @let isSessionListLoading = uiStateService.isSessionListLoading() | async; @if
-  (isSessionListLoading) {
+  @if (isSessionFilteringEnabled | async) {
+  <div class="session-filter-container">
+    <mat-form-field appearance="outline" class="session-filter">
+      <mat-label>{{ i18n.filterSessionsLabel }}</mat-label>
+      <mat-icon matPrefix>filter_list</mat-icon>
+      <input matInput [formControl]="filterControl" />
+    </mat-form-field>
+  </div>
+  } @let isSessionListLoading = uiStateService.isSessionListLoading() | async; @if
+  (isSessionListLoading && !isLoadingMoreInProgress()) {
   <div class="loading-spinner-container">
     <mat-progress-bar mode="indeterminate"></mat-progress-bar>
   </div>
-  } @if (!isSessionListLoading && sessionList.length === 0) {
+  } @else if (!isSessionListLoading && sessionList.length === 0) {
   <div class="empty-state">{{ i18n.noSessionsFound }}</div>
   } @else {
   <div class="session-tab-container" style="margin-top: 16px">
@@ -34,10 +42,22 @@
         <div class="session-date">{{ getDate(session) }}</div>
       </div>
       @if ((sessionService.canEdit(userId, session) | async) === false) {
-      <mat-chip>{{ i18n.readonlyChip }}</mat-chip>
+      <div class="readonly-badge">
+        <mat-icon>visibility</mat-icon>
+        {{ i18n.readonlyChip }}
+      </div>
       }
     </div>
+
     }
   </div>
+  @if ((isSessionFilteringEnabled | async) && canLoadMoreSessions) { @if(isSessionListLoading) {
+  <div class="loading-spinner-container">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  </div>
   }
+  <div class="load-more">
+    <button mat-button color="primary" (click)="loadMoreSessions()">Load more</button>
+  </div>
+  } }
 </div>

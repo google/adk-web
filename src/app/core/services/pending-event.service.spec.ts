@@ -26,7 +26,7 @@ describe('PendingEventService', () => {
         'function_response': {
           id,
           name,
-          'response': {'response': response},
+          'response': response,
         },
       };
 
@@ -43,7 +43,7 @@ describe('PendingEventService', () => {
         'function_response': {
           id,
           name,
-          'response': {'response': {}},
+          'response': {},
         },
       };
 

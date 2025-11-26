@@ -191,10 +191,14 @@
   padding: 10px;
   width: 60%;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .input-field {
   flex-grow: 1;
+  position: relative;
+  z-index: 1;
 
   textarea {
     color: var(--chat-panel-input-field-textarea-color);

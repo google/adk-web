@@ -182,7 +182,8 @@ describe('ChatComponent', () => {
       events: of(new NavigationEnd(1, '', '')),
     });
     mockLocation = jasmine.createSpyObj('Location', ['replaceState']);
-    mockAgentBuilderService = jasmine.createSpyObj('AgentBuilderService', ['clear', 'setLoadedAgentData']);
+    mockAgentBuilderService = jasmine.createSpyObj(
+        'AgentBuilderService', ['clear', 'setLoadedAgentData']);
 
     mockActivatedRoute = {
       snapshot: {
@@ -496,10 +497,12 @@ describe('ChatComponent', () => {
           expect(component.traceData.length).toBe(0);
         });
 
-        it('should hide session list spinner', () => {
-          expect(mockUiStateService.setIsSessionListLoading)
-              .toHaveBeenCalledWith(false);
-        });
+        it(
+            'should not hide session list spinner because the session list is still being loaded',
+            () => {
+              expect(mockUiStateService.setIsSessionListLoading)
+                  .toHaveBeenCalledWith(true);
+            });
       });
 
       describe('when session is created with error', () => {
@@ -638,8 +641,7 @@ describe('ChatComponent', () => {
 
             describe('when canEdit throws an error', () => {
               beforeEach(() => {
-                mockSessionService.canEditResponse.error(
-                    new Error('error'));
+                mockSessionService.canEditResponse.error(new Error('error'));
                 mockEventService.getTraceResponse.next([]);
                 component['updateWithSelectedSession'](mockSession as any);
                 fixture.detectChanges();

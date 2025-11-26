@@ -32,12 +32,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  @include mat.button-overrides(
-    (
-      filled-container-color: #89b4f8,
+  @include mat.button-overrides((filled-container-color: #89b4f8,
       filled-label-text-color: black,
-    )
-  );
+    ));
 
   .mat-icon {
     width: 36px;
@@ -71,12 +68,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  @include mat.button-overrides(
-    (
-      filled-container-color: #89b4f8,
+  @include mat.button-overrides((filled-container-color: #89b4f8,
       filled-label-text-color: black,
-    )
-  );
+    ));
 
   .mat-icon {
     width: 36px;
@@ -162,12 +156,8 @@
 }
 
 .function-event-button-highlight {
-  background-color: var(
-    --chat-function-event-button-highlight-background-color
-  );
-  border-color: var(
-    --chat-function-event-button-highlight-border-color
-  ) !important;
+  background-color: var(--chat-function-event-button-highlight-background-color);
+  border-color: var(--chat-function-event-button-highlight-border-color) !important;
   color: var(--chat-function-event-button-highlight-color) !important;
 }
 
@@ -198,11 +188,8 @@
 
 .bot-message:focus-within {
   .message-card {
-    background-color: var(
-      --chat-bot-message-focus-within-message-card-background-color
-    );
-    border: 1px solid
-      var(--chat-bot-message-focus-within-message-card-border-color);
+    background-color: var(--chat-bot-message-focus-within-message-card-background-color);
+    border: 1px solid var(--chat-bot-message-focus-within-message-card-border-color);
   }
 }
 
@@ -446,13 +433,10 @@ button {
 }
 
 .app-select-container {
-  @include mat.select-overrides(
-    (
-      placeholder-text-color: #8ab4f8,
+  @include mat.select-overrides((placeholder-text-color: #8ab4f8,
       enabled-trigger-text-color: #8ab4f8,
       enabled-arrow-color: #8ab4f8,
-    )
-  );
+    ));
 }
 
 .adk-checkbox {
@@ -529,27 +513,25 @@ button {
 }
 
 .toolbar-sse-toggle {
-  @include mat.slide-toggle-overrides(
-    (
-      label-text-size: 14px,
+  @include mat.slide-toggle-overrides((label-text-size: 14px,
       label-text-color: var(--chat-toolbar-sse-toggle-label-text-color),
+      unselected-track-color: var(--chat-toolbar-sse-toggle-unselected-track-color),
+      unselected-focus-track-color: var(--chat-toolbar-sse-toggle-unselected-track-color),
+      unselected-hover-track-color: var(--chat-toolbar-sse-toggle-unselected-track-color),
+      unselected-handle-color: var(--chat-toolbar-sse-toggle-unselected-handle-color),
+      unselected-focus-handle-color: var(--chat-toolbar-sse-toggle-unselected-handle-color),
+      unselected-hover-handle-color: var(--chat-toolbar-sse-toggle-unselected-handle-color),
       selected-track-color: var(--chat-toolbar-sse-toggle-selected-track-color),
-      selected-focus-track-color:
-        var(--chat-toolbar-sse-toggle-selected-track-color),
-      selected-hover-track-color:
-        var(--chat-toolbar-sse-toggle-selected-track-color),
-      selected-handle-color:
-        var(--chat-toolbar-sse-toggle-selected-handle-color),
-      selected-focus-handle-color:
-        var(--chat-toolbar-sse-toggle-selected-handle-color),
-      selected-hover-handle-color:
-        var(--chat-toolbar-sse-toggle-selected-handle-color),
+      selected-focus-track-color: var(--chat-toolbar-sse-toggle-selected-track-color),
+      selected-hover-track-color: var(--chat-toolbar-sse-toggle-selected-track-color),
+      selected-handle-color: var(--chat-toolbar-sse-toggle-selected-handle-color),
+      selected-focus-handle-color: var(--chat-toolbar-sse-toggle-selected-handle-color),
+      selected-hover-handle-color: var(--chat-toolbar-sse-toggle-selected-handle-color),
       track-height: 24px,
       track-width: 46px,
       track-outline-color: var(--chat-toolbar-sse-toggle-track-outline-color),
       with-icon-handle-size: 20px,
-    )
-  );
+    ));
 }
 
 :host ::ng-deep pre {
@@ -571,6 +553,7 @@ button {
   line-height: 16px;
   gap: 4px;
   white-space: nowrap;
+
   mat-icon {
     font-size: 14px;
     width: 14px;
@@ -605,7 +588,7 @@ button {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #131314;
+  background-color: var(--builder-container-background-color);
 }
 
 .builder-exit-button {
@@ -613,27 +596,46 @@ button {
   top: 20px;
   right: 20px;
   z-index: 1000;
+  display: flex;
+  gap: 8px;
 }
 
 .builder-mode-action-button {
-  background-color: rgba(0, 0, 0, 0.7);
-  color: #c4c7c5;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  margin-right: 0px !important;
+  background-color: var(--builder-secondary-background-color) !important;
+  color: var(--builder-text-tertiary-color) !important;
+  border-radius: 50% !important;
+  transition: all 0.2s ease !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border: 1px solid var(--builder-tool-item-border-color) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 
   &:hover {
-    background-color: rgba(234, 67, 53, 0.8);
-    color: white;
+    background-color: var(--builder-tool-item-hover-background-color) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
   }
 
   &.active {
-    background-color: rgba(138, 180, 248, 0.8);
-    color: white;
+    background-color: var(--builder-button-primary-background-color) !important;
+    color: white !important;
+    border-color: var(--builder-button-primary-background-color) !important;
+  }
+
+  .mat-mdc-button-touch-target {
+    display: none !important;
   }
 
   mat-icon {
     font-size: 20px;
+    width: 20px;
+    height: 20px;
   }
 }
 
@@ -651,7 +653,7 @@ app-canvas {
   display: flex;
   width: 100%;
   height: 100%;
-  background-color: #131314;
+  background-color: var(--builder-container-background-color);
 }
 
 .build-left-panel,
@@ -659,21 +661,21 @@ app-canvas {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: #1b1b1b;
-  border: 1px solid #444746;
+  background-color: var(--builder-tertiary-background-color);
+  border: 1px solid var(--builder-border-color);
   margin: 10px;
   border-radius: 8px;
 }
 
 .build-panel-header {
-  background-color: #2d2d2d;
+  background-color: var(--builder-secondary-background-color);
   padding: 16px 20px;
-  border-bottom: 1px solid #444746;
+  border-bottom: 1px solid var(--builder-border-color);
   border-radius: 8px 8px 0 0;
 
   h3 {
     margin: 0;
-    color: #e8eaed;
+    color: var(--builder-text-primary-color);
     font-size: 16px;
     font-weight: 500;
     font-family: 'Google Sans', 'Helvetica Neue', sans-serif;
@@ -683,7 +685,7 @@ app-canvas {
 .build-panel-content {
   flex: 1;
   padding: 20px;
-  color: #9aa0a6;
+  color: var(--builder-text-secondary-color);
   overflow-y: auto;
 
   p {
@@ -695,7 +697,7 @@ app-canvas {
 
 .app-name-option,
 .app-select {
-  color: #9aa0a6;
+  color: var(--builder-text-secondary-color);
   font-family: 'Google Sans Mono', monospace;
   font-style: normal;
   font-weight: 400;

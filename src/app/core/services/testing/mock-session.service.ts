@@ -19,6 +19,7 @@ import {Injectable} from '@angular/core';
 import {of, ReplaySubject} from 'rxjs';
 
 import {Session} from '../../models/Session';
+import {ListResponse} from '../interfaces/session';
 import {SessionService} from '../session.service';
 
 @Injectable()
@@ -26,7 +27,7 @@ export class MockSessionService implements Partial<SessionService> {
   createSessionResponse = new ReplaySubject<Session>(1);
   createSession = jasmine.createSpy('createSession')
                       .and.returnValue(this.createSessionResponse);
-  listSessionsResponse = new ReplaySubject<Session[]>(1);
+  listSessionsResponse = new ReplaySubject<ListResponse<Session>>(1);
   listSessions = jasmine.createSpy('listSessions')
                      .and.returnValue(this.listSessionsResponse);
   deleteSessionResponse = new ReplaySubject<any>(1);

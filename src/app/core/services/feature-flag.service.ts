@@ -106,4 +106,16 @@ export class FeatureFlagService implements FeatureFlagServiceInterface {
   isSessionsTabReorderingEnabled(): Observable<boolean> {
     return of(false);
   }
+
+  isSessionFilteringEnabled(): Observable<boolean> {
+    return of(false);
+  }
+
+  isSessionReloadOnNewMessageEnabled(): Observable<boolean> {
+    return of(false);
+  }
+
+  isUserIdOnToolbarEnabled(): Observable<boolean> {
+    return of(true);
+  }
 }

@@ -31,12 +31,12 @@
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  border-bottom: 1px solid #444746;
+  border-bottom: 1px solid var(--builder-border-color);
 }
 
 .breadcrumb-chip {
   background-color: transparent;
-  color: #5c5f5e;
+  color: var(--builder-text-muted-color);
   font-family: 'Google Sans';
   font-size: 16px;
   font-weight: 500;
@@ -49,24 +49,24 @@
   user-select: none;
 
   &:hover {
-    color: #aecbfa;
+    color: var(--builder-text-link-color);
   }
 
   &.current-agent {
-    color: #dadce0;
+    color: var(--builder-text-primary-color);
     font-weight: 500;
   }
 }
 
 .breadcrumb-arrow {
-  color: #666;
+  color: var(--builder-breadcrumb-separator-color);
   font-size: 16px;
   width: 16px;
   height: 16px;
 }
 
 .builder-tab-content {
-  color: #9aa0a6;
+  color: var(--builder-text-secondary-color);
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -80,10 +80,13 @@
 
   @include mat.form-field-overrides(
     (
-      filled-container-color: #333537,
-      filled-focus-active-indicator-color: #333537,
-      filled-active-indicator-color: #333537,
-      filled-hover-active-indicator-color: #333537,
+      filled-container-color: var(--builder-form-field-background-color),
+      filled-focus-active-indicator-color: var(--builder-form-field-background-color),
+      filled-active-indicator-color: var(--builder-form-field-background-color),
+      filled-hover-active-indicator-color: var(--builder-form-field-background-color),
+      filled-label-text-color: var(--builder-text-secondary-color),
+      filled-focus-label-text-color: var(--builder-text-link-color),
+      filled-hover-label-text-color: var(--builder-text-secondary-color),
     )
   );
 }
@@ -97,7 +100,7 @@
   margin-bottom: 32px;
 
   h4 {
-    color: #e8eaed;
+    color: var(--builder-text-primary-color);
     font-size: 14px;
     font-weight: 500;
     margin: 0 0 16px 0;
@@ -140,14 +143,14 @@
 
     p {
       margin: 0 0 8px 0;
-      color: #9aa0a6;
+      color: var(--builder-text-secondary-color);
       font-size: 14px;
       font-weight: 500;
     }
   }
 
   .tool-args-header {
-    color: #e8eaed;
+    color: var(--builder-text-primary-color);
     font-size: 14px;
     font-weight: 500;
     letter-spacing: 0.5px;
@@ -202,7 +205,7 @@
 
 .no-tools-message {
   display: block;
-  color: #9aa0a6;
+  color: var(--builder-text-secondary-color);
   font-size: 16px;
   margin-top: 16px;
   margin-bottom: 16px;
@@ -222,8 +225,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 4px;
-  background-color: #303030;
-  color: #e8eaed;
+  background-color: var(--builder-card-background-color);
+  color: var(--builder-text-primary-color);
   font-family: 'Google Sans Mono', monospace;
   font-size: 14px;
   font-style: normal;
@@ -236,7 +239,7 @@
   }
 
   &:hover {
-    background-color: #141414;
+    background-color: var(--builder-hover-background-color);
 
     button {
       visibility: visible;
@@ -267,8 +270,8 @@
   }
 
   .mat-mdc-chip.tool-chip {
-    background-color: #303030;
-    color: #e8eaed;
+    background-color: var(--builder-tool-chip-background-color);
+    color: var(--builder-text-primary-color);
     font-family: 'Google Sans', sans-serif;
     font-size: 14px;
     font-weight: 500;
@@ -276,7 +279,7 @@
     margin: 4px;
 
     &:hover {
-      background-color: #3c4043;
+      background-color: var(--builder-tool-chip-hover-color);
     }
   }
 
@@ -299,7 +302,7 @@
 
   .mat-mdc-chip.tool-chip .mat-mdc-chip-remove {
     opacity: 1;
-    color: #9aa0a6;
+    color: var(--builder-text-secondary-color);
 
     mat-icon {
       font-size: 18px;
@@ -308,14 +311,14 @@
     }
 
     &:hover {
-      color: #e8eaed;
+      color: var(--builder-text-primary-color);
     }
   }
 
   .mat-mdc-chip.callback-chip {
-    background: #333537;
-    background-color: #333537;
-    color: #f1f3f4;
+    background: var(--builder-callback-chip-background-color);
+    background-color: var(--builder-callback-chip-background-color);
+    color: var(--builder-callback-chip-text-color);
     font-family: 'Google Sans', sans-serif;
     font-size: 14px;
     display: flex;
@@ -330,8 +333,8 @@
     outline: none;
     --mdc-chip-outline-width: 0;
     --mdc-chip-outline-color: transparent;
-    --mdc-chip-elevated-container-color: #333537;
-    --mdc-chip-flat-container-color: #333537;
+    --mdc-chip-elevated-container-color: var(--builder-callback-chip-background-color);
+    --mdc-chip-flat-container-color: var(--builder-callback-chip-background-color);
     flex: 1 1 auto;
     min-width: 0;
   }
@@ -361,14 +364,14 @@
   }
 
   .mat-mdc-chip.callback-chip .chip-type {
-    color: #8f9aa6;
+    color: var(--builder-callback-chip-type-color);
     font-size: 13px;
     font-weight: 500;
     white-space: nowrap;
   }
 
   .mat-mdc-chip.callback-chip .chip-name {
-    color: #f5f7f9;
+    color: var(--builder-callback-chip-name-color);
     font-size: 15px;
     font-weight: 600;
     flex: 1;
@@ -397,7 +400,7 @@
 }
 
 .callback-remove {
-  color: #f1f3f4;
+  color: var(--builder-icon-color);
   cursor: pointer;
   width: 32px;
   height: 32px;
@@ -428,10 +431,10 @@
   width: 100%;
   background: linear-gradient(
       0deg,
-      rgba(138, 180, 248, 0.24) 0%,
-      rgba(138, 180, 248, 0.24) 100%
+      var(--builder-add-button-background-color) 0%,
+      var(--builder-add-button-background-color) 100%
     ),
-    #202124;
+    var(--builder-panel-background-color);
   border: none;
   border-radius: 4px;
   margin-top: 12px;
@@ -449,7 +452,7 @@
 
 .add-tool-button-text {
   padding-top: 2px;
-  color: var(--Blue-100, #d2e3fc);
+  color: var(--builder-add-button-text-color);
   font-family: 'Google Sans';
   font-size: 14px;
   font-style: normal;
@@ -461,37 +464,37 @@
 .agent-tool-section {
   margin-top: 16px;
   padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--builder-border-color);
   border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--builder-secondary-background-color);
 
   h3 {
-    color: #e8eaed;
+    color: var(--builder-text-primary-color);
     font-size: 16px;
     font-weight: 500;
     margin: 0 0 8px 0;
   }
 
   p {
-    color: #9aa0a6;
+    color: var(--builder-text-secondary-color);
     font-size: 14px;
     margin: 0 0 16px 0;
     line-height: 1.5;
   }
 
   .create-agent-tool-btn {
-    background-color: #8ab4f8;
-    color: #202124;
+    background-color: var(--builder-button-primary-background-color);
+    color: var(--builder-button-primary-text-color);
     font-weight: 500;
 
     &:hover {
-      background-color: #aecbfa;
+      background-color: var(--builder-button-primary-hover-color);
     }
   }
 }
 
 .no-callbacks-message {
-  color: #9aa0a6;
+  color: var(--builder-text-secondary-color);
   font-size: 16px;
   margin-top: 16px;
   text-align: center;
@@ -511,7 +514,7 @@
 
   .callback-section-label {
     margin: 0 0 8px 0;
-    color: #9aa0a6;
+    color: var(--builder-text-secondary-color);
     font-size: 14px;
     font-weight: 500;
     text-transform: none;
@@ -527,9 +530,9 @@
   margin-top: 5px;
   @include mat.expansion-overrides(
     (
-      container-background-color: #333537,
+      container-background-color: var(--builder-expansion-background-color),
       header-focus-state-layer-color: red,
-      header-description-color: #8e918f,
+      header-description-color: var(--builder-expansion-header-description-color),
       header-text-size: 15,
     )
   );
@@ -540,7 +543,7 @@
 }
 
 .no-callbacks-in-type {
-  color: #9aa0a6;
+  color: var(--builder-text-secondary-color);
   font-size: 14px;
   font-style: italic;
   padding: 12px;
@@ -555,8 +558,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 4px;
-  background-color: #303030;
-  color: #e8eaed;
+  background-color: var(--builder-card-background-color);
+  color: var(--builder-text-primary-color);
   font-family: 'Google Sans Mono', monospace;
   font-size: 14px;
   font-style: normal;
@@ -569,7 +572,7 @@
   }
 
   &:hover {
-    background-color: #444746;
+    background-color: var(--builder-expansion-hover-color);
 
     button {
       visibility: visible;
@@ -578,24 +581,24 @@
 }
 
 .add-callback-icon {
-  color: #8ab4f8;
+  color: var(--builder-button-primary-background-color);
 
   &:hover {
-    background-color: rgba(138, 180, 248, 0.1);
+    background-color: var(--builder-add-button-background-color);
   }
 }
 
 // Override expansion panel styles for callbacks
 ::ng-deep .callback-group .mat-expansion-panel-header.mat-expanded:focus {
-  background-color: #444746 !important;
+  background-color: var(--builder-expansion-hover-color) !important;
 }
 
 ::ng-deep .callback-group .mat-expansion-panel-header.mat-expanded {
-  background-color: #444746 !important;
+  background-color: var(--builder-expansion-hover-color) !important;
 }
 
 ::ng-deep .callback-group .mat-expansion-panel-header.mat-expanded:hover {
-  background-color: #444746 !important;
+  background-color: var(--builder-expansion-hover-color) !important;
 }
 
 ::ng-deep .callback-group .mat-expansion-panel-header-title {
@@ -657,34 +660,34 @@ mat-tab-group {
   flex-direction: column;
   gap: 8px;
   padding: 16px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--builder-border-color);
   flex-shrink: 0;
   margin-top: auto;
-  background-color: #202124;
+  background-color: var(--builder-panel-background-color);
 
   .save-button {
-    background-color: #8ab4f8;
-    color: #202124;
+    background-color: var(--builder-button-primary-background-color);
+    color: var(--builder-button-primary-text-color);
     font-weight: 500;
 
     &:hover {
-      background-color: #aecbfa;
+      background-color: var(--builder-button-primary-hover-color);
     }
   }
 
   .cancel-button {
-    color: #9aa0a6;
-    border: 1px solid rgba(154, 160, 166, 0.3);
+    color: var(--builder-button-secondary-text-color);
+    border: 1px solid var(--builder-button-secondary-border-color);
 
     &:hover {
-      background-color: rgba(154, 160, 166, 0.1);
-      color: #e8eaed;
+      background-color: var(--builder-button-secondary-hover-background-color);
+      color: var(--builder-button-secondary-hover-text-color);
     }
   }
 }
 
 .builder-panel-wrapper {
-  border-bottom: 1px solid #444746;
+  border-bottom: 1px solid var(--builder-border-color);
   padding-top: 12px;
   padding-bottom: 12px;
   padding-left: 24px;
@@ -692,7 +695,7 @@ mat-tab-group {
 }
 
 .panel-title {
-  color: #c4c7c5;
+  color: var(--builder-text-tertiary-color);
   font-family: 'Google Sans';
   font-size: 16px;
   font-style: normal;
@@ -702,7 +705,7 @@ mat-tab-group {
   justify-content: space-between;
 
   .panel-action-button {
-    color: #f1f3f4;
+    color: var(--builder-icon-color);
     width: 32px;
     height: 32px;
     min-width: 32px;
@@ -770,10 +773,10 @@ mat-tab-group {
 }
 
 ::ng-deep .mat-mdc-menu-panel {
-  background-color: #303030 !important;
+  background-color: var(--builder-menu-background-color) !important;
 
   .menu-header {
-    color: #9aa0a6;
+    color: var(--builder-text-secondary-color);
     font-size: 12px;
     padding: 8px 16px;
     font-weight: 500;
@@ -782,14 +785,14 @@ mat-tab-group {
   }
 
   .mat-mdc-menu-item {
-    color: #e8eaed;
+    color: var(--builder-text-primary-color);
     &:hover {
-      background-color: #444746;
+      background-color: var(--builder-menu-item-hover-color);
     }
   }
 
   mat-divider {
-    border-top-color: #444746;
+    border-top-color: var(--builder-menu-divider-color);
     margin: 4px 0;
   }
 }

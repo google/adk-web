@@ -13,12 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '@angular/material' as mat;
 
 mat-dialog-content {
   padding: 20px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  color: var(--mdc-dialog-supporting-text-color);
+
+  p {
+    color: var(--mdc-dialog-supporting-text-color);
+  }
+}
+
+// Form field and input styling for dialogs
+:host ::ng-deep {
+  .mat-mdc-form-field {
+    @include mat.form-field-overrides(
+      (
+        filled-container-color: var(--builder-form-field-background-color),
+        filled-label-text-color: var(--mdc-dialog-supporting-text-color),
+        filled-focus-label-text-color: var(--builder-text-link-color),
+        filled-hover-label-text-color: var(--mdc-dialog-supporting-text-color),
+      )
+    );
+  }
+
+  .mat-mdc-input-element {
+    color: var(--mdc-dialog-supporting-text-color) !important;
+    caret-color: var(--mdc-dialog-supporting-text-color) !important;
+  }
+
+  .mat-mdc-input-element::placeholder {
+    color: var(--builder-text-muted-color) !important;
+    opacity: 0 !important;
+  }
+
+  // Show placeholder only when focused and empty
+  .mat-mdc-input-element:focus::placeholder {
+    opacity: 0.6 !important;
+  }
+
+  .mat-mdc-form-field-hint {
+    color: var(--builder-text-muted-color) !important;
+  }
 }
 
 .tool-info-container {
@@ -91,13 +130,13 @@ mat-dialog-content {
 
 .tool-info-short {
   font-weight: 500;
-  color: #e3e3e3;
+  color: var(--mdc-dialog-supporting-text-color) !important;
   margin-bottom: 8px;
   line-height: 1.4;
 }
 
 .tool-info-detailed {
-  color: #c4c7ca;
+  color: var(--mdc-dialog-supporting-text-color) !important;
   font-size: 14px;
   line-height: 1.5;
 }

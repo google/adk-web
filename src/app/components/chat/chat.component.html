@@ -35,69 +35,90 @@
   }
   <mat-drawer class="side-drawer" #sideDrawer mode="side" appResizableDrawer>
     @if (!isBuilderMode()) {
-      <app-side-panel
-        [isApplicationSelectorEnabledObs]="isApplicationSelectorEnabledObs"
-        [apps$]="apps$"
-        [isLoadingApps]="isLoadingApps"
-        [selectedAppControl]="selectedAppControl"
-        [showSidePanel]="showSidePanel"
-        [appName]="appName"
-        [userId]="userId"
-        [sessionId]="sessionId"
-        [traceData]="traceData"
-        [eventData]="eventData"
-        [currentSessionState]="currentSessionState"
-        [artifacts]="artifacts"
-        [selectedEvent]="selectedEvent"
-        [selectedEventIndex]="selectedEventIndex"
-        [renderedEventGraph]="renderedEventGraph"
-        [rawSvgString]="rawSvgString"
-        [llmRequest]="llmRequest"
-        [llmResponse]="llmResponse"
-        [disableBuilderIcon]="disableBuilderSwitch"
-        (closePanel)="toggleSidePanel()"
-        (tabChange)="handleTabChange($event)"
-        (eventSelected)="selectEvent($event)"
-        (sessionSelected)="updateWithSelectedSession($event)"
-        (sessionReloaded)="updateWithSelectedSession($event)"
-        (evalCaseSelected)="updateWithSelectedEvalCase($event)"
-        (evalSetIdSelected)="updateSelectedEvalSetId($event)"
-        (returnToSession)="handleReturnToSession($event)"
-        (evalNotInstalled)="handleEvalNotInstalled($event)"
-        (page)="handlePageEvent($event)"
-        (closeSelectedEvent)="closeSelectedEvent()"
-        (openImageDialog)="openViewImageDialog($event)"
-        (appSelectionChange)="onAppSelection($event)"
-        (openAddItemDialog)="openAddItemDialog()"
-        (enterBuilderMode)="enterBuilderMode()"
-      >
-      </app-side-panel>
+    <app-side-panel
+      [isApplicationSelectorEnabledObs]="isApplicationSelectorEnabledObs"
+      [apps$]="apps$"
+      [isLoadingApps]="isLoadingApps"
+      [selectedAppControl]="selectedAppControl"
+      [showSidePanel]="showSidePanel"
+      [appName]="appName"
+      [userId]="userId"
+      [sessionId]="sessionId"
+      [traceData]="traceData"
+      [eventData]="eventData"
+      [currentSessionState]="currentSessionState"
+      [artifacts]="artifacts"
+      [selectedEvent]="selectedEvent"
+      [selectedEventIndex]="selectedEventIndex"
+      [renderedEventGraph]="renderedEventGraph"
+      [rawSvgString]="rawSvgString"
+      [llmRequest]="llmRequest"
+      [llmResponse]="llmResponse"
+      [disableBuilderIcon]="disableBuilderSwitch"
+      (closePanel)="toggleSidePanel()"
+      (tabChange)="handleTabChange($event)"
+      (eventSelected)="selectEvent($event)"
+      (sessionSelected)="updateWithSelectedSession($event)"
+      (sessionReloaded)="updateWithSelectedSession($event)"
+      (evalCaseSelected)="updateWithSelectedEvalCase($event)"
+      (evalSetIdSelected)="updateSelectedEvalSetId($event)"
+      (returnToSession)="handleReturnToSession($event)"
+      (evalNotInstalled)="handleEvalNotInstalled($event)"
+      (page)="handlePageEvent($event)"
+      (closeSelectedEvent)="closeSelectedEvent()"
+      (openImageDialog)="openViewImageDialog($event)"
+      (appSelectionChange)="onAppSelection($event)"
+      (openAddItemDialog)="openAddItemDialog()"
+      (enterBuilderMode)="enterBuilderMode()"
+    >
+    </app-side-panel>
     } @else {
-      <app-builder-tabs 
-        [appNameInput]="appName" 
-        (exitBuilderMode)="exitBuilderMode()"
-        (closePanel)="toggleSidePanel()"
-      ></app-builder-tabs>
-      <div class="resize-handler"></div>
+    <app-builder-tabs
+      [appNameInput]="appName"
+      (exitBuilderMode)="exitBuilderMode()"
+      (closePanel)="toggleSidePanel()"
+    ></app-builder-tabs>
+    <div class="resize-handler"></div>
     }
-    
   </mat-drawer>
 
   <!-- Builder Mode Layout - Canvas for Diagrams -->
   @if (isBuilderMode()) {
   <div class="builder-mode-container">
     <div class="builder-exit-button">
-      <button mat-icon-button (click)="saveAgentBuilder()" class="builder-mode-action-button" matTooltip="Accept">
+      <button
+        mat-icon-button
+        (click)="saveAgentBuilder()"
+        class="builder-mode-action-button"
+        matTooltip="Accept"
+      >
         <mat-icon>check</mat-icon>
       </button>
-      <button mat-icon-button (click)="exitBuilderMode()" class="builder-mode-action-button" matTooltip="Exit Builder Mode">
+      <button
+        mat-icon-button
+        (click)="exitBuilderMode()"
+        class="builder-mode-action-button"
+        matTooltip="Exit Builder Mode"
+      >
         <mat-icon>close</mat-icon>
       </button>
-      <button mat-icon-button (click)="toggleBuilderAssistant()" class="builder-mode-action-button" matTooltip="Builder Assistant" [class.active]="showBuilderAssistant">
+      <button
+        mat-icon-button
+        (click)="toggleBuilderAssistant()"
+        class="builder-mode-action-button"
+        matTooltip="Builder Assistant"
+        [class.active]="showBuilderAssistant"
+      >
         <mat-icon>assistant</mat-icon>
       </button>
     </div>
-    <app-canvas [showSidePanel]="showSidePanel" [showBuilderAssistant]="showBuilderAssistant" [appNameInput]="appName" (toggleSidePanelRequest)="toggleSidePanel()" (builderAssistantCloseRequest)="toggleBuilderAssistant()"></app-canvas>
+    <app-canvas
+      [showSidePanel]="showSidePanel"
+      [showBuilderAssistant]="showBuilderAssistant"
+      [appNameInput]="appName"
+      (toggleSidePanelRequest)="toggleSidePanel()"
+      (builderAssistantCloseRequest)="toggleBuilderAssistant()"
+    ></app-canvas>
   </div>
   } @else {
   <!-- Test Mode Layout (existing chat interface) -->
@@ -162,12 +183,15 @@
         false) {
         <div class="toolbar-session-text">{{ i18n.sessionIdLabel }}</div>
         <div class="toolbar-session-id">{{ sessionId }}</div>
-        @if (!canEditSession()) {
-          <div class="readonly-badge">
-            <mat-icon>visibility</mat-icon>
-            {{ i18n.readOnlyBadgeLabel }}
-          </div>
-          <div class="readonly-session-message">{{i18n.cannotEditSessionMessage}}</div>
+        @if (isUserIdOnToolbarEnabledObs | async) {
+        <div class="toolbar-session-text" style="margin-left: 16px">{{ i18n.userIdLabel }}</div>
+        <div class="toolbar-session-id">{{ userId }}</div>
+        } @if (!canEditSession()) {
+        <div class="readonly-badge">
+          <mat-icon>visibility</mat-icon>
+          {{ i18n.readOnlyBadgeLabel }}
+        </div>
+        <div class="readonly-session-message">{{i18n.cannotEditSessionMessage}}</div>
         } } @else {
         <div class="toolbar-session-text">{{ i18n.loadingSessionLabel }}</div>
         }

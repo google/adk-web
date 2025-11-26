@@ -20,13 +20,16 @@
         <img src="assets/ADK-512-color.svg" width="32px" height="32px" />
           Agent Development Kit
       </div>
-      <span
-        class="material-symbols-outlined"
-        style="color: #c4c7c5; cursor: pointer; margin-right: 15px"
-        matTooltip="Collapse panel"
-        (click)="closePanel.emit()"
-        >left_panel_close</span
-      >
+      <div style="display: flex; align-items: center; gap: 8px; margin-right: 15px;">
+        <app-theme-toggle></app-theme-toggle>
+        <span
+          class="material-symbols-outlined"
+          style="color: #c4c7c5; cursor: pointer;"
+          matTooltip="Collapse panel"
+          (click)="closePanel.emit()"
+          >left_panel_close</span
+        >
+      </div>
     </div>
   </div>
 </div>

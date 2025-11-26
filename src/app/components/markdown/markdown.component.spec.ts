@@ -69,6 +69,6 @@ describe('MarkdownComponent', () => {
     const markdownElement: HTMLElement|null =
         fixture.nativeElement.querySelector('markdown');
     expect(markdownElement?.style.fontStyle).toBe('normal');
-    expect(markdownElement?.style.color).toBe('white');
+    expect(markdownElement?.style.color).toBe('inherit');
   });
 });

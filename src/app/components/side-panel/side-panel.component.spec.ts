@@ -169,7 +169,10 @@ describe('SidePanelComponent', () => {
       queryParams: of({}),
     };
     mockEvalService.getEvalSets.and.returnValue(of([]));
-    mockSessionService.listSessions.and.returnValue(of([]));
+    mockSessionService.listSessions.and.returnValue(of({
+      items: [],
+      nextPageToken: '',
+    }));
     mockEvalService.listEvalResults.and.returnValue(of([]));
     mockFeatureFlagService.isEditFunctionArgsEnabled.and.returnValue(of(false));
     mockFeatureFlagService.isImportSessionEnabled.and.returnValue(of(false));

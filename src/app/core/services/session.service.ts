@@ -18,10 +18,12 @@
 import {HttpClient} from '@angular/common/http';
 import {Injectable, InjectionToken} from '@angular/core';
 import {Observable, of} from 'rxjs';
+import {map} from 'rxjs/operators';
 
 import {URLUtil} from '../../../utils/url-util';
 import {Session} from '../models/Session';
-import {SessionService as SessionServiceInterface} from './interfaces/session';
+
+import {ListResponse, SessionService as SessionServiceInterface} from './interfaces/session';
 
 @Injectable({
   providedIn: 'root',
@@ -39,14 +41,23 @@ export class SessionService implements SessionServiceInterface {
     return new Observable<Session>();
   }
 
-  listSessions(userId: string, appName: string) {
+  listSessions(userId: string, appName: string):
+      Observable<ListResponse<Session>> {
     if (this.apiServerDomain != undefined) {
       const url =
           this.apiServerDomain + `/apps/${appName}/users/${userId}/sessions`;
 
-      return this.http.get<any>(url);
+      return this.http.get<any>(url).pipe(map((res) => {
+        return {
+          items: res as Session[],
+          nextPageToken: '',
+        };
+      }));
     }
-    return new Observable<Session[]>();
+    return of<ListResponse<Session>>({
+      items: [] as Session[],
+      nextPageToken: '',
+    });
   }
 
   deleteSession(userId: string, appName: string, sessionId: string) {
@@ -65,8 +76,8 @@ export class SessionService implements SessionServiceInterface {
 
   importSession(userId: string, appName: string, events: any[]) {
     if (this.apiServerDomain != undefined) {
-      const url = this.apiServerDomain +
-          `/apps/${appName}/users/${userId}/sessions`;
+      const url =
+          this.apiServerDomain + `/apps/${appName}/users/${userId}/sessions`;
 
       return this.http.post<Session>(url, {
         appName: appName,

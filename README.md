@@ -66,6 +66,31 @@ If you see `adk command not found`, then be sure to install `google-adk` (or rem
 
 Go to `localhost:4200` and start developing!
 
+## Screenshots
+
+### Events
+
+<img width="2548" height="1378" alt="adk-web-events" src="https://github.com/user-attachments/assets/dc2002e4-6d2d-4b84-9d7d-3c482e8d9391" />
+
+### Tracing
+
+<img width="2510" height="1377" alt="adk-web-tracing" src="https://github.com/user-attachments/assets/23a93480-334c-483a-828a-05b0f6117022" />
+
+### Artifacts
+
+<img width="2530" height="1397" alt="adk-web-artifact" src="https://github.com/user-attachments/assets/aacb0866-dbb2-47e4-842c-13f27146c912" />
+
+### Evaluations
+
+
+<img width="2536" height="777" alt="adk-web-eval-2" src="https://github.com/user-attachments/assets/fb5f97e7-8bcc-4512-8b8e-a1123ee78c8e" />
+
+### Agent builder & assistant
+
+![1_h3_I7RjXGLKH5-Td0U2rgw](https://github.com/user-attachments/assets/f73409c4-9b75-474a-9b86-c4525d376b02)
+
+### And more!
+
 ## 🤝 Contributing
 
 We welcome contributions from the community! Whether it's bug reports, feature requests, documentation improvements, or code contributions, please see our

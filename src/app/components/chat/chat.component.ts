@@ -43,6 +43,7 @@ import {AgentRunRequest} from '../../core/models/AgentRunRequest';
 import {EvalCase} from '../../core/models/Eval';
 import {Session, SessionState} from '../../core/models/Session';
 import {Event as AdkEvent, Part} from '../../core/models/types';
+import {AgentBuilderService} from '../../core/services/agent-builder.service';
 import {AGENT_SERVICE} from '../../core/services/interfaces/agent';
 import {AGENT_BUILDER_SERVICE} from '../../core/services/interfaces/agent-builder';
 import {ARTIFACT_SERVICE} from '../../core/services/interfaces/artifact';
@@ -61,7 +62,10 @@ import {UI_STATE_SERVICE} from '../../core/services/interfaces/ui-state';
 import {LOCATION_SERVICE} from '../../core/services/location.service';
 import {ResizableBottomDirective} from '../../directives/resizable-bottom.directive';
 import {ResizableDrawerDirective} from '../../directives/resizable-drawer.directive';
+import {AddItemDialogComponent} from '../add-item-dialog/add-item-dialog.component';
 import {getMediaTypeFromMimetype, MediaType} from '../artifact-tab/artifact-tab.component';
+import {BuilderTabsComponent} from '../builder-tabs/builder-tabs.component';
+import {CanvasComponent} from '../canvas/canvas.component';
 import {ChatPanelComponent} from '../chat-panel/chat-panel.component';
 import {EditJsonDialogComponent} from '../edit-json-dialog/edit-json-dialog.component';
 import {EvalTabComponent} from '../eval-tab/eval-tab.component';
@@ -69,14 +73,12 @@ import {PendingEventDialogComponent} from '../pending-event-dialog/pending-event
 import {DeleteSessionDialogComponent, DeleteSessionDialogData,} from '../session-tab/delete-session-dialog/delete-session-dialog.component';
 import {SessionTabComponent} from '../session-tab/session-tab.component';
 import {SidePanelComponent} from '../side-panel/side-panel.component';
+import {SidePanelMessagesInjectionToken} from '../side-panel/side-panel.component.i18n';
+import {ThemeToggle} from '../theme-toggle/theme-toggle';
 import {TraceEventComponent} from '../trace-tab/trace-event/trace-event.component';
 import {ViewImageDialogComponent} from '../view-image-dialog/view-image-dialog.component';
-import { CanvasComponent } from '../canvas/canvas.component';
-import { AgentBuilderService } from '../../core/services/agent-builder.service';
-import { AddItemDialogComponent } from '../add-item-dialog/add-item-dialog.component';
-import {BuilderTabsComponent} from '../builder-tabs/builder-tabs.component';
-import {SidePanelMessagesInjectionToken} from '../side-panel/side-panel.component.i18n';
-import {CHAT_MESSAGES, ChatMessagesInjectionToken} from './chat.component.i18n';
+
+import {ChatMessagesInjectionToken} from './chat.component.i18n';
 
 const ROOT_AGENT = 'root_agent';
 
@@ -120,7 +122,6 @@ const BIDI_STREAMING_RESTART_WARNING =
   styleUrl: './chat.component.scss',
   providers: [
     {provide: MatPaginatorIntl, useClass: CustomPaginatorIntl},
-    {provide: ChatMessagesInjectionToken, useValue: CHAT_MESSAGES},
   ],
   imports: [
     MatDrawerContainer,
@@ -144,6 +145,7 @@ const BIDI_STREAMING_RESTART_WARNING =
     SidePanelComponent,
     CanvasComponent,
     BuilderTabsComponent,
+    ThemeToggle,
   ],
 })
 export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -183,7 +185,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   isEvalCaseEditing = signal(false);
   hasEvalCaseChanged = signal(false);
   isEvalEditMode = signal(false);
-  isBuilderMode = signal(false); // Default to builder mode off
+  isBuilderMode = signal(false);  // Default to builder mode off
   videoElement!: HTMLVideoElement;
   currentMessage = '';
   messages = signal<any[]>([]);
@@ -239,7 +241,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     nonNullable: true,
   });
 
-  protected openBase64InNewTab = this.safeValuesService.openBase64InNewTab;
+  protected openBase64InNewTab(data: string, mimeType: string) {
+    this.safeValuesService.openBase64InNewTab(data, mimeType);
+  }
 
   // Load apps
   protected isLoadingApps: WritableSignal<boolean> = signal(false);
@@ -290,6 +294,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       toSignal(this.featureFlagService.isApplicationSelectorEnabled());
   readonly isDeleteSessionEnabledObs: Observable<boolean> =
       this.featureFlagService.isDeleteSessionEnabled();
+  readonly isUserIdOnToolbarEnabledObs: Observable<boolean> =
+      this.featureFlagService.isUserIdOnToolbarEnabled();
 
   // Trace detail
   bottomPanelVisible = false;
@@ -335,9 +341,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (isLoading) {
         if (!lastMessage?.isLoading && !this.streamingTextMessage) {
-          this.messages.update((messages) => [
-            ...messages,
-            {role: 'bot', isLoading: true},
+          this.messages.update(
+              (messages) =>
+                  [...messages,
+                   {role: 'bot', isLoading: true},
           ]);
         }
       } else if (lastMessage?.isLoading && !isModelThinking) {
@@ -383,7 +390,13 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private loadSessionByUrlOrReset() {
     this.isSessionUrlEnabledObs.subscribe((sessionUrlEnabled) => {
-      const sessionUrl = this.activatedRoute.snapshot.queryParams['session'];
+      const queryParams = this.activatedRoute.snapshot.queryParams;
+      const sessionUrl = queryParams['session'];
+      const userUrl = queryParams['userId'];
+
+      if (userUrl) {
+        this.userId = userUrl;
+      }
 
       if (!sessionUrlEnabled || !sessionUrl) {
         this.createSessionAndReset();
@@ -424,8 +437,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.sessionService.createSession(this.userId, this.appName)
         .subscribe(
             (res) => {
-              this.uiStateService.setIsSessionListLoading(false);
-
               this.currentSessionState = res.state;
               this.sessionId = res.id ?? '';
               this.sessionTab?.refreshSession();
@@ -455,9 +466,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Add user message
     if (!!this.userInput.trim()) {
-      this.messages.update((messages) => [
-        ...messages,
-        {role: 'user', text: this.userInput},
+      this.messages.update(
+          (messages) =>
+              [...messages,
+               {role: 'user', text: this.userInput},
       ]);
     }
 
@@ -513,16 +525,21 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           this.updatedSessionState.set(null);
         }
         this.streamingTextMessage = null;
-        this.sessionTab?.reloadSession(this.sessionId);
+        this.featureFlagService.isSessionReloadOnNewMessageEnabled()
+            .pipe(first())
+            .subscribe((enabled) => {
+              if (enabled) {
+                this.sessionTab?.reloadSession(this.sessionId);
+              }
+            });
         this.eventService.getTrace(this.sessionId)
-            .pipe(first(),catchError((error) => {
-              return of([]);
-            })
-          )
-          .subscribe((res) => {
-            this.traceData = res;
-            this.changeDetectorRef.detectChanges();
-          });
+            .pipe(first(), catchError((error) => {
+                    return of([]);
+                  }))
+            .subscribe((res) => {
+              this.traceData = res;
+              this.changeDetectorRef.detectChanges();
+            });
         this.traceService.setMessages(this.messages());
         this.changeDetectorRef.detectChanges();
       },
@@ -716,16 +733,15 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       expectedInvocationToolUses: e?.expectedInvocationToolUses,
       actualFinalResponse: e?.actualFinalResponse,
       expectedFinalResponse: e?.expectedFinalResponse,
-      invocationIndex:
-        invocationIndex !== undefined ? invocationIndex : undefined,
+      invocationIndex: invocationIndex !== undefined ? invocationIndex :
+                                                       undefined,
       finalResponsePartIndex:
-        additionalIndices?.finalResponsePartIndex !== undefined
-          ? additionalIndices.finalResponsePartIndex
-          : undefined,
-      toolUseIndex:
-        additionalIndices?.toolUseIndex !== undefined
-          ? additionalIndices.toolUseIndex
-          : undefined,
+          additionalIndices?.finalResponsePartIndex !== undefined ?
+          additionalIndices.finalResponsePartIndex :
+          undefined,
+      toolUseIndex: additionalIndices?.toolUseIndex !== undefined ?
+          additionalIndices.toolUseIndex :
+          undefined,
     };
     if (part) {
       if (part.inlineData) {
@@ -800,9 +816,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const currentMessages = this.messages();
     const lastMessage = currentMessages[currentMessages.length - 1];
-    const currentIndex = lastMessage?.isLoading
-      ? currentMessages.length - 2
-      : currentMessages.length - 1;
+    const currentIndex = lastMessage?.isLoading ? currentMessages.length - 2 :
+                                                  currentMessages.length - 1;
 
     this.artifactService
         .getArtifactVersion(
@@ -957,10 +972,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   createAgentIconColorClass(agentName: string) {
     const agentIconColor = this.stringToColorService.stc(agentName);
 
-    const agentIconColorClass = `custom-icon-color-${agentIconColor.replace(
-      '#',
-      ''
-    )}`;
+    const agentIconColorClass =
+        `custom-icon-color-${agentIconColor.replace('#', '')}`;
 
     // Inject the style for this unique class
     this.injectCustomIconColorStyle(agentIconColorClass, agentIconColor);
@@ -1082,7 +1095,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       // Listen for messages from the popup
       const listener = (event: MessageEvent) => {
         if (event.origin !== window.location.origin) {
-          return; // Ignore messages from unknown sources
+          return;  // Ignore messages from unknown sources
         }
         const {authResponseUrl} = event.data;
         if (authResponseUrl) {
@@ -1259,25 +1272,22 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         message.functionCall.args = result;
 
         this.updatedEvalCase = structuredClone(this.evalCase!);
-        this.updatedEvalCase!.conversation[
-          message.invocationIndex
-        ].intermediateData!.toolUses![message.toolUseIndex].args = result;
+        this.updatedEvalCase!.conversation[message.invocationIndex]
+            .intermediateData!.toolUses![message.toolUseIndex]
+            .args = result;
       }
     });
   }
 
   protected saveEvalCase() {
     this.evalService
-      .updateEvalCase(
-        this.appName,
-        this.evalSetId,
-        this.updatedEvalCase!.evalId,
-        this.updatedEvalCase!
-      )
-      .subscribe((res) => {
-        this.openSnackBar('Eval case updated', 'OK');
-        this.resetEditEvalCaseVars();
-      });
+        .updateEvalCase(
+            this.appName, this.evalSetId, this.updatedEvalCase!.evalId,
+            this.updatedEvalCase!)
+        .subscribe((res) => {
+          this.openSnackBar('Eval case updated', 'OK');
+          this.resetEditEvalCaseVars();
+        });
   }
 
   protected cancelEditEvalCase() {
@@ -1393,11 +1403,11 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   enterBuilderMode() {
     const url = this.router
-      .createUrlTree([], {
-        queryParams: {mode: 'builder'},
-        queryParamsHandling: 'merge',
-      })
-      .toString();
+                    .createUrlTree([], {
+                      queryParams: {mode: 'builder'},
+                      queryParamsHandling: 'merge',
+                    })
+                    .toString();
     this.location.replaceState(url);
     this.isBuilderMode.set(true);
 
@@ -1424,11 +1434,11 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   protected exitBuilderMode() {
     const url = this.router
-      .createUrlTree([], {
-        queryParams: {mode: null},
-        queryParamsHandling: 'merge',
-      })
-      .toString();
+                    .createUrlTree([], {
+                      queryParams: {mode: null},
+                      queryParamsHandling: 'merge',
+                    })
+                    .toString();
     this.location.replaceState(url);
     this.isBuilderMode.set(false);
     this.agentBuilderService.clear();
@@ -1582,11 +1592,14 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private updateSelectedSessionUrl() {
     const url = this.router
-      .createUrlTree([], {
-        queryParams: {session: this.sessionId},
-        queryParamsHandling: 'merge',
-      })
-      .toString();
+                    .createUrlTree([], {
+                      queryParams: {
+                        'session': this.sessionId,
+                        'userId': this.userId,
+                      },
+                      queryParamsHandling: 'merge',
+                    })
+                    .toString();
     this.location.replaceState(url);
   }
 
@@ -1620,7 +1633,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       index++;
     }
-    return undefined; // Key not found
+    return undefined;  // Key not found
   }
 
   private getKeyAtIndexInMap(index: number): string|undefined {
@@ -1635,7 +1648,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     if (index >= 0 && index < sortedKeys.length) {
       return sortedKeys[index];
     }
-    return undefined; // Index out of bounds
+    return undefined;  // Index out of bounds
   }
 
   openSnackBar(message: string, action: string) {
@@ -1754,7 +1767,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const style = this.renderer.createElement('style');
-    this.renderer.setAttribute(style, 'id', className); // Set an ID to check for existence later
+    this.renderer.setAttribute(
+        style, 'id', className);  // Set an ID to check for existence later
     this.renderer.setAttribute(style, 'type', 'text/css');
 
     // Define the CSS
@@ -1765,6 +1779,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     `;
 
     this.renderer.appendChild(style, this.renderer.createText(css));
-    this.renderer.appendChild(this.document.head, style); // Append to the head of the document
+    this.renderer.appendChild(
+        this.document.head, style);  // Append to the head of the document
   }
 }

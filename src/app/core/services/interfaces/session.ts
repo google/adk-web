@@ -22,11 +22,32 @@ import {Session} from '../../models/Session';
 export const SESSION_SERVICE = new InjectionToken<SessionService>('SessionService');
 
 /**
+ * Parameters for list sessions request.
+ */
+export interface ListParams {
+  pageSize?: number;
+  pageToken?: string;
+  filter?: string;
+}
+
+/**
+ * Response for list sessions request.
+ */
+export interface ListResponse<T> {
+  items: T[];
+  nextPageToken?: string;
+}
+
+/**
  * Service to provide methods to handle sessions.
  */
 export declare abstract class SessionService {
   abstract createSession(userId: string, appName: string): Observable<Session>;
-  abstract listSessions(userId: string, appName: string): Observable<Session[]>;
+  abstract listSessions(
+    userId: string,
+    appName: string,
+    listParams?: ListParams,
+  ): Observable<ListResponse<Session>>;
   abstract deleteSession(
     userId: string,
     appName: string,

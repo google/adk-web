@@ -45,6 +45,7 @@ import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { TooltipUtil } from '../../../utils/tooltip-util';
+import { ThemeToggle } from '../theme-toggle/theme-toggle';
 
 @Component({
   selector: 'app-builder-tabs',
@@ -67,7 +68,8 @@ import { TooltipUtil } from '../../../utils/tooltip-util';
     MatMenuTrigger,
     MatMenuItem,
     MatChipsModule,
-    MatDividerModule
+    MatDividerModule,
+    ThemeToggle
   ],
   templateUrl: './builder-tabs.component.html',
   styleUrl: './builder-tabs.component.scss',
