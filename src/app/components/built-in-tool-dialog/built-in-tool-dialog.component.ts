@@ -20,10 +20,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatInput } from '@angular/material/input';
-import { MatOption, MatSelect } from '@angular/material/select';
 import { getToolIcon } from '../../core/constants/tool-icons';
 import { JsonEditorComponent } from '../json-editor/json-editor.component';
 
@@ -42,14 +39,9 @@ interface ToolCategory {
     FormsModule,
     MatDialogTitle,
     MatDialogContent,
-    MatFormField,
     MatIcon,
-    MatInput,
-    MatSelect,
-    MatOption,
     MatDialogActions,
     MatButton,
-    MatLabel,
     JsonEditorComponent,
   ],
 })

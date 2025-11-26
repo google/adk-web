@@ -55,13 +55,6 @@ markdown p {
 }
 
 :root {
-  @include mat.dialog-overrides(
-    (
-      container-color: #2b2b2f,
-      subhead-color: white,
-    )
-  );
-
   // Custom property for dialog subhead font
   --mdc-dialog-subhead-font-family: 'Google Sans';
   --mdc-dialog-subhead-font-style: normal;
@@ -69,6 +62,13 @@ markdown p {
   --mdc-dialog-subhead-font-size: 24px;
   --mdc-dialog-subhead-line-height: 32px;
   --mdc-dialog-subhead-color: #e3e3e3;
+
+  @include mat.dialog-overrides(
+    (
+      container-color: #2b2b2f,
+      subhead-color: white,
+    )
+  );
 }
 
 .mat-mdc-dialog-container .mat-mdc-dialog-title.mdc-dialog__title {
@@ -81,13 +81,6 @@ markdown p {
 }
 
 :root {
-  @include mat.progress-spinner-overrides(
-    (
-      active-indicator-color: #a8c7fa,
-      size: 80,
-    )
-  );
-
   --chat-panel-function-event-button-background-color: white;
   --chat-panel-function-event-button-highlight-background-color: rgb(
     15,
@@ -274,6 +267,13 @@ markdown p {
   --trace-tree-invocation-id-container-color: #9aa0a6;
   --trace-tree-trace-row-left-span-div-color: white;
   --trace-tree-trace-row-left-is-event-row-color: #8ab4f8;
+
+  @include mat.progress-spinner-overrides(
+    (
+      active-indicator-color: #a8c7fa,
+      size: 80,
+    )
+  );
 }
 
 :root {

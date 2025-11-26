@@ -35,7 +35,14 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "string-to-color",
+              "json-source-map",
+              "natural-compare-lite",
+              "ajv",
+              "jmespath"
+            ]
           },
           "configurations": {
             "production": {
