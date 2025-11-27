@@ -108,6 +108,9 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Output() readonly updateState = new EventEmitter<void>();
   @Output() readonly toggleAudioRecording = new EventEmitter<void>();
   @Output() readonly toggleVideoRecording = new EventEmitter<void>();
+  @Output()
+  readonly feedback =
+      new EventEmitter<{direction: 'up'|'down'}>();
 
   @ViewChild('videoContainer', {read: ElementRef}) videoContainer!: ElementRef;
   @ViewChild('autoScroll') scrollContainer!: ElementRef;
@@ -189,5 +192,15 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
 
   renderGooglerSearch(content: string) {
     return this.sanitizer.bypassSecurityTrustHtml(content);
+  }
+
+  emitFeedback(direction: 'up'|'down') {
+    this.feedback.emit({direction});
+  }
+
+  isLastBotMessage(message: any, index: number): boolean {
+    const nextMessage =
+      index === this.messages.length ? undefined : this.messages[index + 1];
+    return message.role === 'bot' && nextMessage?.role !== 'bot';
   }
 }

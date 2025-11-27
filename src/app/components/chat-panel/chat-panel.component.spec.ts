@@ -476,4 +476,72 @@ describe('ChatPanelComponent', () => {
     });
     });
   });
+
+  describe('Feedback UI', () => {
+    it('should not display feedback buttons for user message', () => {
+      component.messages = [{role: 'user', text: 'User message'}];
+      fixture.detectChanges();
+      const feedbackButtons =
+          fixture.debugElement.query(By.css('.feedback-buttons'));
+      expect(feedbackButtons).toBeFalsy();
+    });
+
+    it('should not display feedback buttons for a bot message that is not the last in a sequence',
+       () => {
+         component.messages = [
+           {role: 'bot', text: 'Bot message 1'},
+           {role: 'bot', text: 'Bot message 2'}
+         ];
+         fixture.detectChanges();
+         const feedbackButtons =
+             fixture.debugElement.queryAll(By.css('.feedback-buttons'));
+         expect(feedbackButtons.length).toBe(1);
+       });
+
+    it('should display feedback buttons for a single bot message', () => {
+      component.messages = [{role: 'bot', text: 'Bot message'}];
+      fixture.detectChanges();
+      const feedbackButtons =
+          fixture.debugElement.query(By.css('.feedback-buttons'));
+      expect(feedbackButtons).toBeTruthy();
+    });
+
+    it('should display feedback buttons for the last bot message in a sequence',
+       () => {
+         component.messages = [
+           {role: 'bot', text: 'Bot message 1'},
+           {role: 'user', text: 'User message'}
+         ];
+         fixture.detectChanges();
+         const feedbackButtons =
+             fixture.debugElement.queryAll(By.css('.feedback-buttons'));
+         expect(feedbackButtons.length).toBe(1);
+       });
+
+    it('should emit feedback event with "up" when thumbs-up is clicked',
+       () => {
+         spyOn(component.feedback, 'emit');
+         const message = {role: 'bot', text: 'Bot message'};
+         component.messages = [message];
+         fixture.detectChanges();
+         const thumbsUpButton =
+             fixture.debugElement.query(By.css('.feedback-buttons button'));
+         thumbsUpButton.nativeElement.click();
+         expect(component.feedback.emit)
+             .toHaveBeenCalledWith({feedback: 'up', message});
+       });
+
+    it('should emit feedback event with "down" when thumbs-down is clicked',
+       () => {
+         spyOn(component.feedback, 'emit');
+         const message = {role: 'bot', text: 'Bot message'};
+         component.messages = [message];
+         fixture.detectChanges();
+         const thumbsDownButton =
+             fixture.debugElement.queryAll(By.css('.feedback-buttons button'))[1];
+         thumbsDownButton.nativeElement.click();
+         expect(component.feedback.emit)
+             .toHaveBeenCalledWith({feedback: 'down', message});
+       });
+  });
 });

@@ -287,6 +287,17 @@
       <mat-icon>person</mat-icon>
     </button>
     }
+    <!-- Feedback UI -->
+    @if(isLastBotMessage(message, i)) {
+    <div class="feedback-buttons">
+      <button mat-icon-button (click)="emitFeedback('up')">
+        <mat-icon>thumb_up</mat-icon>
+      </button>
+      <button mat-icon-button (click)="emitFeedback('down')">
+        <mat-icon>thumb_down</mat-icon>
+      </button>
+    </div>
+    }
   </div>
   }
 </div>
