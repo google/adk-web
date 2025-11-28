@@ -47,6 +47,8 @@ export const CHAT_PANEL_MESSAGES = {
   turnOffCamTooltip: 'Turn off camera',
   useCamTooltip: 'Use camera',
   updatedSessionStateChipLabel: 'Updated session state',
+  goodResponseTooltip: 'Good response',
+  badResponseTooltip: 'Bad response',
 };
 
 

@@ -118,4 +118,8 @@ export class FeatureFlagService implements FeatureFlagServiceInterface {
   isUserIdOnToolbarEnabled(): Observable<boolean> {
     return of(true);
   }
+
+  isFeedbackServiceEnabled(): Observable<boolean> {
+    return of(false);
+  }
 }
