@@ -195,6 +195,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   }
 
   emitFeedback(direction: 'up'|'down') {
+    console.log(direction);
     this.feedback.emit({direction});
   }
 

@@ -60,6 +60,12 @@
   color: var(--chat-panel-function-event-button-highlight-color) !important;
 }
 
+// Enables messages to have columns
+.message-column-container {
+  display: flex;
+  flex-direction: column;
+}
+
 .user-message {
   display: flex;
   justify-content: flex-end;
@@ -398,7 +404,20 @@ button.video-rec-btn {
 }
 
 .feedback-buttons {
-  display: flex;
-  align-items: center;
-  margin-left: 10px;
+  // Default touch target is fixed at 48px, which is too large
+  --mat-icon-button-touch-target-display: none;
+  margin-left: 50px;
+
+  button {
+    padding: 0;
+    height: 24px;
+    width: 24px;
+    min-height: 24px;
+    min-width: 24px;
+  }
+  mat-icon {
+    font-size: 12px;
+    height: 12px;
+    width: 12px;
+  }
 }
