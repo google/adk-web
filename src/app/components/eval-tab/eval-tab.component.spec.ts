@@ -93,4 +93,127 @@ describe('EvalTabComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  describe('addEvalCaseResultToEvents', () => {
+    it('should show pass for tool events when tool_trajectory passes but response_match fails', () => {
+      const res = {
+        events: [
+          {author: 'user', content: {parts: [{text: 'hello'}]}},
+          {
+            author: 'bot',
+            content: {parts: [{functionCall: {name: 'test_tool', args: {}}}]},
+          },
+          {
+            author: 'bot',
+            content:
+                {parts: [{functionResponse: {name: 'test_tool', response: {}}}]},
+          },
+          {author: 'bot', content: {parts: [{text: 'final response'}]}},
+        ],
+      };
+
+      const evalCaseResult = {
+        setId: 'test-set',
+        evalId: 'test-eval',
+        finalEvalStatus: 2,
+        evalMetricResults: [],
+        overallEvalMetricResults: [],
+        evalMetricResultPerInvocation: [
+          {
+            evalMetricResults: [
+              {
+                metricName: 'tool_trajectory_avg_score',
+                evalStatus: 1,
+                score: 1,
+                threshold: 1,
+              },
+              {
+                metricName: 'response_match_score',
+                evalStatus: 2,
+                score: 0,
+                threshold: 0.7,
+              },
+            ],
+            actualInvocation: {
+              intermediateData: {toolUses: []},
+              finalResponse: {parts: [{text: 'actual'}]},
+            },
+            expectedInvocation: {
+              intermediateData: {toolUses: []},
+              finalResponse: {parts: [{text: 'expected'}]},
+            },
+          },
+        ],
+        sessionId: 'test-session',
+        sessionDetails: {},
+      };
+
+      const result =
+          (component as any).addEvalCaseResultToEvents(res, evalCaseResult);
+
+      expect(result.events[1].evalStatus)
+          .toBe(1, 'functionCall event should pass');
+      expect(result.events[2].evalStatus)
+          .toBe(1, 'functionResponse event should pass');
+      expect(result.events[3].evalStatus)
+          .toBe(2, 'final text response should fail');
+    });
+
+    it('should show fail for tool events when tool_trajectory fails but response_match passes', () => {
+      const res = {
+        events: [
+          {author: 'user', content: {parts: [{text: 'hello'}]}},
+          {
+            author: 'bot',
+            content: {parts: [{functionCall: {name: 'test_tool', args: {}}}]},
+          },
+          {author: 'bot', content: {parts: [{text: 'final response'}]}},
+        ],
+      };
+
+      const evalCaseResult = {
+        setId: 'test-set',
+        evalId: 'test-eval',
+        finalEvalStatus: 2,
+        evalMetricResults: [],
+        overallEvalMetricResults: [],
+        evalMetricResultPerInvocation: [
+          {
+            evalMetricResults: [
+              {
+                metricName: 'tool_trajectory_avg_score',
+                evalStatus: 2,
+                score: 0.5,
+                threshold: 1,
+              },
+              {
+                metricName: 'response_match_score',
+                evalStatus: 1,
+                score: 0.9,
+                threshold: 0.7,
+              },
+            ],
+            actualInvocation: {
+              intermediateData: {toolUses: [{name: 'wrong_tool', args: {}}]},
+              finalResponse: {parts: [{text: 'actual'}]},
+            },
+            expectedInvocation: {
+              intermediateData: {toolUses: [{name: 'test_tool', args: {}}]},
+              finalResponse: {parts: [{text: 'expected'}]},
+            },
+          },
+        ],
+        sessionId: 'test-session',
+        sessionDetails: {},
+      };
+
+      const result =
+          (component as any).addEvalCaseResultToEvents(res, evalCaseResult);
+
+      expect(result.events[1].evalStatus)
+          .toBe(2, 'functionCall event should fail');
+      expect(result.events[2].evalStatus)
+          .toBe(1, 'final text response should pass');
+    });
+  });
 });
