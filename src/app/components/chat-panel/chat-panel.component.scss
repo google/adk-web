@@ -170,6 +170,39 @@
   font-weight: 600;
 }
 
+.message-metric-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.metric-result-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 12px;
+  padding: 4px 8px;
+  background-color: var(
+      --chat-panel-metric-result-chip-background,
+      rgba(255, 255, 255, 0.1)
+    );
+  font-size: 12px;
+  color: var(--chat-panel-metric-result-chip-color, #e8eaed);
+
+  &.metric-pass {
+    color: var(--chat-panel-metric-result-chip-pass-color, #1e8e3e);
+  }
+
+  &.metric-fail {
+    color: var(--chat-panel-metric-result-chip-fail-color, #d93025);
+  }
+
+  &.metric-neutral {
+    color: var(--chat-panel-metric-result-chip-neutral-color, #9aa0a6);
+  }
+}
+
 .eval-response-header {
   padding-bottom: 5px;
   border-bottom: 2px solid
