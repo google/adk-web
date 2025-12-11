@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Part} from '../../models/types';
 
 import {InjectionToken} from '@angular/core';
 import {Observable} from 'rxjs';
@@ -36,5 +37,5 @@ export declare abstract class ArtifactService {
     sessionId: string,
     artifactName: string,
     versionId: string,
-  ): Observable<any>;
+  ): Observable<Part>;
 }

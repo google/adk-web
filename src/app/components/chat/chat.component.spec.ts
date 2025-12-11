@@ -1204,4 +1204,38 @@ describe('ChatComponent', () => {
       });
     });
   });
+
+  describe('Artifacts', () => {
+    it(
+      'should only fetch artifact version once for the same artifactId and versionId',
+      async () => {
+        mockArtifactService.getArtifactVersion.and.returnValue(
+          of({
+            inlineData: {
+              mimeType: 'image/png',
+              data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+            },
+          }),
+        );
+        const sseEvent = {
+          id: 'event-1',
+          author: 'bot',
+          content: {role: 'bot', parts: []},
+          actions: {
+            artifactDelta: {'artifact-1': 'version-1'},
+          },
+        };
+        component.userInput = 'test message';
+
+        await component.sendMessage(
+          new KeyboardEvent('keydown', {key: 'Enter'}),
+        );
+        mockAgentService.runSseResponse.next(sseEvent);
+        mockAgentService.runSseResponse.next(sseEvent);
+        fixture.detectChanges();
+
+        expect(mockArtifactService.getArtifactVersion).toHaveBeenCalledTimes(1);
+      },
+    );
+  });
 });

@@ -805,7 +805,29 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     return `data:${mimeType};base64,${fixedBase64Data}`;
   }
 
+  private handleArtifactFetchFailure(
+      placeholderIndex: number, artifactId: string, versionId: string) {
+    this.openSnackBar(
+        'Failed to fetch artifact data',
+        'OK',
+    );
+    // Remove placeholder message and artifact on failure
+    this.messages.update(
+        messages => messages.filter((m, i) => i !== placeholderIndex));
+    this.artifacts = this.artifacts.filter(
+        a => a.id !== artifactId || a.versionId !== versionId);
+  }
+
   private renderArtifact(artifactId: string, versionId: string) {
+    // If artifact/version already exists, do nothing.
+    const artifactExists = this.artifacts.some(
+      (artifact) =>
+        artifact.id === artifactId && artifact.versionId === versionId,
+    );
+    if (artifactExists) {
+      return;
+    }
+
     // Add a placeholder message for the artifact
     // Feed the placeholder with the artifact data after it's fetched
     let message = {
@@ -819,8 +841,19 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const currentMessages = this.messages();
     const lastMessage = currentMessages[currentMessages.length - 1];
-    const currentIndex = lastMessage?.isLoading ? currentMessages.length - 2 :
-                                                  currentMessages.length - 1;
+    const placeholderIndex = lastMessage?.isLoading ?
+        currentMessages.length - 2 :
+        currentMessages.length - 1;
+
+    // Add placeholder artifact.
+    const placeholderArtifact = {
+      id: artifactId,
+      versionId,
+      data: '',
+      mimeType: 'image/png',
+      mediaType: MediaType.IMAGE,
+    };
+    this.artifacts = [...this.artifacts, placeholderArtifact];
 
     this.artifactService
         .getArtifactVersion(
@@ -830,40 +863,53 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
             artifactId,
             versionId,
             )
-        .subscribe((res) => {
-          const mimeType = res.inlineData.mimeType;
-          const base64Data =
-              this.formatBase64Data(res.inlineData.data, mimeType);
+        .subscribe({
+          next: (res) => {
+            const {mimeType, data} = res.inlineData ?? {};
+            if (!mimeType || !data) {
+              this.handleArtifactFetchFailure(
+                  placeholderIndex, artifactId, versionId);
+              return;
+            }
+            const base64Data =
+                this.formatBase64Data(data, mimeType);
 
-          const mediaType = getMediaTypeFromMimetype(mimeType);
+            const mediaType = getMediaTypeFromMimetype(mimeType);
 
-          let inlineData = {
-            name: this.createDefaultArtifactName(mimeType),
-            data: base64Data,
-            mimeType: mimeType,
-            mediaType,
-          };
-
-          this.messages.update(messages => {
-            const newMessages = [...messages];
-            newMessages[currentIndex] = {
-              role: 'bot',
-              inlineData,
-            };
-            return newMessages;
-          });
-
-          // To trigger ngOnChanges in the artifact tab component
-          this.artifacts = [
-            ...this.artifacts,
-            {
-              id: artifactId,
+            const inlineData = {
+              name: this.createDefaultArtifactName(mimeType),
               data: base64Data,
-              mimeType,
-              versionId,
-              mediaType: getMediaTypeFromMimetype(mimeType),
-            },
-          ];
+              mimeType: mimeType,
+              mediaType,
+            };
+
+            this.messages.update(messages => {
+              const newMessages = [...messages];
+              newMessages[placeholderIndex] = {
+                role: 'bot',
+                inlineData,
+              };
+              return newMessages;
+            });
+
+            // Update placeholder artifact with fetched data.
+            this.artifacts = this.artifacts.map(artifact => {
+              if (artifact.id === artifactId && artifact.versionId === versionId) {
+                return {
+                  id: artifactId,
+                  versionId,
+                  data: base64Data,
+                  mimeType,
+                  mediaType,
+                };
+              }
+              return artifact;
+            });
+          },
+          error: (err) => {
+            this.handleArtifactFetchFailure(
+                placeholderIndex, artifactId, versionId);
+          }
         });
   }
 
