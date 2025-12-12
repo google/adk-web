@@ -19,17 +19,18 @@ import {env} from '../env/env';
 
 export class URLUtil {
   /**
-   * Get the base URL without any path
-   * @returns {string} Base URL (protocol + hostname + port)
+   * Get the app base URL as defined by the document <base> tag (or origin).
+   * This avoids hard coded paths so OAuth redirect URIs always match the
+   * actual deployment location.
    */
   static getBaseUrlWithoutPath(): string {
-    // Use the URL constructor for robust URL parsing
-    const currentUrl = window.location.href;
-    const urlObject = new URL(currentUrl);
+    const baseElement = document.querySelector('base');
+    if (baseElement?.href) {
+      return baseElement.href;
+    }
 
-    // Construct base URL using origin property
-    // Origin includes protocol, hostname, and port
-    return urlObject.origin + '/dev-ui/';
+    const urlObject = new URL(window.location.href);
+    return `${urlObject.origin}/`;
   }
 
   /**
