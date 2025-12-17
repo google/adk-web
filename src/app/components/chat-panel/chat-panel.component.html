@@ -403,6 +403,40 @@
           >
             <mat-icon>videocam</mat-icon>
           </button>
+          <button
+            mat-icon-button
+            matSuffix
+            class="usage-stats-btn"
+            [matMenuTriggerFor]="usageMenu"
+            matTooltip="Token usage and cost"
+          >
+            <mat-icon>analytics</mat-icon>
+          </button>
+          <mat-menu #usageMenu="matMenu" class="usage-stats-menu">
+            <div class="usage-stats-container" (click)="$event.stopPropagation()">
+              <div class="usage-stats-header">
+                <div class="usage-percentage">{{ getUsagePercentageFormatted() }}%</div>
+                <div class="usage-tokens">{{ sessionTotalTokens() }} tokens</div>
+              </div>
+              <div class="usage-progress-bar">
+                <div class="usage-progress-fill" [style.width.%]="getUsagePercentage()"></div>
+              </div>
+              <div class="usage-stats-details">
+                <div class="usage-stat-row">
+                  <span class="usage-stat-label">Input</span>
+                  <span class="usage-stat-value">{{ sessionInputTokens() }}</span>
+                </div>
+                <div class="usage-stat-row">
+                  <span class="usage-stat-label">Output</span>
+                  <span class="usage-stat-value">{{ sessionOutputTokens() }}</span>
+                </div>
+                <div class="usage-stat-row">
+                  <span class="usage-stat-label">Cost $</span>
+                  <span class="usage-stat-value">${{ formatCost(sessionTotalCost()) }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-menu>
         </div>
       </div>
     </mat-form-field>

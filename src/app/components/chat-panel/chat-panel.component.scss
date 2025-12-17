@@ -436,3 +436,77 @@ button.video-rec-btn {
     width: 12px;
   }
 }
+
+button.usage-stats-btn {
+  background-color: var(--chat-card-background-color);
+}
+
+:host ::ng-deep .usage-stats-menu {
+  .mat-mdc-menu-content {
+    padding: 0;
+  }
+}
+
+.usage-stats-container {
+  padding: 16px;
+  min-width: 240px;
+  background-color: var(--chat-panel-bot-message-message-card-background-color);
+  border-radius: 8px;
+  cursor: default;
+}
+
+.usage-stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.usage-percentage {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--chat-panel-input-field-textarea-color);
+}
+
+.usage-tokens {
+  font-size: 14px;
+  color: var(--chat-panel-input-field-textarea-color);
+  opacity: 0.8;
+}
+
+.usage-progress-bar {
+  height: 6px;
+  background-color: var(--chat-panel-input-field-mat-mdc-text-field-wrapper-border-color);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.usage-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4285f4, #34a853);
+  transition: width 0.3s ease;
+  border-radius: 3px;
+}
+
+.usage-stats-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.usage-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--chat-panel-input-field-textarea-color);
+}
+
+.usage-stat-label {
+  opacity: 0.7;
+}
+
+.usage-stat-value {
+  font-weight: 500;
+}
