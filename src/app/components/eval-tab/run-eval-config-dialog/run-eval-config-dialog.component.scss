@@ -1,34 +1,55 @@
 .dialog-container {
   border-radius: 12px;
   padding: 18px;
-  width:500px;
+  width: 520px;
   box-shadow: 0 8px 16px var(--run-eval-config-dialog-container-box-shadow-color);
 }
 
-.threshold-slider {
-  --mdc-slider-active-track-color: var(--run-eval-config-dialog-threshold-slider-active-track-color);
-  --mdc-slider-inactive-track-color: var(--run-eval-config-dialog-threshold-slider-inactive-track-color);
-  --mdc-slider-handle-color: var(--run-eval-config-dialog-threshold-slider-handle-color);
-  --mdc-slider-ripple-color: var(--run-eval-config-dialog-threshold-slider-ripple-color);
-  width: 100px
+.eval-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .metric-row {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  gap: 16px;
+  align-items: flex-start;
 }
 
-.metric-name {
-  width: 250px;
+.metric-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.threshold-value {
-  margin-left: 20px;
+.metric-title {
+  font-weight: 500;
 }
 
-.mdc-slider__thumb--with-indicator {
-  background-color: var(--mdc-slider-handle-color, var(--run-eval-config-dialog-mdc-slider-thumb-background-color));
-  border: none !important;
-  box-shadow: none !important;
+.metric-description {
+  font-size: 13px;
+  color: var(--run-eval-config-dialog-metric-description-color, #9aa0a6);
+}
+
+.metric-hints {
+  font-size: 12px;
+  color: var(--run-eval-config-dialog-metric-hints-color, #9aa0a6);
+}
+
+.metric-input {
+  width: 180px;
+}
+
+.metric-error {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--run-eval-config-dialog-metric-error-color, #d93025);
+}
+
+.no-metrics {
+  font-size: 14px;
+  color: var(--run-eval-config-dialog-no-metrics-color, #9aa0a6);
 }
