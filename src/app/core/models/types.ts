@@ -69,12 +69,20 @@ export declare interface LlmRequest {
   contents: GenAiContent[];
 }
 
+export declare interface UsageMetadata {
+  candidatesTokenCount?: number;
+  promptTokenCount?: number;
+  totalTokenCount?: number;
+}
+
 export declare interface LlmResponse {
   content: GenAiContent;
   error?: string;
   errorMessage?: string;
   errorCode?: string;
   longRunningToolIds?: string[];
+  usageMetadata?: UsageMetadata;
+  costUsd?: number;
 }
 
 export declare interface EventActions {

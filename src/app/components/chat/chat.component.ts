@@ -227,6 +227,12 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   selectedFiles: {file: File; url: string}[] = [];
 
+  // Token usage and cost tracking
+  sessionTotalTokens = signal(0);
+  sessionInputTokens = signal(0);
+  sessionOutputTokens = signal(0);
+  sessionTotalCost = signal(0);
+
   protected MediaType = MediaType;
 
   // Sync query params with value from agent picker.
@@ -424,6 +430,11 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.artifacts = [];
     this.userInput = '';
     this.longRunningEvents = [];
+    // Reset usage tracking
+    this.sessionTotalTokens.set(0);
+    this.sessionInputTokens.set(0);
+    this.sessionOutputTokens.set(0);
+    this.sessionTotalCost.set(0);
   }
 
   createSession() {
@@ -497,6 +508,15 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         if (chunkJson.error) {
           this.openSnackBar(chunkJson.error, 'OK');
           return;
+        }
+        // Track usage metadata from streaming response
+        if (chunkJson.usageMetadata) {
+          this.sessionTotalTokens.update(total => total + (chunkJson.usageMetadata?.totalTokenCount || 0));
+          this.sessionInputTokens.update(total => total + (chunkJson.usageMetadata?.promptTokenCount || 0));
+          this.sessionOutputTokens.update(total => total + (chunkJson.usageMetadata?.candidatesTokenCount || 0));
+        }
+        if (chunkJson.costUsd) {
+          this.sessionTotalCost.update(total => total + (chunkJson.costUsd || 0));
         }
         if (chunkJson.content) {
           for (let part of this.combineTextParts(chunkJson.content.parts)) {
@@ -745,6 +765,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       toolUseIndex: additionalIndices?.toolUseIndex !== undefined ?
           additionalIndices.toolUseIndex :
           undefined,
+      usageMetadata: e?.usageMetadata,
+      costUsd: e?.costUsd,
     };
     if (part) {
       if (part.inlineData) {

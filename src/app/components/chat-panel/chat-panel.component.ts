@@ -84,6 +84,10 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Input() isAudioRecording: boolean = false;
   @Input() isVideoRecording: boolean = false;
   @Input() hoveredEventMessageIndices: number[] = [];
+  @Input() sessionTotalTokens: () => number = () => 0;
+  @Input() sessionInputTokens: () => number = () => 0;
+  @Input() sessionOutputTokens: () => number = () => 0;
+  @Input() sessionTotalCost: () => number = () => 0;
 
   @Output() readonly userInputChange = new EventEmitter<string>();
   @Output() readonly userEditEvalCaseMessageChange = new EventEmitter<string>();
@@ -200,5 +204,21 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
 
   emitFeedback(direction: 'up'|'down') {
     this.feedback.emit({direction});
+  }
+
+  getUsagePercentage(): number {
+    const total = this.sessionTotalTokens();
+    // Assuming a max context of 1M tokens for display purposes
+    const maxTokens = 1000000;
+    const percentage = Math.min((total / maxTokens) * 100, 100);
+    return Math.round(percentage * 100) / 100; // Round to 2 decimal places
+  }
+
+  getUsagePercentageFormatted(): string {
+    return this.getUsagePercentage().toFixed(2);
+  }
+
+  formatCost(cost: number): string {
+    return cost.toFixed(6);
   }
 }
