@@ -52,6 +52,11 @@ export class BuilderAssistantComponent implements OnInit, AfterViewChecked {
   @Output() closePanel = new EventEmitter<void>();
   @Output() reloadCanvas = new EventEmitter<void>();
 
+  private readonly silentRetryPrompt =
+      '____Something went wrong, please try again';
+  private readonly maxSilentRetries = 5;
+  private requestIdCounter = 0;
+
   assistantAppName = "__adk_agent_builder_assistant";
   userId = "user";
   currentSession: string | undefined = "";
@@ -138,75 +143,98 @@ export class BuilderAssistantComponent implements OnInit, AfterViewChecked {
   }
 
   sendMessage(msg: string) {
-    if (msg.trim()) {
-      // save to tmp
-      this.saveAgent(this.appName);
+    const userText = msg.trim();
+    if (!userText || !this.currentSession) {
+      return;
+    }
 
-      // Add user message, hide try again message for now
-      if (msg != "____Something went wrong, please try again") {
-        this.messages.push({ role: 'user', text: msg });
-      }
+    this.saveAgent(this.appName);
+    this.messages.push({role: 'user', text: userText});
+    this.userMessage = '';
 
-      const userText = msg;
-      this.userMessage = '';
+    const loadingMessage: any = {role: 'bot', text: '', isLoading: true};
+    this.messages.push(loadingMessage);
+    this.shouldAutoScroll = true;
+    this.isGenerating = true;
 
-      // Add loading message for bot response
-      this.messages.push({ role: 'bot', text: '', isLoading: true });
-      this.shouldAutoScroll = true;
-      this.isGenerating = true;
+    this.runAssistantRequest(userText, loadingMessage, 0);
+  }
 
-      const req: AgentRunRequest = {
-        appName: this.assistantAppName,
-        userId: this.userId,
-        sessionId: this.currentSession,
-        newMessage: {
-          'role': 'user',
-          'parts': [{'text': userText}],
-        },
-        streaming: false
-      };
+  private runAssistantRequest(
+      userText: string, loadingMessage: any, retryCount: number) {
+    if (!this.currentSession) {
+      return;
+    }
 
-      this.agentService.runSse(req).subscribe({
-        next: async (chunk) => {
-          if (chunk.errorCode && (chunk.errorCode == "MALFORMED_FUNCTION_CALL" || chunk.errorCode == "STOP")) {
-            this.sendMessage("____Something went wrong, please try again");
+    const requestId = ++this.requestIdCounter;
+    loadingMessage.requestId = requestId;
+
+    const req: AgentRunRequest = {
+      appName: this.assistantAppName,
+      userId: this.userId,
+      sessionId: this.currentSession,
+      newMessage: {
+        'role': 'user',
+        'parts': [{'text': userText}],
+      },
+      streaming: false
+    };
+
+    this.agentService.runSse(req).subscribe({
+      next: async (chunk) => {
+        if (loadingMessage.requestId !== requestId) {
+          return;
+        }
+
+        if (chunk.errorCode &&
+            (chunk.errorCode === 'MALFORMED_FUNCTION_CALL' ||
+             chunk.errorCode === 'STOP')) {
+          if (retryCount < this.maxSilentRetries) {
+            this.runAssistantRequest(
+                this.silentRetryPrompt, loadingMessage, retryCount + 1);
             return;
           }
-          if (chunk.content) {
-            let botText = '';
-            for (let part of chunk.content.parts) {
-              if (part.text) {
-                botText += part.text;
-              }
-            }
-            if (botText) {
-              // Update the last message (remove loading, add text)
-              const lastMessage = this.messages[this.messages.length - 1];
-              if (lastMessage.role === 'bot' && lastMessage.isLoading) {
-                lastMessage.text = botText;
-                lastMessage.isLoading = false;
-                this.shouldAutoScroll = true;
-                this.reloadCanvas.emit();
-              }
+          loadingMessage.text =
+              'Sorry, I encountered an error. Please try again.';
+          loadingMessage.isLoading = false;
+          this.shouldAutoScroll = true;
+          this.isGenerating = false;
+          return;
+        }
+
+        if (chunk.content) {
+          let botText = '';
+          for (let part of chunk.content.parts) {
+            if (part.text) {
+              botText += part.text;
             }
           }
-        },
-        error: (err) => {
-          console.error('SSE error:', err);
-          // Update loading message with error
-          const lastMessage = this.messages[this.messages.length - 1];
-          if (lastMessage.role === 'bot' && lastMessage.isLoading) {
-            lastMessage.text = 'Sorry, I encountered an error. Please try again.';
-            lastMessage.isLoading = false;
+          if (botText) {
+            loadingMessage.text = botText;
+            loadingMessage.isLoading = false;
             this.shouldAutoScroll = true;
+            this.reloadCanvas.emit();
           }
-          this.isGenerating = false;
-        },
-        complete: () => {
-          this.isGenerating = false;
-        },
-      });
-    }
+        }
+      },
+      error: (err) => {
+        if (loadingMessage.requestId !== requestId) {
+          return;
+        }
+        console.error('SSE error:', err);
+        loadingMessage.text =
+            'Sorry, I encountered an error. Please try again.';
+        loadingMessage.isLoading = false;
+        this.shouldAutoScroll = true;
+        this.isGenerating = false;
+      },
+      complete: () => {
+        if (loadingMessage.requestId !== requestId) {
+          return;
+        }
+        this.isGenerating = false;
+      },
+    });
   }
 
   ngAfterViewChecked() {
