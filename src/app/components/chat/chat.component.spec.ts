@@ -1238,4 +1238,76 @@ describe('ChatComponent', () => {
       },
     );
   });
+
+  it('should not duplicate artifact message when event has both content and artifact delta', async () => {
+    mockArtifactService.getArtifactVersion.and.returnValue(
+      of({
+        inlineData: {
+          mimeType: 'image/png',
+          data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+        },
+      }),
+    );
+    const sseEvent = {
+      id: 'event-1',
+      author: 'bot',
+      content: {
+        role: 'bot',
+        parts: [{ functionCall: { name: 'save_artifact', args: {} } }]
+      },
+      actions: {
+        artifactDelta: { 'artifact-1': 'version-1' },
+      },
+    };
+    component.userInput = 'test message';
+
+    await component.sendMessage(new KeyboardEvent('keydown', { key: 'Enter' }));
+    mockAgentService.runSseResponse.next(sseEvent);
+    fixture.detectChanges();
+
+    const botMessages = component.messages().filter((m) => m.role === 'bot');
+    expect(botMessages.length).toBe(2);
+
+    const hasFunctionCall = botMessages.some(m => m.functionCall?.name === 'save_artifact');
+    const hasArtifact = botMessages.some(m => m.inlineData !== undefined);
+
+    expect(hasFunctionCall).toBeTrue();
+    expect(hasArtifact).toBeTrue();
+  });
+
+  it('should render artifact for text-only response', async () => {
+    mockArtifactService.getArtifactVersion.and.returnValue(
+      of({
+        inlineData: {
+          mimeType: 'image/png',
+          data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+        },
+      }),
+    );
+    const sseEvent = {
+      id: 'event-2',
+      author: 'bot',
+      content: {
+        role: 'bot',
+        parts: [{ text: 'Some text' }]
+      },
+      actions: {
+        artifactDelta: { 'artifact-2': 'version-1' },
+      },
+    };
+    component.userInput = 'test message';
+
+    await component.sendMessage(new KeyboardEvent('keydown', { key: 'Enter' }));
+    mockAgentService.runSseResponse.next(sseEvent);
+    fixture.detectChanges();
+
+    const botMessages = component.messages().filter((m) => m.role === 'bot');
+    expect(botMessages.length).toBe(2);
+
+    const hasText = botMessages.some(m => m.text === 'Some text');
+    const hasArtifact = botMessages.some(m => m.inlineData !== undefined);
+
+    expect(hasText).toBeTrue();
+    expect(hasArtifact).toBeTrue();
+    });
 });
