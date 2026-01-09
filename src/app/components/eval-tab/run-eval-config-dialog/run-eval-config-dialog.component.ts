@@ -16,13 +16,16 @@
  */
 
 import {Component, Inject} from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import {FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 
-import {EvalMetric} from '../../../core/models/Eval';
+import {EvalMetricConfig} from '../../../core/models/Eval';
 import { CdkScrollable } from '@angular/cdk/scrolling';
-import { MatSlider, MatSliderThumb } from '@angular/material/slider';
 import { MatButton } from '@angular/material/button';
+import { MatFormField } from '@angular/material/form-field';
+import { MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { NgIf, NgFor } from '@angular/common';
 
 /**
  * @interface EvalConfigData
@@ -30,7 +33,7 @@ import { MatButton } from '@angular/material/button';
  * evaluation metrics.
  */
 export interface EvalConfigData {
-  evalMetrics: EvalMetric[];
+  metrics: EvalMetricConfig[];
 }
 
 @Component({
@@ -43,17 +46,21 @@ export interface EvalConfigData {
         MatDialogContent,
         FormsModule,
         ReactiveFormsModule,
-        MatSlider,
-        MatSliderThumb,
         MatDialogActions,
         MatButton,
+        MatFormField,
+        MatLabel,
+        MatInput,
+        NgIf,
+        NgFor,
     ],
 })
 export class RunEvalConfigDialogComponent {
   // FormGroup to manage the dialog's form controls
   evalForm: FormGroup;
 
-  evalMetrics: EvalMetric[] = [];
+  metrics: EvalMetricConfig[] = [];
+  private controlNameByMetric = new Map<string, string>();
 
   /**
    * @constructor
@@ -68,48 +75,124 @@ export class RunEvalConfigDialogComponent {
       public dialogRef: MatDialogRef<RunEvalConfigDialogComponent>,
       private fb: FormBuilder,
       @Inject(MAT_DIALOG_DATA) public data: EvalConfigData) {
-    this.evalMetrics = this.data.evalMetrics;
+    this.metrics = this.data.metrics ?? [];
 
-    // Initialize the form with controls and validators
-    this.evalForm = this.fb.group({
-      tool_trajectory_avg_score_threshold: [
-        this.getEvalMetricThresholdFromData('tool_trajectory_avg_score'),
-        [Validators.required, Validators.min(0), Validators.max(1)]
-      ],
-      response_match_score_threshold: [
-        this.getEvalMetricThresholdFromData('response_match_score'),
-        [Validators.required, Validators.min(0), Validators.max(1)]
-      ]
-    });
+    this.evalForm = this.fb.group({});
+    this.initializeForm();
   }
 
-  private getEvalMetricThresholdFromData(metricName: string): number {
-    return this.evalMetrics.find((metric) => metric.metricName === metricName)
-               ?.threshold ??
-        0;
+  protected getControlName(metricName: string): string {
+    return this.controlNameByMetric.get(metricName) ?? '';
+  }
+
+  protected getMin(metric: EvalMetricConfig): number|undefined {
+    return metric.metricValueInfo?.minThreshold;
+  }
+
+  protected getMax(metric: EvalMetricConfig): number|undefined {
+    return metric.metricValueInfo?.maxThreshold;
+  }
+
+  protected getStep(metric: EvalMetricConfig): number|undefined {
+    return metric.metricValueInfo?.step;
+  }
+
+  private initializeForm() {
+    for (const metric of this.metrics) {
+      const controlName = this.createControlName(metric.metricName);
+      this.controlNameByMetric.set(metric.metricName, controlName);
+
+      const validators = [Validators.required];
+      const min = this.getMin(metric);
+      if (min !== undefined) {
+        validators.push(Validators.min(min));
+      }
+      const max = this.getMax(metric);
+      if (max !== undefined) {
+        validators.push(Validators.max(max));
+      }
+
+      this.evalForm.addControl(controlName, this.fb.control(
+                                         metric.threshold,
+                                         validators));
+    }
+  }
+
+  private createControlName(metricName: string): string {
+    const sanitized = metricName.replace(/[^a-zA-Z0-9]/g, '_');
+    return `${sanitized}_threshold`;
   }
 
   onStart(): void {
     if (this.evalForm.valid) {
-      const {
-        tool_trajectory_avg_score_threshold,
-        response_match_score_threshold
-      } = this.evalForm.value;
+      this.metrics = this.metrics.map((metric) => {
+        const controlName = this.getControlName(metric.metricName);
+        const value = this.evalForm.get(controlName)?.value;
+        return {
+          ...metric,
+          threshold: Number(value),
+        };
+      });
 
-      for (const metric of this.evalMetrics) {
-        if (metric.metricName === 'tool_trajectory_avg_score') {
-          metric.threshold = tool_trajectory_avg_score_threshold;
-        } else if (metric.metricName === 'response_match_score') {
-          metric.threshold = response_match_score_threshold;
-        }
-      }
+      this.dialogRef.close(this.metrics);
 
-      this.dialogRef.close(this.evalMetrics);
+      return;
     }
+
+    this.evalForm.markAllAsTouched();
+  }
+
+  protected hasError(metric: EvalMetricConfig): boolean {
+    const control = this.evalForm.get(this.getControlName(metric.metricName));
+    return !!control && control.invalid && (control.dirty || control.touched);
+  }
+
+  protected getErrorMessage(metric: EvalMetricConfig): string {
+    const control = this.evalForm.get(this.getControlName(metric.metricName));
+    if (!control || !control.errors) {
+      return '';
+    }
+    if (control.errors['min']) {
+      const min = this.getMin(metric);
+      return `Minimum threshold is ${min}`;
+    }
+    if (control.errors['max']) {
+      const max = this.getMax(metric);
+      return `Maximum threshold is ${max}`;
+    }
+    if (control.errors['required']) {
+      return 'Threshold is required';
+    }
+    return 'Invalid threshold';
+  }
+
+  protected formatRangeDescription(metric: EvalMetricConfig): string {
+    const min = this.getMin(metric);
+    const max = this.getMax(metric);
+    if (min === undefined && max === undefined) {
+      return '';
+    }
+    if (min !== undefined && max !== undefined) {
+      return `Range ${min} – ${max}`;
+    }
+    if (min !== undefined) {
+      return `≥ ${min}`;
+    }
+    if (max !== undefined) {
+      return `≤ ${max}`;
+    }
+    return '';
+  }
+
+  protected formatStepDescription(metric: EvalMetricConfig): string {
+    const step = this.getStep(metric);
+    if (step === undefined) {
+      return '';
+    }
+    return `Step ${step}`;
   }
 
   onCancel(): void {
-    this.dialogRef.close(
-        null);  // Return null or undefined to indicate cancellation
-  }
+    this.dialogRef.close(null);
+    }
 }
