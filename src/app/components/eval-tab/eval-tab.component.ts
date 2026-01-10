@@ -324,16 +324,24 @@ export class EvalTabComponent implements OnInit, OnChanges {
           currentInvocationIndex++;
         } else {
           const invocationResult = invocationResults[currentInvocationIndex];
+          const isToolEvent = this.isToolRelatedEvent(event);
+          const relevantMetric = isToolEvent ?
+              'tool_trajectory_avg_score' :
+              'response_match_score';
+
           let evalStatus = 1;
           let failedMetric = '';
           let score = 1;
           let threshold = 1;
+
           for (const evalMetricResult of invocationResult.evalMetricResults) {
-            if (evalMetricResult.evalStatus === 2) {
-              evalStatus = 2;
-              failedMetric = evalMetricResult.metricName;
-              score = evalMetricResult.score;
-              threshold = evalMetricResult.threshold;
+            if (evalMetricResult.metricName === relevantMetric) {
+              evalStatus = evalMetricResult.evalStatus;
+              if (evalMetricResult.evalStatus === 2) {
+                failedMetric = evalMetricResult.metricName;
+                score = evalMetricResult.score;
+                threshold = evalMetricResult.threshold;
+              }
               break;
             }
           }
@@ -348,6 +356,14 @@ export class EvalTabComponent implements OnInit, OnChanges {
       }
     }
     return res;
+  }
+
+  private isToolRelatedEvent(event: any): boolean {
+    if (!event.content || !event.content.parts) {
+      return false;
+    }
+    return event.content.parts.some(
+        (part: any) => part.functionCall || part.functionResponse);
   }
 
   private addEvalFieldsToBotEvent(
