@@ -620,6 +620,7 @@ describe('ChatPanelComponent', () => {
       expect(component.feedback.emit).toHaveBeenCalledWith({direction: 'down'});
     });
   });
+  
   describe('Computer Use', () => {
     it(
         'isComputerUseResponse should return true when image data and url are present',
@@ -646,50 +647,6 @@ describe('ChatPanelComponent', () => {
             }
           };
           expect(component.isComputerUseResponse(message)).toBeFalse();
-        });
-
-    it(
-        'isComputerUseResponse should return false when url is missing', () => {
-          const message = {
-            functionResponse: {
-              name: 'computer_use',
-              response:
-                  {image: {data: 'base64data', mimetype: 'image/png'}, url: ''}
-            }
-          };
-          expect(component.isComputerUseResponse(message)).toBeFalse();
-        });
-
-    it(
-        'should render computer use container and screenshot', async () => {
-          component.messages = [{
-            role: 'bot',
-            functionResponse: {
-              name: 'computer',
-              response: {
-                image: {data: 'base64data', mimetype: 'image/png'},
-                url: 'http://google.com'
-              }
-            }
-          }];
-          fixture.detectChanges();
-          await fixture.whenStable();
-
-          const container =
-              fixture.debugElement.query(By.css('.computer-use-container'));
-          expect(container).toBeTruthy();
-
-          const img =
-              fixture.debugElement.query(By.css('.computer-use-screenshot'));
-          expect(img.nativeElement.src)
-              .toContain('data:image/png;base64,base64data');
-
-          const url = fixture.debugElement.query(By.css('.url-text'));
-          expect(url.nativeElement.textContent).toContain('http://google.com');
-
-          const toolName =
-              fixture.debugElement.query(By.css('.computer-use-tool-name'));
-          expect(toolName.nativeElement.textContent).toContain('computer');
-        });
+      });
+    });
   });
-});

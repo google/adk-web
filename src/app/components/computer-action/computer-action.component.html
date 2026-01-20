@@ -1,0 +1,39 @@
+@if (message.functionCall && isComputerUseClick()) {
+  @let screenshot = getPreviousComputerUseScreenshot();
+  @if (screenshot) {
+    <div class="computer-use-container click-visualization-container" (click)="clickEvent.emit(index)">
+      <div class="computer-use-header">
+        <span class="computer-use-tool-name">
+          {{ message.functionCall.name }}
+          @if (message.functionCall.args['action']) {
+            ({{ message.functionCall.args['action'] }})
+          }
+          @let actualCoords = getActualPixelCoordinates();
+          @if (actualCoords) {
+            <span class="actual-pixels" [matTooltip]="actualCoords.isVirtual ? 'Virtual (1000x1000)' : 'Hardware Mapping'">
+              [&#64; {{ actualCoords.x }}{{ actualCoords.isVirtual ? 'v' : 'px' }}, {{ actualCoords.y }}{{
+              actualCoords.isVirtual
+              ? 'v' : 'px' }}]
+            </span>
+          }
+        </span>
+      </div>
+      <div class="image-wrapper">
+        <img [src]="screenshot" class="computer-use-screenshot" alt="Computer Use Screenshot"
+          (load)="onImageLoad($event)" />
+        <div class="click-overlay-box" [ngStyle]="getClickBoxStyle()"></div>
+      </div>
+    </div>
+  }
+} @else if (message.functionResponse && isComputerUseResponse()) {
+  <div class="computer-use-container" (click)="clickEvent.emit(index)">
+    <div class="computer-use-header">
+      <span class="computer-use-tool-name">{{ message.functionResponse.name }}</span>
+    </div>
+    <img [src]="getComputerUseScreenshot()" class="computer-use-screenshot" alt="Computer Use Screenshot" />
+    <div class="computer-use-footprint">
+      <mat-icon class="computer-icon">computer</mat-icon>
+      <span class="url-text">{{ getComputerUseUrl() }}</span>
+    </div>
+  </div>
+}

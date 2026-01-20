@@ -35,7 +35,7 @@ import {EMPTY, NEVER, of, Subject} from 'rxjs';
 import {catchError, first, switchMap, tap} from 'rxjs/operators';
 
 import type {EvalCase} from '../../core/models/Eval';
-import {ComputerUsePayload, FunctionResponse} from '../../core/models/types';
+import {FunctionCall, FunctionResponse} from '../../core/models/types';
 import {AGENT_SERVICE} from '../../core/services/interfaces/agent';
 import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 import {SESSION_SERVICE} from '../../core/services/interfaces/session';
@@ -45,8 +45,9 @@ import {UI_STATE_SERVICE} from '../../core/services/interfaces/ui-state';
 import {MediaType,} from '../artifact-tab/artifact-tab.component';
 import {AudioPlayerComponent} from '../audio-player/audio-player.component';
 import {MARKDOWN_COMPONENT, MarkdownComponentInterface} from '../markdown/markdown.component.interface';
-
+import {ComputerActionComponent} from '../computer-action/computer-action.component';
 import {ChatPanelMessagesInjectionToken} from './chat-panel.component.i18n';
+import {isComputerUseResponse, isVisibleComputerUseClick} from '../../core/models/ComputerUse';
 
 const ROOT_AGENT = 'root_agent';
 
@@ -71,6 +72,7 @@ const ROOT_AGENT = 'root_agent';
     AudioPlayerComponent,
     MatTooltipModule,
     NgClass,
+    ComputerActionComponent,
   ],
 })
 export class ChatPanelComponent implements OnChanges, AfterViewInit {
@@ -272,28 +274,11 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
     this.feedback.emit({direction});
   }
 
-  isComputerUseResponse(message: {functionResponse?: FunctionResponse}):
-      boolean {
-    const response = message.functionResponse?.response as ComputerUsePayload;
-    return !!(response?.image?.data && response?.url);
+  isComputerUseClick(message: {functionCall?: FunctionCall}): boolean {
+    return isVisibleComputerUseClick(message);
   }
 
-  getComputerUseScreenshot(message: {functionResponse?: FunctionResponse}):
-      string {
-    const response = message.functionResponse?.response as ComputerUsePayload;
-    const imageInfo = response?.image;
-
-    if (!imageInfo?.data) return '';
-
-    const screenshot = imageInfo.data;
-    if (screenshot.startsWith('data:')) return screenshot;
-
-    const mimeType = imageInfo.mimetype || 'image/png';
-    return `data:${mimeType};base64,${screenshot}`;
-  }
-
-  getComputerUseUrl(message: {functionResponse?: FunctionResponse}): string {
-    const response = message.functionResponse?.response as ComputerUsePayload;
-    return response?.url || '';
+  isComputerUseResponse(message: {functionResponse?: FunctionResponse}): boolean {
+    return isComputerUseResponse(message);
   }
 }

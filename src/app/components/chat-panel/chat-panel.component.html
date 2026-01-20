@@ -224,28 +224,25 @@
       }
     </mat-card>
     } @if (message.functionCall) {
-    <button
-      mat-stroked-button
-      [ngClass]="{'function-event-button-highlight': shouldMessageHighlighted(i)}"
-      class="function-event-button"
-      (click)="clickEvent.emit(i)"
-    >
-      <mat-icon>bolt</mat-icon>
-      {{ message.functionCall.name }}
-    </button>
-    } @if (message.functionResponse) {
-      @if (isComputerUseResponse(message)) {
-      <div class="computer-use-container" (click)="clickEvent.emit(i)">
-        <div class="computer-use-header">
-          <span class="computer-use-tool-name">{{ message.functionResponse.name }}</span>
-        </div>
-        <img [src]="getComputerUseScreenshot(message)" class="computer-use-screenshot" alt="Computer Use Screenshot" />
-        <div class="computer-use-footprint">
-          <mat-icon class="computer-icon">computer</mat-icon>
-          <span class="url-text">{{ getComputerUseUrl(message) }}</span>
-        </div>
-      </div>
+      @if (isComputerUseClick(message)) {
+        <app-computer-action [message]="message" [allMessages]="messages" [index]="i" (clickEvent)="clickEvent.emit($event)"></app-computer-action>
       } @else {
+        <button
+          mat-stroked-button
+          [ngClass]="{'function-event-button-highlight': shouldMessageHighlighted(i)}"
+          class="function-event-button"
+          (click)="clickEvent.emit(i)"
+        >
+          <mat-icon>bolt</mat-icon>
+          {{ message.functionCall.name }}
+        </button>
+      }
+    }
+    @if (message.functionResponse) {
+      @if (isComputerUseResponse(message)) {
+        <app-computer-action [message]="message" [allMessages]="messages" [index]="i" (clickEvent)="clickEvent.emit($event)"></app-computer-action>
+      }
+    @else {
         <button mat-stroked-button [ngClass]="{'function-event-button-highlight': shouldMessageHighlighted(i)}"
           class="function-event-button" (click)="clickEvent.emit(i)">
           <mat-icon>check</mat-icon>
