@@ -68,7 +68,6 @@ import {SidePanelComponent} from './side-panel.component';
 const TABS_CONTAINER_SELECTOR = By.css('.tabs-container');
 const DETAILS_PANEL_SELECTOR = By.css('.details-panel-container');
 const TAB_HEADERS_SELECTOR = By.css('[role="tab"]');
-const EVENT_TAB_SELECTOR = By.css('app-event-tab');
 const SESSION_TAB_SELECTOR = By.css('app-session-tab');
 const EVAL_TAB_SELECTOR = By.css('app-eval-tab');
 const DETAILS_PANEL_CLOSE_BUTTON_SELECTOR =
@@ -76,9 +75,8 @@ const DETAILS_PANEL_CLOSE_BUTTON_SELECTOR =
 const EVENT_GRAPH_SELECTOR = By.css('.event-graph-container div');
 const APP_SELECT_SELECTOR = By.css('.app-select');
 
-const EVENTS_TAB_INDEX = 1;
-const SESSIONS_TAB_INDEX = 4;
-const EVAL_TAB_INDEX = 5;
+const SESSIONS_TAB_INDEX = 3;
+const EVAL_TAB_INDEX = 4;
 
 describe('SidePanelComponent', () => {
   let component: SidePanelComponent;
@@ -385,23 +383,6 @@ describe('SidePanelComponent', () => {
       it('emits tabChange event', () => {
         expect(component.tabChange.emit)
             .toHaveBeenCalledWith({index: 1, tab: {} as any});
-      });
-    });
-
-    describe('Events tab', () => {
-      beforeEach(async () => {
-        await switchTab(EVENTS_TAB_INDEX);
-      });
-
-      describe('when app-event-tab emits selectedEvent', () => {
-        beforeEach(() => {
-          spyOn(component.eventSelected, 'emit');
-          const eventTab = fixture.debugElement.query(EVENT_TAB_SELECTOR);
-          eventTab.triggerEventHandler('selectedEvent', 'event1');
-        });
-        it('emits eventSelected', () => {
-          expect(component.eventSelected.emit).toHaveBeenCalledWith('event1');
-        });
       });
     });
 

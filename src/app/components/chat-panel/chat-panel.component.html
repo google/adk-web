@@ -24,25 +24,52 @@
   }
   <div #videoContainer></div>
   @for (message of messages; track message; let i = $index) {
-  <div class="message-column-container">
+  <div class="message-column-container"
+    [ngClass]="{
+      'selected': isMessageEventSelected(i)
+    }"
+    (click)="handleRowClick($event, message, i)"
+  >
+  @if (message.role === "user") {
+    <div class="event-number-container user-event-number">
+      @if (isFirstUserMessageInGroup(i)) {
+      <div class="event-number-label">
+        #{{ getOverallEventNumber(i) }}
+      </div>
+      } @else {
+      <div class="event-number-placeholder"></div>
+      }
+    </div>
+  }
   <div
     [ngClass]="{
           'user-message': message.role === 'user',
           'bot-message': message.role === 'bot'
         }"
   >
+    @if (message.role === "bot" && !message.isLoading) {
+      <div class="event-number-container">
+        @if (isFirstMessageInEventGroup(i)) {
+        <div class="event-number-label">
+          #{{ getOverallEventNumber(i) }}
+        </div>
+        } @else {
+        <div class="event-number-placeholder"></div>
+        }
+      </div>
+    }
     @if (message.role === "bot") {
     <button
       mat-mini-fab
       [disabled]="!message.eventId"
-      (click)="clickEvent.emit(i)"
       [matTooltip]="getAgentNameFromEvent(i)"
       [class]="customIconColorClass(i)"
       [ngClass]="{ 'hidden': !getAgentNameFromEvent(i)}"
     >
       <mat-icon fontSet="material-symbols-outlined">robot_2</mat-icon>
     </button>
-    } @if (!message.functionCall && !message.functionResponse) {
+    } 
+    @if ((!message.functionCalls || message.functionCalls.length === 0) && (!message.functionResponses || message.functionResponses.length === 0)) {
     <mat-card
       class="message-card"
       [ngClass]="{
@@ -230,32 +257,59 @@
       </div>
       }
     </mat-card>
-    } @if (message.functionCall) {
-      @if (isComputerUseClick(message)) {
-        <app-computer-action [message]="message" [allMessages]="messages" [index]="i" (clickEvent)="clickEvent.emit($event)"></app-computer-action>
-      } @else {
-        <button
-          mat-stroked-button
-          [ngClass]="{'function-event-button-highlight': shouldMessageHighlighted(i)}"
-          class="function-event-button"
-          (click)="clickEvent.emit(i)"
-        >
-          <mat-icon>bolt</mat-icon>
-          {{ message.functionCall.name }}
-        </button>
+    } 
+    @if (message.functionCalls && message.functionCalls.length > 0) {
+      @for (functionCall of message.functionCalls; track functionCall) {
+        @if (isComputerUseClick(message)) {
+          <app-computer-action [message]="message" [allMessages]="messages" [index]="i" (clickEvent)="clickEvent.emit($event)"></app-computer-action>
+        } @else {
+          <button
+            mat-stroked-button
+            [ngClass]="{'function-event-button-highlight': shouldMessageHighlighted(i)}"
+            class="function-event-button"
+            [appJsonTooltip]="functionCall.args ? JSON.stringify(functionCall.args) : ''"
+          >
+            <mat-icon>bolt</mat-icon>
+            {{ functionCall.name }}
+          </button>
+        }
       }
     }
-    @if (message.functionResponse) {
-      @if (isComputerUseResponse(message)) {
-        <app-computer-action [message]="message" [allMessages]="messages" [index]="i" (clickEvent)="clickEvent.emit($event)"></app-computer-action>
+    @if (message.functionResponses && message.functionResponses.length > 0) {
+      @for (functionResponse of message.functionResponses; track functionResponse) {
+        @if (isComputerUseResponse(message)) {
+          <app-computer-action [message]="message" [allMessages]="messages" [index]="i" (clickEvent)="clickEvent.emit($event)"></app-computer-action>
+        } @else {
+          <button mat-stroked-button [ngClass]="{'function-event-button-highlight': shouldMessageHighlighted(i)}"
+            class="function-event-button"
+            [appJsonTooltip]="functionResponse.response ? JSON.stringify(functionResponse.response) : ''">
+            <mat-icon>check</mat-icon>
+            {{ functionResponse.name }}
+          </button>
+        }
       }
-    @else {
-        <button mat-stroked-button [ngClass]="{'function-event-button-highlight': shouldMessageHighlighted(i)}"
-          class="function-event-button" (click)="clickEvent.emit(i)">
-          <mat-icon>check</mat-icon>
-          {{ message.functionResponse.name }}
-        </button>
-      }
+    }
+    @if (message.role === "bot" && hasStateDelta(i)) {
+    <button
+      mat-stroked-button
+      [ngClass]="{'function-event-button-highlight': shouldMessageHighlighted(i)}"
+      class="function-event-button state-delta-button"
+      [appJsonTooltip]="getStateDeltaTooltip(i)"
+    >
+      <mat-icon>data_object</mat-icon>
+      State
+    </button>
+    }
+    @if (message.role === "bot" && hasArtifactDelta(i)) {
+    <button
+      mat-stroked-button
+      [ngClass]="{'function-event-button-highlight': shouldMessageHighlighted(i)}"
+      class="function-event-button artifact-delta-button"
+      [appJsonTooltip]="getArtifactDeltaTooltip(i)"
+    >
+      <mat-icon>attachment</mat-icon>
+      Artifact
+    </button>
     }
     <div
       [ngClass]="{
@@ -271,26 +325,27 @@
         i18n.evalFailLabel : "" }}</span
       >
     </div>
-    @if (evalCase && message.role === "bot" && isEvalEditMode) { @if (message.text) {
-    <div>
-      <span
-        class="material-symbols-outlined eval-case-edit-button"
-        [ngClass]="{ hidden: isEvalCaseEditing }"
-        [matTooltip]="i18n.editEvalMessageTooltip"
-        (click)="editEvalCaseMessage.emit(message)"
-      >
-        edit
-      </span>
-      <span
-        class="material-symbols-outlined eval-case-edit-button"
-        [ngClass]="{ hidden: isEvalCaseEditing }"
-        [matTooltip]="i18n.deleteEvalMessageTooltip"
-        (click)="deleteEvalCaseMessage.emit({message: message, index: i})"
-      >
-        delete
-      </span>
-    </div>
-    } @else if (isEditFunctionArgsEnabled && message.functionCall) {
+    @if (evalCase && message.role === "bot" && isEvalEditMode) { 
+      @if (message.text) {
+        <div>
+          <span
+            class="material-symbols-outlined eval-case-edit-button"
+            [ngClass]="{ hidden: isEvalCaseEditing }"
+            [matTooltip]="i18n.editEvalMessageTooltip"
+            (click)="editEvalCaseMessage.emit(message)"
+          >
+            edit
+          </span>
+          <span
+            class="material-symbols-outlined eval-case-edit-button"
+            [ngClass]="{ hidden: isEvalCaseEditing }"
+            [matTooltip]="i18n.deleteEvalMessageTooltip"
+            (click)="deleteEvalCaseMessage.emit({message: message, index: i})"
+          >
+            delete
+          </span>
+        </div>
+    } @else if (isEditFunctionArgsEnabled && message.functionCalls && message.functionCalls.length > 0) {
     <div>
       <span
         class="material-symbols-outlined eval-case-edit-button"
@@ -301,10 +356,12 @@
         edit
       </span>
     </div>
-    } } @if (message.role === "user") {
-    <button mat-mini-fab>
-      <mat-icon>person</mat-icon>
-    </button>
+    } 
+    } 
+    @if (message.role === "user") {
+      <button mat-mini-fab>
+        <mat-icon>person</mat-icon>
+      </button>
     }
   </div>
   <!-- Feedback UI -->

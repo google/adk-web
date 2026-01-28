@@ -436,7 +436,7 @@ describe('ChatComponent', () => {
             }));
 
         it('should store events', () => {
-          expect(component.eventData.has('event-1')).toBeFalse();
+          expect(component.eventData.has('event-1')).toBeTrue();
           expect(component.eventData.has('event-2')).toBeTrue();
         });
       });
@@ -1133,11 +1133,11 @@ describe('ChatComponent', () => {
 
               const botMessages =
                   component.messages().filter(m => m.role === 'bot');
-              expect(botMessages.length).toBe(3);
+              expect(botMessages.length).toBe(2);
               expect(botMessages[0].text).toBe('Hello ');
-              expect(botMessages[1].functionCall)
-                  .toEqual({name: 'foo', args: {}});
-              expect(botMessages[2].text).toBe('World!');
+              expect(botMessages[0].functionCalls)
+                  .toEqual([{name: 'foo', args: {}}]);
+              expect(botMessages[1].text).toBe('World!');
             });
       });
 

@@ -914,3 +914,58 @@ html.dark-theme .wide-agent-dropdown-panel .search-option {
 html.light-theme .wide-agent-dropdown-panel .search-option {
   background-color: #ffffff !important;
 }
+
+.function-args-tooltip {
+  .mdc-tooltip__surface {
+    background-color: #333 !important;
+    color: #fff !important;
+    border: 2px solid #666 !important;
+    border-radius: 2px !important;
+    padding: 8px 12px !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 12px !important;
+    white-space: pre-wrap !important;
+    max-width: 800px !important;
+    line-height: 1.2 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+}
+
+html.dark-theme {
+  --chat-panel-event-number-label-color: rgba(255, 255, 255, 0.8);
+}
+
+html.light-theme {
+  --chat-panel-event-number-label-color: #5f6368;
+}
+
+.json-key {
+  color: #9876aa;
+  font-weight: 600;
+}
+
+.json-string {
+  color: #6a8759;
+}
+
+.json-number {
+  color: #6897bb;
+}
+
+.json-boolean {
+  color: #cc7832;
+}
+
+.json-null {
+  color: #808080;
+}
+
+.json-tooltip-panel {
+  background-color: #333 !important;
+  color: #fff !important;
+  border: 2px solid #666 !important;
+  border-radius: 4px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  max-width: 800px !important;
+}

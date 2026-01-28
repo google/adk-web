@@ -104,16 +104,6 @@
         <app-trace-tab [traceData]="traceData()"></app-trace-tab>
       </mat-tab>
     }
-    <mat-tab class="tabs-header">
-      <ng-template mat-tab-label>
-        <span class="tab-label">{{ i18n.eventsTabLabel }}</span>
-      </ng-template>
-      <app-event-tab
-        [eventsMap]="eventData()"
-        [traceData]="traceData()"
-        (selectedEvent)="eventSelected.emit($event)"
-      ></app-event-tab>
-    </mat-tab>
     <mat-tab>
       <ng-template mat-tab-label>
         <span class="tab-label">{{ i18n.stateTabLabel }}</span>
@@ -177,15 +167,18 @@
   <div>
     <mat-tab-group>
       <mat-tab label="{{ i18n.eventDetailsTabLabel }}">
+        @if (selectedEvent()?.author !== 'user') {
         <div class="event-graph-container">
           @if (renderedEventGraph()) {
           <div [innerHtml]="renderedEventGraph()" (click)="openImageDialog.emit(rawSvgString())"></div>
           }
         </div>
+        }
         <div class="json-viewer-container">
           <ngx-json-viewer [json]="selectedEvent()"></ngx-json-viewer>
         </div>
       </mat-tab>
+      @if ((uiStateService.isEventRequestResponseLoading() | async) === true || (llmRequest() && Object.keys(llmRequest()).length > 0)) {
       <mat-tab label="{{ i18n.requestDetailsTabLabel }}">
         @if ((uiStateService.isEventRequestResponseLoading() | async) === true) {
           <div class="request-response-loading-spinner-container">
@@ -199,6 +192,8 @@
           </div>
         }
       </mat-tab>
+      }
+      @if ((uiStateService.isEventRequestResponseLoading() | async) === true || (llmResponse() && Object.keys(llmResponse()).length > 0)) {
       <mat-tab label="{{ i18n.responseDetailsTabLabel }}">
         @if ((uiStateService.isEventRequestResponseLoading() | async) === true) {
           <div class="request-response-loading-spinner-container">
@@ -212,6 +207,19 @@
         </div>
         }
       </mat-tab>
+      }
+      @if (selectedEvent()?.actions?.stateDelta && Object.keys(selectedEvent()?.actions?.stateDelta).length > 0) {
+      <mat-tab label="State">
+        <div class="json-viewer-container">
+          <ngx-json-viewer [json]="selectedEvent()?.actions?.stateDelta"></ngx-json-viewer>
+        </div>
+      </mat-tab>
+      }
+      @if (selectedEvent()?.actions?.artifactDelta && Object.keys(selectedEvent()?.actions?.artifactDelta).length > 0) {
+      <mat-tab label="Artifact">
+        <app-artifact-tab [artifacts]="artifactDeltaArray()"></app-artifact-tab>
+      </mat-tab>
+      }
     </mat-tab-group>
   </div>
 </div>

@@ -17,7 +17,7 @@
 
 import {AsyncPipe, DOCUMENT, NgClass} from '@angular/common';
 import {HttpErrorResponse} from '@angular/common/http';
-import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, inject, Injectable, OnDestroy, OnInit, Renderer2, signal, viewChild, WritableSignal} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, inject, Injectable, OnDestroy, OnInit, Renderer2, signal, viewChild, WritableSignal} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatButton, MatFabButton} from '@angular/material/button';
@@ -505,13 +505,19 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    // Add user message
+    const userEventId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const userParts: any[] = [];
+
+    // Build combined user message
+    const userMessage: any = {
+      role: 'user',
+      eventId: userEventId
+    };
+
+    // Add user message text
     if (!!this.userInput.trim()) {
-      this.messages.update(
-          (messages) =>
-              [...messages,
-               {role: 'user', text: this.userInput},
-      ]);
+      userParts.push({ text: this.userInput });
+      userMessage.text = this.userInput;
     }
 
     // Add user message attachments
@@ -520,10 +526,25 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
                                                           file: file.file,
                                                           url: file.url,
                                                         }));
-      this.messages.update(
-          messages =>
-              [...messages, {role: 'user', attachments: messageAttachments}]);
+
+      for (const file of this.selectedFiles) {
+        const part = await this.localFileService.createMessagePartFromFile(file.file);
+        userParts.push(part);
+      }
+
+      userMessage.attachments = messageAttachments;
     }
+
+    // Add the combined user message as a single row
+    this.messages.update(messages => [...messages, userMessage]);
+
+    const userEvent = {
+      id: userEventId,
+      author: 'user',
+      content: { parts: userParts }
+    };
+    this.eventData.set(userEventId, userEvent);
+    this.eventData = new Map(this.eventData);
 
     const req: AgentRunRequest = {
       appName: this.appName,
@@ -642,9 +663,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
               chunkJson.groundingMetadata.searchEntryPoint.renderedContent;
         }
 
-        this.insertMessageBeforeLoadingMessage(this.streamingTextMessage);
-
         if (!this.useSse) {
+          this.insertMessageBeforeLoadingMessage(this.streamingTextMessage);
           this.storeEvents(part, chunkJson);
           this.streamingTextMessage = null;
           return;
@@ -657,6 +677,13 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
         if (newChunk == this.streamingTextMessage.text) {
           this.storeEvents(part, chunkJson);
+          const streamingMessageFinal = {
+            role: 'bot',
+            text: this.processThoughtText(newChunk),
+            thought: part.thought ? true : false,
+            eventId: chunkJson.id,
+          };
+          this.insertMessageBeforeLoadingMessage(streamingMessageFinal);
           this.streamingTextMessage = null;
           return;
         }
@@ -681,8 +708,23 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
       this.isModelThinkingSubject.next(false);
       this.storeEvents(part, chunkJson);
-      this.storeMessage(
-          part, chunkJson, chunkJson.author === 'user' ? 'user' : 'bot');
+
+      const existingMessages = this.messages();
+      const existingMessageIndex = existingMessages.findIndex(
+        msg => msg.eventId === chunkJson.id && msg.role === 'bot'
+      );
+
+      if (existingMessageIndex !== -1) {
+        // Update existing message by adding this part
+        this.messages.update(messages => {
+          const updatedMessages = [...messages];
+          this.processPartIntoMessage(part, chunkJson, updatedMessages[existingMessageIndex]);
+          return updatedMessages;
+        });
+      } else {
+        this.storeMessage(
+            part, chunkJson, chunkJson.author === 'user' ? 'user' : 'bot');
+      }
     } else {
       this.isModelThinkingSubject.next(true);
     }
@@ -901,6 +943,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           additionalIndices.toolUseIndex :
           undefined,
     };
+
+    // Process the part and add its content to the message
     if (part) {
       if (part.inlineData) {
         const base64Data = this.formatBase64Data(
@@ -932,10 +976,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         message.eventId = e?.id;
       } else if (part.functionCall) {
-        message.functionCall = part.functionCall;
+        message.functionCalls = [part.functionCall];
         message.eventId = e?.id;
       } else if (part.functionResponse) {
-        message.functionResponse = part.functionResponse;
+        message.functionResponses = [part.functionResponse];
         message.eventId = e?.id;
       } else if (part.executableCode) {
         message.executableCode = part.executableCode;
@@ -974,6 +1018,54 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private formatBase64Data(data: string, mimeType: string) {
     const fixedBase64Data = fixBase64String(data);
     return `data:${mimeType};base64,${fixedBase64Data}`;
+  }
+
+  private processPartIntoMessage(part: any, event: any, message: any) {
+    if (!part) return;
+
+    if (part.text) {
+      message.text = part.text;
+      message.thought = part.thought ? true : false;
+      if (event?.groundingMetadata && event.groundingMetadata.searchEntryPoint &&
+          event.groundingMetadata.searchEntryPoint.renderedContent) {
+        message.renderedContent =
+            event.groundingMetadata.searchEntryPoint.renderedContent;
+      }
+      if (event?.id) {
+        message.eventId = event.id;
+      }
+    } else if (part.inlineData) {
+      const base64Data = this.formatBase64Data(
+          part.inlineData.data, part.inlineData.mimeType);
+      message.inlineData = {
+        displayName: part.inlineData.displayName,
+        data: base64Data,
+        mimeType: part.inlineData.mimeType,
+      };
+      if (message.role === 'user' && event?.id) {
+        message.eventId = event.id;
+      }
+    } else if (part.functionCall) {
+      if (!message.functionCalls) {
+        message.functionCalls = [];
+      }
+      message.functionCalls.push(part.functionCall);
+      if (event?.id) {
+        message.eventId = event.id;
+      }
+    } else if (part.functionResponse) {
+      if (!message.functionResponses) {
+        message.functionResponses = [];
+      }
+      message.functionResponses.push(part.functionResponse);
+      if (event?.id) {
+        message.eventId = event.id;
+      }
+    } else if (part.executableCode) {
+      message.executableCode = part.executableCode;
+    } else if (part.codeExecutionResult) {
+      message.codeExecutionResult = part.codeExecutionResult;
+    }
   }
 
   private handleArtifactFetchFailure(
@@ -1100,8 +1192,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         title += 'codeExecutionResult:' + part.codeExecutionResult.outcome;
       } else if (part.errorMessage) {
         title += 'errorMessage:' + part.errorMessage
-      } else if (part.a2ui) {
-        title += 'a2ui:' + part.a2ui;
       }
     }
 
@@ -1201,10 +1291,33 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   clickEvent(i: number) {
-    const key = this.messages()[i].eventId;
+    const message = this.messages()[i];
+    const key = message.eventId;
+
+    if (!key) {
+      return;
+    }
+
+    // If clicking the already selected event, deselect it
+    if (this.selectedEvent && this.selectedEvent.id === key) {
+      this.selectedEvent = undefined;
+      this.selectedEventIndex = undefined;
+      return;
+    }
+
+    // For user messages, clear LLM request/response since they don't have those
+    if (message.role === 'user') {
+      this.selectedEvent = this.eventData.get(key);
+      this.selectedEventIndex = this.getIndexOfKeyInMap(key);
+      this.llmRequest = undefined;
+      this.llmResponse = undefined;
+      this.sideDrawer()?.open();
+      this.showSidePanel = true;
+      return;
+    }
+
     this.sideDrawer()?.open();
     this.showSidePanel = true;
-
     this.selectEvent(key);
   }
 
@@ -1334,6 +1447,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   toggleSidePanel() {
     if (this.showSidePanel) {
       this.sideDrawer()?.close();
+      // Clear selected event when closing the drawer
+      this.selectedEvent = undefined;
+      this.selectedEventIndex = undefined;
     } else {
       this.sideDrawer()?.open();
     }
@@ -1394,17 +1510,55 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           this.combineA2uiDataParts(event.content?.parts) :
           event.content?.parts || [];
       const partsToProcess = reverseOrder ? [...parts].reverse() : parts;
-      partsToProcess.forEach((part: any) => {
-        if (isA2aResponse && this.isA2uiDataPart(part)) {
-          part = {a2ui: this.extractA2aDataPartJson(part).data};
+
+      if (event.author === 'user') {
+        // For user messages, combine all parts into a single message
+        const userMessage: any = {
+          role: 'user',
+          eventId: event.id
+        };
+
+        partsToProcess.forEach((part: any) => {
+          this.processPartIntoMessage(part, event, userMessage);
+        });
+
+        if (reverseOrder) {
+          this.messages.update((messages) => [userMessage, ...messages]);
+        } else {
+          this.messages.update((messages) => [...messages, userMessage]);
         }
-        this.storeMessage(
-            part, event, event.author === 'user' ? 'user' : 'bot', undefined,
-            undefined, reverseOrder);
-        if (event.author && event.author !== 'user') {
-          this.storeEvents(part, event);
+
+        // Store the event in eventData
+        if (!this.eventData.has(event.id)) {
+          this.eventData.set(event.id, event);
+          this.eventData = new Map(this.eventData);
         }
-      });
+      } else {
+        // For bot messages, combine all parts into a single message
+        const botMessage: any = {
+          role: 'bot',
+          eventId: event.id
+        };
+
+        partsToProcess.forEach((part: any) => {
+          if (isA2aResponse && this.isA2uiDataPart(part)) {
+            part = {a2ui: this.extractA2aDataPartJson(part).data};
+          }
+          this.processPartIntoMessage(part, event, botMessage);
+        });
+
+        if (reverseOrder) {
+          this.messages.update((messages) => [botMessage, ...messages]);
+        } else {
+          this.messages.update((messages) => [...messages, botMessage]);
+        }
+
+        // Store the event in eventData
+        if (!this.eventData.has(event.id)) {
+          this.eventData.set(event.id, event);
+          this.eventData = new Map(this.eventData);
+        }
+      }
     });
 
     this.sessionIdOfLoadedMessages = this.sessionId;
@@ -1425,6 +1579,56 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         this.updateSelectedSessionUrl();
       }
     });
+
+    this.resetEventsAndMessages();
+
+    session.events.forEach((event: any) => {
+      if (event.author === 'user') {
+        // For user messages, combine all parts into a single message
+        const userMessage: any = {
+          role: 'user',
+          eventId: event.id
+        };
+
+        event.content?.parts?.forEach((part: any) => {
+          this.processPartIntoMessage(part, event, userMessage);
+        });
+
+        this.messages.update((messages) => [...messages, userMessage]);
+
+        // Store the event in eventData
+        if (!this.eventData.has(event.id)) {
+          this.eventData.set(event.id, event);
+          this.eventData = new Map(this.eventData);
+        }
+      } else {
+        // For bot messages, combine all parts into a single message
+        const botMessage: any = {
+          role: 'bot',
+          eventId: event.id
+        };
+
+        event.content?.parts?.forEach((part: any) => {
+          this.processPartIntoMessage(part, event, botMessage);
+        });
+
+        this.messages.update((messages) => [...messages, botMessage]);
+
+        // Store the event in eventData
+        if (!this.eventData.has(event.id)) {
+          this.eventData.set(event.id, event);
+          this.eventData = new Map(this.eventData);
+        }
+      }
+    });
+
+    this.eventService.getTrace(this.sessionId)
+        .pipe(first(), catchError(() => of([])))
+        .subscribe(res => {
+          this.traceData = res;
+          this.traceService.setEventData(this.eventData);
+          this.traceService.setMessages(this.messages());
+        });
 
     this.sessionService.canEdit(this.userId, session)
         .pipe(first(), catchError(() => of(true)))
@@ -1626,6 +1830,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.artifacts = [];
     this.traceData = [];
     this.bottomPanelVisible = false;
+
+    // Clear selected event
+    this.selectedEvent = undefined;
+    this.selectedEventIndex = undefined;
 
     // Close eval history if opened
     if (!!this.evalTab()?.showEvalHistory) {
@@ -1860,6 +2068,24 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       const key = this.getKeyAtIndexInMap(event.pageIndex);
       if (key) {
         this.selectEvent(key);
+
+        // Scroll to the corresponding message in the chat panel
+        setTimeout(() => {
+          const messageIndex = this.messages().findIndex(msg => msg.eventId === key);
+          if (messageIndex !== -1) {
+            const scrollContainer = this.chatPanel()?.scrollContainer?.nativeElement;
+            if (!scrollContainer) return;
+
+            const messageElements = scrollContainer.querySelectorAll('.message-column-container');
+            if (messageElements && messageElements[messageIndex]) {
+              messageElements[messageIndex].scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'nearest'
+              });
+            }
+          }
+        }, 0);
       }
     }
   }
@@ -1867,6 +2093,15 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   closeSelectedEvent() {
     this.selectedEvent = undefined;
     this.selectedEventIndex = undefined;
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleEscapeKey(event: KeyboardEvent) {
+    if (event.key === 'Escape' && this.selectedEvent) {
+      event.preventDefault();
+      this.selectedEvent = undefined;
+      this.selectedEventIndex = undefined;
+    }
   }
 
   private getIndexOfKeyInMap(key: string): number|undefined {
