@@ -28,6 +28,8 @@
     "@codemirror/lint": "^6.8.5",
     "@viz-js/viz": "^3.12.0",
     "codemirror": "^6.0.2",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.0.0",
     "ngx-json-viewer": "^3.2.1",
     "ngx-markdown": "^21.0.1",
     "ngx-vflow": "^1.16.4",
