@@ -14,34 +14,47 @@
  limitations under the License.
 -->
 <div class="dialog-container">
-  <h2 mat-dialog-title class="dialog-title">EVALUATION METRIC</h2>
+  <h2 mat-dialog-title class="dialog-title">Evaluation Metrics</h2>
   <mat-dialog-content>
     <form [formGroup]="evalForm" class="eval-form">
-      <div class="metric-row">
-        <div class="metric-name">Tool trajectory avg score: </div>
-        <div class="flex-1 pl-4">
-          <mat-slider min="0" max="1" step="0.1" thumbLabel class="threshold-slider">
-            <input matSliderThumb formControlName="tool_trajectory_avg_score_threshold" />
-          </mat-slider>
-          <!-- Display current threshold value -->
-          <span class="threshold-value">
-            {{ evalForm.controls['tool_trajectory_avg_score_threshold'].value }}
-          </span>
-        </div>
-      </div>
-
-      <div class="metric-row">
-        <div class="metric-name">Response match score: </div>
-        <div class="flex-1 pl-4">
-          <mat-slider min="0" max="1" step="0.1" thumbLabel class="threshold-slider">
-            <input matSliderThumb formControlName="response_match_score_threshold" />
-          </mat-slider>
-          <!-- Display current threshold value -->
-          <span class="threshold-value">
-            {{ evalForm.controls['response_match_score_threshold'].value }}
-          </span>
-        </div>
-      </div>
+      @if (metrics.length === 0) {
+        <div class="no-metrics">No metrics available for this app.</div>
+      } @else {
+        @for (metric of metrics; track metric.metricName) {
+          <div class="metric-row">
+            <div class="metric-details">
+              <div class="metric-title">{{ metric.metricName }}</div>
+              @if (metric.description) {
+                <div class="metric-description">{{ metric.description }}</div>
+              }
+              @if (formatRangeDescription(metric) || formatStepDescription(metric)) {
+                <div class="metric-hints">
+                  <span>{{ formatRangeDescription(metric) }}</span>
+                  @if (formatStepDescription(metric)) {
+                    <span> · {{ formatStepDescription(metric) }}</span>
+                  }
+                </div>
+              }
+            </div>
+            <div class="metric-input">
+              <mat-form-field appearance="outline">
+                <mat-label>Threshold</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  [step]="getStep(metric) ?? 0.01"
+                  [min]="getMin(metric)"
+                  [max]="getMax(metric)"
+                  [formControlName]="getControlName(metric.metricName)"
+                />
+              </mat-form-field>
+              @if (hasError(metric)) {
+                <div class="metric-error">{{ getErrorMessage(metric) }}</div>
+              }
+            </div>
+          </div>
+        }
+      }
     </form>
   </mat-dialog-content>
 

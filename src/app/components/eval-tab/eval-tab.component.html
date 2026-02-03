@@ -63,6 +63,36 @@
         <div>
           @if (!showEvalHistory()) {
             <div>
+              <div class="metric-selection">
+                <mat-form-field appearance="outline" class="metric-select-field">
+                  <mat-label>Evaluation metrics</mat-label>
+                  <mat-select multiple [value]="selectedMetricNames" (valueChange)="onMetricSelectionChange($event)">
+                    @for (metric of metricOptions; track metric.metricName) {
+                      <mat-option [value]="metric.metricName">
+                        <span>{{ metric.metricName }}</span>
+                        @if (metric.description) {
+                          <span class="metric-option-description"> — {{ metric.description }}</span>
+                        }
+                      </mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                @if (selectedMetricNames.length === 0) {
+                  <div class="metric-selection-helper">
+                    Select at least one metric before running an evaluation.
+                  </div>
+                } @else {
+                  <div class="selected-metric-summary">
+                    @for (metric of metricOptions; track metric.metricName) {
+                      @if (metric.selected) {
+                        <span class="selected-metric-chip">
+                          {{ metric.metricName }} · threshold: {{ metric.threshold }}
+                        </span>
+                      }
+                    }
+                  </div>
+                }
+              </div>
               <div class="evaluation-tab-header">
                 <button class="run-eval-btn" (click)="openEvalConfigDialog()">{{ i18n.runEvaluationButton }}</button>
                 <mat-icon class="evaluation-history-icon" (click)="toggleEvalHistoryButton()" [matTooltip]="i18n.viewEvalRunHistoryTooltip">history</mat-icon>
@@ -128,9 +158,15 @@
                         </div>
                         @if (getEvalMetrics(evalResult)) {
                           <div class="status-card__metrics">
-                            @for (evalMetric of getEvalMetrics(evalResult); track evalMetric) {
-                              <span class="status-card__metric"> {{ evalMetric.metricName }}:
-                                {{ evalMetric.threshold }}
+                            @for (evalMetric of getEvalMetrics(evalResult); track evalMetric.metricName) {
+                              <span class="status-card__metric">
+                                {{ evalMetric.metricName }} · Threshold: {{ evalMetric.threshold }}
+                                @if (evalMetric.score !== undefined) {
+                                  · Score: {{ evalMetric.score }}
+                                }
+                                @if (evalMetric.evalStatus) {
+                                  · Status: {{ evalMetric.evalStatus }}
+                                }
                               </span>
                             }
                           </div>
@@ -155,6 +191,34 @@
                                 <div style="padding-top: 4px;">{{ evalResult.finalEvalStatus == 1 ? i18n.passStatusCaps : i18n.failStatusCaps}} </div>
                               </button>
                             </div>
+                            @if (evalResult.overallEvalMetricResults?.length) {
+                              <div class="status-card__metric-results">
+                                @for (metricResult of evalResult.overallEvalMetricResults; track metricResult.metricName) {
+                                  <div
+                                    class="status-card__metric-result"
+                                    [ngClass]="{
+                                      'status-card__metric-result--pass': metricResult.evalStatus === 'PASSED' || metricResult.evalStatus === 1,
+                                      'status-card__metric-result--fail': metricResult.evalStatus === 'FAILED' || metricResult.evalStatus === 2,
+                                      'status-card__metric-result--neutral': metricResult.evalStatus !== 'PASSED' && metricResult.evalStatus !== 'FAILED' && metricResult.evalStatus !== 1 && metricResult.evalStatus !== 2
+                                    }"
+                                  >
+                                    <span class="status-card__metric-result-name">
+                                      {{ metricResult.metricName }}
+                                    </span>
+                                    @if (metricResult.score !== undefined) {
+                                      <span class="status-card__metric-result-score">
+                                        Score: {{ metricResult.score }}
+                                      </span>
+                                    }
+                                    @if (metricResult.threshold !== undefined) {
+                                      <span class="status-card__metric-result-threshold">
+                                        Threshold: {{ metricResult.threshold }}
+                                      </span>
+                                    }
+                                  </div>
+                                }
+                              </div>
+                            }
                           </div>
                         }
                       </div>
@@ -184,4 +248,3 @@
     </div>
   }
 </div>
-
