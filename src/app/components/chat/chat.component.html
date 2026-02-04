@@ -203,11 +203,23 @@
             class="example-margin"
             [checked]="enableSseIndicator()"
             (change)="toggleSse()"
-            [disabled]="!(isTokenStreamingEnabledObs | async)"
+            [disabled]="!(isTokenStreamingEnabledObs | async) || useLiveStreaming"
           >
             {{ i18n.tokenStreamingLabel }}
           </mat-slide-toggle>
         </div>
+        @if (isLiveStreamingEnabledObs | async) {
+        <div class="toolbar-sse-toggle" style="margin-left: 8px;">
+          <mat-slide-toggle
+            class="example-margin"
+            [checked]="useLiveStreaming"
+            (change)="toggleLiveStreaming()"
+            [disabled]="useSse"
+          >
+            {{ i18n.liveStreamingLabel }}
+          </mat-slide-toggle>
+        </div>
+        }
         <mat-divider
           [vertical]="true"
           style="margin-left: 8px; margin-right: 8px; height: 22px"

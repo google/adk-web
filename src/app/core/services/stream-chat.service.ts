@@ -16,6 +16,7 @@
  */
 
 import {ElementRef, inject, Injectable} from '@angular/core';
+import {Observable, Subject} from 'rxjs';
 
 import {URLUtil} from '../../../utils/url-util';
 import {LiveRequest} from '../models/LiveRequest';
@@ -28,7 +29,7 @@ import {VideoService} from './video.service';
 import {WebSocketService} from './websocket.service';
 
 /**
- * Service for supporting live streaming with audio/video.
+ * Service for supporting live streaming with audio/video/text.
  */
 @Injectable({
   providedIn: 'root',
@@ -39,6 +40,8 @@ export class StreamChatService implements StreamChatServiceInterface {
   private readonly webSocketService = inject(WEBSOCKET_SERVICE);
   private audioIntervalId: number|undefined = undefined;
   private videoIntervalId: number|undefined = undefined;
+  private textMessagesSubject = new Subject<any>();
+  private isTextStreamingActive = false;
 
   constructor() {}
 
@@ -146,11 +149,66 @@ export class StreamChatService implements StreamChatServiceInterface {
     this.videoService.stopRecording(videoContainer);
   }
 
+  startTextStreaming({
+    appName,
+    userId,
+    sessionId,
+  }: {appName: string; userId: string; sessionId: string;}) {
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    this.webSocketService.connect(
+        `${protocol}://${URLUtil.getWSServerUrl()}/run_live?app_name=${
+            appName}&user_id=${userId}&session_id=${sessionId}`,
+    );
+    this.isTextStreamingActive = true;
+
+    // Subscribe to incoming WebSocket messages and forward to text stream
+    this.webSocketService.getMessages().subscribe((message) => {
+      try {
+        const parsedMessage = JSON.parse(message);
+        this.textMessagesSubject.next(parsedMessage);
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    });
+  }
+
+  stopTextStreaming() {
+    this.isTextStreamingActive = false;
+    this.webSocketService.closeConnection();
+  }
+
+  sendTextMessage(text: string) {
+    if (!this.isTextStreamingActive) {
+      console.error('Text streaming is not active');
+      return;
+    }
+
+    // Send text message in LiveRequest format expected by the backend
+    // Based on LiveRequest model: content field with types.Content structure
+    const liveRequest = {
+      content: {
+        parts: [
+          {
+            text: text
+          }
+        ]
+      }
+    };
+
+    // Use WebSocket's underlying socket to send raw JSON
+    (this.webSocketService as any).socket$.next(liveRequest);
+  }
+
+  getTextMessages(): Observable<any> {
+    return this.textMessagesSubject.asObservable();
+  }
+
   onStreamClose() {
     return this.webSocketService.onCloseReason();
   }
 
   closeStream() {
+    this.isTextStreamingActive = false;
     this.webSocketService.closeConnection();
   }
 }
