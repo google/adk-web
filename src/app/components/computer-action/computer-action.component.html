@@ -4,9 +4,9 @@
     <div class="computer-use-container click-visualization-container" (click)="clickEvent.emit(index)">
       <div class="computer-use-header">
         <span class="computer-use-tool-name">
-          {{ functionCall?.name }}
-          @if (functionCall?.args && functionCall?.args?.['action']) {
-            ({{ functionCall?.args?.['action'] }})
+          {{ functionCall.name }}
+          @if (functionCall.args && functionCall.args['action']) {
+            ({{ functionCall.args['action'] }})
           }
           @let actualCoords = getActualPixelCoordinates();
           @if (actualCoords) {
@@ -28,7 +28,7 @@
 } @else if (isComputerUseResponse()) {
   <div class="computer-use-container" (click)="clickEvent.emit(index)">
     <div class="computer-use-header">
-      <span class="computer-use-tool-name">{{ functionResponse?.name }}</span>
+      <span class="computer-use-tool-name">{{ functionResponse.name }}</span>
     </div>
     <img [src]="getComputerUseScreenshot()" class="computer-use-screenshot" alt="Computer Use Screenshot" />
     <div class="computer-use-footprint">

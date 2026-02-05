@@ -19,8 +19,8 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
 
-import {ComputerAction, ComputerTool, ComputerUseClickCall, ComputerUsePayload, isComputerUseResponse, isVisibleComputerUseClick} from '../../core/models/ComputerUse';
-import {FunctionCall, FunctionResponse} from '../../core/models/types';
+import {ComputerUseClickCall, ComputerUsePayload, isComputerUseResponse, isVisibleComputerUseClick} from '../../core/models/ComputerUse';
+import type {FunctionCall, FunctionResponse} from '../../core/models/types';
 
 @Component({
   selector: 'app-computer-action',
