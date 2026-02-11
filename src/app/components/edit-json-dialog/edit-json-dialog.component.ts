@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {Component, Inject, inject, OnInit, viewChild} from '@angular/core';
+import {Component, Inject, inject, OnInit, viewChild, ChangeDetectionStrategy} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
 
 import {JsonEditorComponent} from '../json-editor/json-editor.component';
@@ -30,7 +30,7 @@ export interface EditJsonData {
 }
 
 @Component({
-    selector: 'app-edit-json-dialog',
+    changeDetection: ChangeDetectionStrategy.Eager,selector: 'app-edit-json-dialog',
     templateUrl: './edit-json-dialog.component.html',
     styleUrls: ['./edit-json-dialog.component.scss'],
     standalone: true,

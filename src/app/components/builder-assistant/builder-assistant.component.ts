@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Component, Input, Output, EventEmitter, OnInit, Inject, ViewChild, ElementRef, AfterViewChecked, inject, Type} from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, Inject, ViewChild, ElementRef, AfterViewChecked, inject, Type, ChangeDetectionStrategy} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
@@ -32,7 +32,7 @@ import { YamlUtils } from '../../../utils/yaml-utils';
 import {MARKDOWN_COMPONENT, MarkdownComponentInterface} from '../markdown/markdown.component.interface';
 
 @Component({
-  selector: 'app-builder-assistant',
+  changeDetection: ChangeDetectionStrategy.Eager,selector: 'app-builder-assistant',
   templateUrl: './builder-assistant.component.html',
   styleUrl: './builder-assistant.component.scss',
   standalone: true,

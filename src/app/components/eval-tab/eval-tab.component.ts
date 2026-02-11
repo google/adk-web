@@ -17,7 +17,7 @@
 
 import {SelectionModel} from '@angular/cdk/collections';
 import {NgClass} from '@angular/common';
-import {ChangeDetectorRef, Component, inject, InjectionToken, input, OnChanges, OnInit, output, signal, SimpleChanges, Type, viewChildren} from '@angular/core';
+import {ChangeDetectorRef, Component, inject, InjectionToken, input, OnChanges, OnInit, output, signal, SimpleChanges, Type, viewChildren, ChangeDetectionStrategy} from '@angular/core';
 import {MatCheckbox} from '@angular/material/checkbox';
 import {MatDialog} from '@angular/material/dialog';
 import {MatIcon} from '@angular/material/icon';
@@ -79,7 +79,7 @@ interface AppEvaluationResult {
 }
 
 @Component({
-  selector: 'app-eval-tab',
+  changeDetection: ChangeDetectionStrategy.Eager,selector: 'app-eval-tab',
   templateUrl: './eval-tab.component.html',
   styleUrl: './eval-tab.component.scss',
   standalone: true,

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
@@ -27,7 +27,7 @@ import { MatIcon } from '@angular/material/icon';
 import { TooltipUtil } from '../../../utils/tooltip-util';
 
 @Component({
-  selector: 'app-add-tool-dialog',
+  changeDetection: ChangeDetectionStrategy.Eager,selector: 'app-add-tool-dialog',
   templateUrl: './add-tool-dialog.component.html',
   styleUrl: './add-tool-dialog.component.scss',
   standalone: true,

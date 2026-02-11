@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, computed, inject, input, signal} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, computed, inject, input, signal, ChangeDetectionStrategy} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 
 import {Span} from '../../core/models/Trace';
@@ -29,7 +29,7 @@ import {EventTabMessagesInjectionToken} from './event-tab.component.i18n';
 import {InvocIdPipe} from './invoc-id.pipe';
 
 @Component({
-    selector: 'app-event-tab',
+    changeDetection: ChangeDetectionStrategy.Eager,selector: 'app-event-tab',
     templateUrl: './event-tab.component.html',
     styleUrl: './event-tab.component.scss',
     standalone: true,

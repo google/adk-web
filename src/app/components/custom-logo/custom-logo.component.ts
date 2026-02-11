@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 
 import {RuntimeConfigUtil} from '../../../utils/runtime-config-util';
 
 /** Logo component to override the default logo. */
 @Component({
-  selector: 'app-custom-logo',
+  changeDetection: ChangeDetectionStrategy.Eager,selector: 'app-custom-logo',
   standalone: true,
   templateUrl: './custom-logo.component.html',
   styleUrls: ['./custom-logo.component.scss'],
