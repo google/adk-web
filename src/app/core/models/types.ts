@@ -76,6 +76,15 @@ export declare interface LlmResponse {
   errorMessage?: string;
   errorCode?: string;
   longRunningToolIds?: string[];
+  outputTranscription?: {
+    text: string;
+    finished: boolean;
+  };
+  inputTranscription?: {
+    text: string;
+    finished: boolean;
+  };
+  partial?: boolean;
 }
 
 export declare interface EventActions {
