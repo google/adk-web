@@ -166,6 +166,7 @@
                   alt="image"
                   [src]="message.inlineData.data"
                   (click)="openViewImageDialog.emit(message.inlineData.data)"
+                  (load)="scrollToBottom()"
                 />
               </div>
               } @case (MediaType.AUDIO) {
@@ -460,7 +461,7 @@
             class="audio-rec-btn"
             [class.recording]="isAudioRecording"
             [matTooltip]="isAudioRecording ? i18n.turnOffMicTooltip : i18n.useMicTooltip"
-            [disabled]="!(isBidiStreamingEnabledObs | async)"
+            [disabled]="!(isBidiStreamingEnabledObs | async) || !useLive"
           >
             <mat-icon>mic</mat-icon>
           </button>
@@ -471,7 +472,7 @@
             class="video-rec-btn"
             [class.recording]="isVideoRecording"
             [matTooltip]="isVideoRecording ? i18n.turnOffCamTooltip : i18n.useCamTooltip"
-            [disabled]="!(isBidiStreamingEnabledObs | async)"
+            [disabled]="!(isBidiStreamingEnabledObs | async) || !useLive"
           >
             <mat-icon>videocam</mat-icon>
           </button>

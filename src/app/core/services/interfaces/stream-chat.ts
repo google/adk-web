@@ -17,6 +17,8 @@
 
 import {ElementRef, InjectionToken} from '@angular/core';
 import {Observable} from 'rxjs';
+import {LlmResponse} from '../../models/types';
+import {AgentRunRequest} from "../../models/AgentRunRequest";
 
 export const STREAM_CHAT_SERVICE =
   new InjectionToken<StreamChatService>('StreamChatService');
@@ -40,4 +42,6 @@ export declare abstract class StreamChatService {
   abstract stopVideoChat(videoContainer: ElementRef): void;
   abstract onStreamClose(): Observable<string>;
   abstract closeStream(): void;
+  abstract getMessages(): Observable<LlmResponse>;
+  abstract sendMessage(req: AgentRunRequest): void;
 }

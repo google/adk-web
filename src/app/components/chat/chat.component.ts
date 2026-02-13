@@ -118,9 +118,6 @@ class CustomPaginatorIntl extends MatPaginatorIntl {
   };
 }
 
-const BIDI_STREAMING_RESTART_WARNING =
-    'Restarting bidirectional streaming is not currently supported. Please refresh the page or start a new session.';
-
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.component.html',
@@ -184,7 +181,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   sidePanel = viewChild.required(SidePanelComponent);
   evalTab = viewChild(EvalTabComponent);
   bottomPanelRef = viewChild.required<ElementRef>('bottomPanel');
-  enableSseIndicator = signal(false);
+  enableStreamingIndicator = signal(false);
+  enableLiveIndicator = signal(false);
   isChatMode = signal(true);
   isEvalCaseEditing = signal(false);
   hasEvalCaseChanged = signal(false);
@@ -213,15 +211,13 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   redirectUri = URLUtil.getBaseUrlWithoutPath();
   showSidePanel = true;
   showBuilderAssistant = true;
-  useSse = false;
+  useStreaming = false;
+  useLive = false;
   currentSessionState: SessionState|undefined = {};
   root_agent = ROOT_AGENT;
   updatedSessionState: WritableSignal<any> = signal(null);
   private readonly isModelThinkingSubject = new BehaviorSubject(false);
   protected readonly canEditSession = signal(true);
-
-  // TODO: Remove this once backend supports restarting bidi streaming.
-  sessionHasUsedBidi = new Set<string>();
 
   eventData = new Map<string, any>();
   traceData: any[] = [];
@@ -291,6 +287,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       this.featureFlagService.isApplicationSelectorEnabled();
   readonly isTokenStreamingEnabledObs: Observable<boolean> =
       this.featureFlagService.isTokenStreamingEnabled();
+  readonly isBidiStreamingEnabledObs: Observable<boolean> =
+      this.featureFlagService.isBidiStreamingEnabled();
   readonly isExportSessionEnabledObs: Observable<boolean> =
       this.featureFlagService.isExportSessionEnabled();
   readonly isEventFilteringEnabled =
@@ -424,6 +422,56 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.isApplicationSelectorEnabled()) {
       this.loadSessionByUrlOrReset();
     }
+
+    this.streamChatService.getMessages().subscribe((chunkJson: AdkEvent) => this.handleAdkEvent(chunkJson));
+  }
+
+  async handleAdkEvent(chunkJson: AdkEvent) {
+    if (chunkJson.error) {
+      this.openSnackBar(chunkJson.error, 'OK');
+      return;
+    }
+    if (chunkJson.inputTranscription && chunkJson.partial === this.useStreaming) {
+      chunkJson.content = {
+        role: 'user',
+        parts: [
+          {
+            text: chunkJson.inputTranscription.text
+          }
+        ]
+      }
+    }
+    if (chunkJson.outputTranscription && chunkJson.partial === this.useStreaming) {
+      chunkJson.content = {
+        role: 'bot',
+        parts: [
+          {
+            text: chunkJson.outputTranscription.text
+          }
+        ]
+      }
+    }
+    if (chunkJson.content && chunkJson.partial === this.useStreaming) {
+      let parts = this.combineTextParts(chunkJson.content.parts);
+      if (this.isEventA2aResponse(chunkJson)) {
+        parts = this.combineA2uiDataParts(parts);
+      }
+
+      for (let part of parts) {
+        if (part.inlineData && part.inlineData.mimeType && part.inlineData.mimeType.startsWith('audio/pcm')) {
+          continue;
+        }
+        this.processPart(chunkJson, part);
+        this.traceService.setEventData(this.eventData);
+      }
+    } else if (chunkJson.errorMessage) {
+      this.processErrorMessage(chunkJson);
+    }
+    if (chunkJson.actions) {
+      this.processActionArtifact(chunkJson);
+      this.processActionStateDelta(chunkJson);
+    }
+    this.changeDetectorRef.detectChanges();
   }
 
   selectApp(appName: string) {
@@ -571,65 +619,46 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         role: 'user',
         parts: await this.getUserMessageParts(),
       },
-      streaming: this.useSse,
+      streaming: this.useStreaming,
       stateDelta: this.updatedSessionState(),
     };
     this.selectedFiles = [];
     this.streamingTextMessage = null;
-    this.agentService.runSse(req).subscribe({
-      next: async (chunkJson: AdkEvent) => {
-        if (chunkJson.error) {
-          this.openSnackBar(chunkJson.error, 'OK');
-          return;
-        }
-        if (chunkJson.content) {
-          let parts = this.combineTextParts(chunkJson.content.parts);
-          if (this.isEventA2aResponse(chunkJson)) {
-            parts = this.combineA2uiDataParts(parts);
+    if (!this.useLive) {
+      this.agentService.runSse(req).subscribe({
+        next: (chunkJson: AdkEvent) => this.handleAdkEvent(chunkJson),
+        error: (err) => {
+          console.error('Send message error:', err);
+          this.openSnackBar(err, 'OK');
+        },
+        complete: () => {
+          if (this.updatedSessionState()) {
+            this.currentSessionState = this.updatedSessionState();
+            this.updatedSessionState.set(null);
           }
-
-          for (let part of parts) {
-            this.processPart(chunkJson, part);
-            this.traceService.setEventData(this.eventData);
-          }
-        } else if (chunkJson.errorMessage) {
-          this.processErrorMessage(chunkJson);
-        }
-        if (chunkJson.actions) {
-          this.processActionArtifact(chunkJson);
-          this.processActionStateDelta(chunkJson);
-        }
-        this.changeDetectorRef.detectChanges();
-      },
-      error: (err) => {
-        console.error('Send message error:', err);
-        this.openSnackBar(err, 'OK');
-      },
-      complete: () => {
-        if (this.updatedSessionState()) {
-          this.currentSessionState = this.updatedSessionState();
-          this.updatedSessionState.set(null);
-        }
-        this.streamingTextMessage = null;
-        this.featureFlagService.isSessionReloadOnNewMessageEnabled()
-            .pipe(first())
-            .subscribe((enabled) => {
-              if (enabled) {
-                this.sessionTab?.reloadSession(this.sessionId);
-              }
-            });
-        this.eventService.getTrace(this.sessionId)
-            .pipe(first(), catchError((error) => {
-                    return of([]);
-                  }))
-            .subscribe((res) => {
-              this.traceData = res;
-              this.changeDetectorRef.detectChanges();
-            });
-        this.traceService.setMessages(this.messages());
-        this.changeDetectorRef.detectChanges();
-      },
-    });
+          this.streamingTextMessage = null;
+          this.featureFlagService.isSessionReloadOnNewMessageEnabled()
+              .pipe(first())
+              .subscribe((enabled) => {
+                if (enabled) {
+                  this.sessionTab?.reloadSession(this.sessionId);
+                }
+              });
+          this.eventService.getTrace(this.sessionId)
+              .pipe(first(), catchError((error) => {
+                return of([]);
+              }))
+              .subscribe((res) => {
+                this.traceData = res;
+                this.changeDetectorRef.detectChanges();
+              });
+          this.traceService.setMessages(this.messages());
+          this.changeDetectorRef.detectChanges();
+        },
+      });
+    } else {
+      this.streamChatService.sendMessage(req);
+    }
     // Clear input
     this.userInput = '';
     // Clear the query param for the initial user input once it is sent.
@@ -680,7 +709,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
               chunkJson.groundingMetadata.searchEntryPoint.renderedContent;
         }
 
-        if (!this.useSse) {
+        if (!this.useStreaming) {
           this.insertMessageBeforeLoadingMessage(this.streamingTextMessage);
           this.storeEvents(part, chunkJson);
           this.streamingTextMessage = null;
@@ -715,7 +744,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     } else if (!part.thought) {
       // Skip partial events for non-text parts to avoid duplicates
-      if (this.useSse && chunkJson.partial) {
+      if (this.useStreaming && chunkJson.partial) {
         return;
       }
 
@@ -1040,7 +1069,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private insertMessageBeforeLoadingMessage(message: any) {
     this.messages.update((messages) => {
       // If SSE streaming is enabled and this is a text message with eventId
-      if (this.useSse && message.text && message.eventId &&
+      if (this.useStreaming && message.text && message.eventId &&
           message.role === 'bot') {
         // Find existing streaming message with the same eventId
         const existingIndex = messages.findIndex(
@@ -1400,24 +1429,12 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   startAudioRecording() {
-    if (this.sessionHasUsedBidi.has(this.sessionId)) {
-      this.openSnackBar(BIDI_STREAMING_RESTART_WARNING, 'OK');
-      return;
-    }
-
     this.isAudioRecording = true;
     this.streamChatService.startAudioChat({
       appName: this.appName,
       userId: this.userId,
       sessionId: this.sessionId,
     });
-    this.messages.update(
-        messages =>
-            [...messages,
-             {role: 'user', text: 'Speaking...'},
-             {role: 'bot', text: 'Speaking...'},
-    ]);
-    this.sessionHasUsedBidi.add(this.sessionId);
   }
 
   stopAudioRecording() {
@@ -1431,10 +1448,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   startVideoRecording() {
-    if (this.sessionHasUsedBidi.has(this.sessionId)) {
-      this.openSnackBar(BIDI_STREAMING_RESTART_WARNING, 'OK');
-      return;
-    }
     const videoContainer = this.chatPanel()?.videoContainer;
     if (!videoContainer) {
       return;
@@ -1446,9 +1459,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       sessionId: this.sessionId,
       videoContainer,
     });
-    this.messages.update(
-        messages => [...messages, {role: 'user', text: 'Speaking...'}]);
-    this.sessionHasUsedBidi.add(this.sessionId);
   }
 
   stopVideoRecording() {
@@ -1645,6 +1655,17 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           eventId: event.id
         };
 
+        if (event.inputTranscription) {
+          event.content = {
+            role: 'user',
+            parts: [
+              {
+                text: event.inputTranscription.text
+              }
+            ]
+          }
+        }
+
         event.content?.parts?.forEach((part: any) => {
           this.processPartIntoMessage(part, event, userMessage);
         });
@@ -1662,6 +1683,17 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           role: 'bot',
           eventId: event.id
         };
+
+        if (event.outputTranscription) {
+          event.content = {
+            role: 'bot',
+            parts: [
+              {
+                text: event.outputTranscription.text
+              }
+            ]
+          }
+        }
 
         event.content?.parts?.forEach((part: any) => {
           this.processPartIntoMessage(part, event, botMessage);
@@ -1913,8 +1945,20 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedFiles.splice(index, 1);
   }
 
-  toggleSse() {
-    this.useSse = !this.useSse;
+  toggleStreaming() {
+    this.useStreaming = !this.useStreaming;
+    if (this.useLive && !this.useStreaming) {
+      this.enableLiveIndicator.set(false);
+      this.useLive = false;
+    }
+  }
+
+  toggleLive() {
+    this.useLive = !this.useLive;
+    if (this.useLive) {
+      this.enableStreamingIndicator.set(true);
+      this.useStreaming = true;
+    }
   }
 
   enterBuilderMode() {
