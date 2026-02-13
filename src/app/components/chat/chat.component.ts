@@ -775,9 +775,29 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     return parts;
   }
 
+  private getArtifactDelta(actions: any): {[key: string]: any}|undefined {
+    const artifactDelta = actions?.artifactDelta ?? actions?.artifact_delta;
+    if (!artifactDelta || Object.keys(artifactDelta).length === 0) {
+      return undefined;
+    }
+    return artifactDelta;
+  }
+
+  private renderArtifactsFromActions(actions: any, prepend: boolean = false) {
+    const artifactDelta = this.getArtifactDelta(actions);
+    if (!artifactDelta) {
+      return;
+    }
+
+    for (const key in artifactDelta) {
+      if (Object.prototype.hasOwnProperty.call(artifactDelta, key)) {
+        this.renderArtifact(key, artifactDelta[key], prepend);
+      }
+    }
+  }
+
   private processActionArtifact(e: AdkEvent) {
-    if (e.actions && e.actions.artifactDelta &&
-        Object.keys(e.actions.artifactDelta).length > 0) {
+    if (this.getArtifactDelta(e.actions)) {
       this.storeEvents(null, e);
       this.storeMessage(null, e, 'bot');
     }
@@ -954,13 +974,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         this.functionCallEventId = e.id;
       }
     }
-    if (e?.actions && e.actions.artifactDelta) {
-      for (const key in e.actions.artifactDelta) {
-        if (e.actions.artifactDelta.hasOwnProperty(key)) {
-          this.renderArtifact(key, e.actions.artifactDelta[key], prepend);
-        }
-      }
-    }
+    this.renderArtifactsFromActions(e?.actions, prepend);
 
     if (e?.evalStatus) {
       this.isChatMode.set(false);
@@ -1018,13 +1032,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         message.executableCode = part.executableCode;
       } else if (part.codeExecutionResult) {
         message.codeExecutionResult = part.codeExecutionResult;
-        if (e.actions && e.actions.artifact_delta) {
-          for (const key in e.actions.artifact_delta) {
-            if (e.actions.artifact_delta.hasOwnProperty(key)) {
-              this.renderArtifact(key, e.actions.artifact_delta[key], prepend);
-            }
-          }
-        }
       }
     }
 
@@ -1232,7 +1239,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private storeEvents(part: any, e: any) {
     let title = '';
-    if (part == null && e.actions.artifactDelta) {
+    if (part == null && this.getArtifactDelta(e?.actions)) {
       title += 'eventAction: artifact';
     } else if (part) {
       if (part.text) {
@@ -1602,6 +1609,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           this.processPartIntoMessage(part, event, botMessage);
         });
 
+        this.renderArtifactsFromActions(event?.actions, reverseOrder);
+
         if (reverseOrder) {
           this.messages.update((messages) => [botMessage, ...messages]);
         } else {
@@ -1666,6 +1675,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         event.content?.parts?.forEach((part: any) => {
           this.processPartIntoMessage(part, event, botMessage);
         });
+
+        this.renderArtifactsFromActions(event?.actions, false);
 
         this.messages.update((messages) => [...messages, botMessage]);
 
