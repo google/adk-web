@@ -212,7 +212,7 @@
             class="example-margin"
             [checked]="enableStreamingIndicator()"
             (change)="toggleStreaming()"
-            [disabled]="!(isTokenStreamingEnabledObs | async) || useLive"
+            [disabled]="!(isTokenStreamingEnabledObs | async)"
           >
             {{ i18n.tokenStreamingLabel }}
           </mat-slide-toggle>

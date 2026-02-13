@@ -1947,10 +1947,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   toggleStreaming() {
     this.useStreaming = !this.useStreaming;
-    if (this.useLive && !this.useStreaming) {
-      this.enableLiveIndicator.set(false);
-      this.useLive = false;
-    }
   }
 
   toggleLive() {
