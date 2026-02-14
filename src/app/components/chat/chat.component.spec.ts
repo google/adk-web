@@ -1669,4 +1669,138 @@ describe('ChatComponent', () => {
       expect(combinedJson.data).toEqual([a2ui1, a2ui2]);
     });
   });
+
+  describe('Live Streaming Toggle', () => {
+    beforeEach(async () => {
+      mockFeatureFlagService.isLiveStreamingEnabledResponse.next(true);
+      await fixture.whenStable();
+      fixture.detectChanges();
+    });
+
+    describe('toggleLiveStreaming', () => {
+      it('should start WebSocket connection when enabling live streaming',
+         () => {
+           component.appName = TEST_APP_1_NAME;
+           component.userId = USER_ID;
+           component.sessionId = SESSION_1_ID;
+           component.useLiveStreaming = false;
+
+           component.toggleLiveStreaming();
+
+           expect(component.useLiveStreaming).toBeTrue();
+           expect(mockStreamChatService.startTextStreaming)
+               .toHaveBeenCalledWith({
+                 appName: TEST_APP_1_NAME,
+                 userId: USER_ID,
+                 sessionId: SESSION_1_ID,
+               });
+           expect(mockStreamChatService.getTextMessages).toHaveBeenCalled();
+         });
+
+      it('should disable SSE when enabling live streaming', () => {
+        component.useSse = true;
+        component.useLiveStreaming = false;
+
+        component.toggleLiveStreaming();
+
+        expect(component.useSse).toBeFalse();
+        expect(component.useLiveStreaming).toBeTrue();
+      });
+
+      it('should stop WebSocket connection when disabling live streaming',
+         () => {
+           component.useLiveStreaming = true;
+           mockStreamChatService.startTextStreaming.calls.reset();
+
+           component.toggleLiveStreaming();
+
+           expect(component.useLiveStreaming).toBeFalse();
+           expect(mockStreamChatService.stopTextStreaming).toHaveBeenCalled();
+         });
+
+      it('should show warning when toggling in session with previous bidi usage',
+         () => {
+           component.useLiveStreaming = false;
+           component.sessionId = SESSION_1_ID;
+           (component as any).sessionHasUsedBidi.add(SESSION_1_ID);
+
+           component.toggleLiveStreaming();
+
+           expect(mockSnackBar.open).toHaveBeenCalledWith(
+               jasmine.stringContaining('Restarting'),
+               'OK',
+           );
+           // Should toggle state but not start connection
+           expect(component.useLiveStreaming).toBeTrue();
+           expect(mockStreamChatService.startTextStreaming)
+               .not.toHaveBeenCalled();
+         });
+    });
+
+    describe('toggleSse', () => {
+      it('should disable live streaming when enabling SSE', () => {
+        component.useSse = false;
+        component.useLiveStreaming = true;
+
+        component.toggleSse();
+
+        expect(component.useSse).toBeTrue();
+        expect(component.useLiveStreaming).toBeFalse();
+        expect(mockStreamChatService.stopTextStreaming).toHaveBeenCalled();
+      });
+
+      it('should not affect live streaming when disabling SSE', () => {
+        component.useSse = true;
+        component.useLiveStreaming = false;
+
+        component.toggleSse();
+
+        expect(component.useSse).toBeFalse();
+        expect(component.useLiveStreaming).toBeFalse();
+        expect(mockStreamChatService.stopTextStreaming)
+            .not.toHaveBeenCalled();
+      });
+    });
+
+    describe('sendMessage with live streaming', () => {
+      it('should send message via WebSocket when live streaming is active',
+         async () => {
+           component.useLiveStreaming = true;
+           component.userInput = TEST_MESSAGE;
+           const mockEvent = new KeyboardEvent('keydown', {key: 'Enter'});
+
+           await component.sendMessage(mockEvent);
+
+           expect(mockStreamChatService.sendTextMessage)
+               .toHaveBeenCalledWith(TEST_MESSAGE);
+           expect(component.userInput).toBe('');
+           expect(mockAgentService.runSse).not.toHaveBeenCalled();
+         });
+
+      it('should clear selected files when sending via live streaming', async () => {
+        component.useLiveStreaming = true;
+        component.userInput = TEST_MESSAGE;
+        const mockFile = new File(['test'], TEST_FILE_NAME);
+        component.selectedFiles = [{file: mockFile, url: 'blob:test'}];
+        const mockEvent = new KeyboardEvent('keydown', {key: 'Enter'});
+
+        await component.sendMessage(mockEvent);
+
+        expect(component.selectedFiles).toEqual([]);
+        expect(mockStreamChatService.sendTextMessage).toHaveBeenCalled();
+      });
+
+      it('should use normal flow when live streaming is disabled', async () => {
+        component.useLiveStreaming = false;
+        component.useSse = false;
+        component.userInput = TEST_MESSAGE;
+        const mockEvent = new KeyboardEvent('keydown', {key: 'Enter'});
+
+        await component.sendMessage(mockEvent);
+
+        expect(mockStreamChatService.sendTextMessage).not.toHaveBeenCalled();
+        expect(mockAgentService.runSse).toHaveBeenCalled();
+      });
+    });
+  });
 });
