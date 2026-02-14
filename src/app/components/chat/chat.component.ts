@@ -659,7 +659,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.insertMessageBeforeLoadingMessage(this.streamingTextMessage);
 
-        if (!this.useSse) {
+        if (!this.useSse && !this.useLiveStreaming) {
           this.storeEvents(part, chunkJson);
           this.streamingTextMessage = null;
           return;
@@ -676,7 +676,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           return;
         }
         this.streamingTextMessage.text += newChunk;
-      }    
+      }
     } else if (!part.thought) {
       // If the part is an A2A DataPart, display it as a message (e.g., A2UI or Json)
       if (this.isA2aDataPart(part)) {
@@ -1665,6 +1665,12 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   toggleLiveStreaming() {
     this.useLiveStreaming = !this.useLiveStreaming;
+    if (this.useLiveStreaming && this.sessionHasUsedBidi.has(this.sessionId)) {
+      this.openSnackBar(BIDI_STREAMING_RESTART_WARNING, 'OK');
+      return;
+    }
+
+
     // If enabling live streaming, disable SSE
     if (this.useLiveStreaming && this.useSse) {
       this.useSse = false;
@@ -1681,12 +1687,23 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       // Subscribe to incoming messages
       this.streamChatService.getTextMessages().subscribe({
         next: (event: any) => {
+
+          const hasAudioBlob = (event: any) => {
+            if (event.content?.parts) {
+              const hasAudioBlob = event.content.parts.some((part: any) =>
+                part.inlineData?.mimeType?.startsWith('audio/')
+              );
+              return hasAudioBlob
+            }
+            return false;
+          }
+
           // Process incoming events similar to SSE
           if (event.error) {
             this.openSnackBar(event.error, 'OK');
             return;
           }
-          if (event.content) {
+          if (!hasAudioBlob(event) && event.content) {
             let parts = this.combineTextParts(event.content.parts);
             if (this.isEventA2aResponse(event)) {
               parts = this.combineA2uiDataParts(parts);
@@ -1710,6 +1727,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           this.openSnackBar(err, 'OK');
         },
       });
+      this.sessionHasUsedBidi.add(this.sessionId);
     } else {
       // Stop WebSocket connection
       this.streamChatService.stopTextStreaming();
