@@ -431,7 +431,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       this.openSnackBar(chunkJson.error, 'OK');
       return;
     }
-    if (chunkJson.inputTranscription && chunkJson.partial === this.useStreaming) {
+    if (chunkJson.inputTranscription && (!!chunkJson.partial === this.useStreaming)) {
       chunkJson.content = {
         role: 'user',
         parts: [
@@ -441,7 +441,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         ]
       }
     }
-    if (chunkJson.outputTranscription && chunkJson.partial === this.useStreaming) {
+    if (chunkJson.outputTranscription && (!!chunkJson.partial === this.useStreaming)) {
       chunkJson.content = {
         role: 'bot',
         parts: [
@@ -451,7 +451,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         ]
       }
     }
-    if (chunkJson.content && chunkJson.partial === this.useStreaming) {
+    if (chunkJson.content && (!!chunkJson.partial === this.useStreaming)) {
       let parts = this.combineTextParts(chunkJson.content.parts);
       if (this.isEventA2aResponse(chunkJson)) {
         parts = this.combineA2uiDataParts(parts);
