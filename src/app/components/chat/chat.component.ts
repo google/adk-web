@@ -529,9 +529,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
               [...messages, {role: 'user', attachments: messageAttachments}]);
     }
 
-    // Handle live streaming mode differently
     if (this.useLiveStreaming) {
-      // For live streaming, just send the text via WebSocket
       const messageText = this.userInput;
       this.userInput = '';
       this.selectedFiles = [];
@@ -1670,21 +1668,17 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-
-    // If enabling live streaming, disable SSE
     if (this.useLiveStreaming && this.useSse) {
       this.useSse = false;
     }
 
     if (this.useLiveStreaming) {
-      // Start WebSocket connection for text streaming
       this.streamChatService.startTextStreaming({
         appName: this.appName,
         userId: this.userId,
         sessionId: this.sessionId,
       });
 
-      // Subscribe to incoming messages
       this.streamChatService.getTextMessages().subscribe({
         next: (event: any) => {
 
@@ -1729,7 +1723,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       });
       this.sessionHasUsedBidi.add(this.sessionId);
     } else {
-      // Stop WebSocket connection
       this.streamChatService.stopTextStreaming();
     }
   }
