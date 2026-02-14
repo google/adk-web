@@ -16,7 +16,7 @@
  */
 
 import {AsyncPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
-import {AfterViewInit, Component, DestroyRef, effect, EnvironmentInjector, inject, input, output, runInInjectionContext, signal, Type, viewChild, ViewContainerRef, type WritableSignal} from '@angular/core';
+import {AfterViewInit, Component, computed, DestroyRef, effect, EnvironmentInjector, inject, input, output, runInInjectionContext, signal, Type, viewChild, ViewContainerRef, type WritableSignal} from '@angular/core';
 import {toObservable} from '@angular/core/rxjs-interop';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatMiniFabButton} from '@angular/material/button';
@@ -39,9 +39,8 @@ import {Session} from '../../core/models/Session';
 import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 import {UI_STATE_SERVICE} from '../../core/services/interfaces/ui-state';
 import {LOGO_COMPONENT} from '../../injection_tokens';
-import {ArtifactTabComponent} from '../artifact-tab/artifact-tab.component';
+import {ArtifactTabComponent, getMediaTypeFromMimetype} from '../artifact-tab/artifact-tab.component';
 import {EVAL_TAB_COMPONENT, EvalTabComponent} from '../eval-tab/eval-tab.component';
-import {EventTabComponent} from '../event-tab/event-tab.component';
 import {SessionTabComponent} from '../session-tab/session-tab.component';
 import {StateTabComponent} from '../state-tab/state-tab.component';
 import {ThemeToggle} from '../theme-toggle/theme-toggle';
@@ -68,7 +67,6 @@ import {SidePanelMessagesInjectionToken} from './side-panel.component.i18n';
     MatTabLabel,
     ThemeToggle,
     TraceTabComponent,
-    EventTabComponent,
     StateTabComponent,
     ArtifactTabComponent,
     SessionTabComponent,
@@ -85,6 +83,8 @@ import {SidePanelMessagesInjectionToken} from './side-panel.component.i18n';
   ],
 })
 export class SidePanelComponent implements AfterViewInit {
+  protected readonly Object = Object;
+
   appName = input('');
   userId = input('');
   sessionId = input('');
@@ -111,7 +111,6 @@ export class SidePanelComponent implements AfterViewInit {
   readonly closePanel = output<void>();
   readonly appSelectionChange = output<MatSelectChange>();
   readonly tabChange = output<any>();
-  readonly eventSelected = output<string>();
   readonly sessionSelected = output<Session>();
   readonly sessionReloaded = output<Session>();
   readonly evalCaseSelected = output<EvalCase>();
@@ -124,8 +123,6 @@ export class SidePanelComponent implements AfterViewInit {
   readonly openAddItemDialog = output<boolean>();
   readonly enterBuilderMode = output<boolean>();
 
-
-  readonly eventTabComponent = viewChild(EventTabComponent);
   readonly sessionTabComponent = viewChild(SessionTabComponent);
   readonly evalTabComponent = viewChild(EvalTabComponent);
   readonly evalTabContainer =
@@ -179,6 +176,25 @@ export class SidePanelComponent implements AfterViewInit {
       return apps.filter(app => app.toLowerCase().startsWith(lowerSearch));
     })
   );
+
+  readonly artifactDeltaArray = computed(() => {
+    const artifactDelta = this.selectedEvent()?.actions?.artifactDelta;
+    if (!artifactDelta || Object.keys(artifactDelta).length === 0) {
+      return [];
+    }
+
+    const artifacts: any[] = [];
+    for (const [id, artifactData] of Object.entries(artifactDelta)) {
+      artifacts.push({
+        id,
+        versionId: 1,
+        data: (artifactData as any).data || '',
+        mimeType: (artifactData as any).mimeType || '',
+        mediaType: getMediaTypeFromMimetype((artifactData as any).mimeType || ''),
+      });
+    }
+    return artifacts;
+  });
 
   ngAfterViewInit() {
     // Wait one tick until the eval tab container is ready.

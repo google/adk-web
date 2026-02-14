@@ -54,6 +54,24 @@
 .function-event-button {
   background-color: var(--chat-panel-function-event-button-background-color);
   margin: 5px 5px 10px;
+  font-size: 13px !important;
+  padding: 6px 12px !important;
+  min-height: 32px !important;
+  height: 32px !important;
+
+  mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+.state-delta-button {
+  background-color: var(--chat-panel-function-event-button-background-color) !important;
+}
+
+.artifact-delta-button {
+  background-color: var(--chat-panel-function-event-button-background-color) !important;
 }
 
 .function-event-button-highlight {
@@ -69,13 +87,39 @@
 // Enables messages to have columns
 .message-column-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  margin-left: -20px;
+  margin-right: -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+
+  // All rows have transparent background by default
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+
+  // Hover effect for all rows
+  &:hover {
+    background-color: rgba(66, 133, 244, 0.08);
+  }
+
+  // Selected row (stays highlighted when side drawer is open)
+  &.selected {
+    background-color: rgba(66, 133, 244, 0.2) !important;
+    border: 2px solid rgba(66, 133, 244, 0.6);
+    border-radius: 4px;
+  }
 }
 
 .user-message {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  flex-grow: 1;
   .message-card {
     background-color: var(
       --chat-panel-user-message-message-card-background-color
@@ -88,7 +132,9 @@
 
 .bot-message {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  flex-grow: 1;
   .message-card {
     background-color: var(
       --chat-panel-bot-message-message-card-background-color
@@ -260,13 +306,6 @@
   margin-bottom: 8px;
 }
 
-.image-preview {
-  width: 40px;
-  height: 40px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
 .image-preview-chat {
   max-width: 90%;
   max-height: 70vh;
@@ -283,9 +322,16 @@
 }
 
 :host ::ng-deep .mat-mdc-mini-fab {
-  background-color: var(--chat-panel-mat-mdc-mini-fab-background-color);
+  background-color: var(--chat-panel-mat-mdc-mini-fab-background-color, #4285f4);
   mat-icon {
-    color: var(--chat-panel-mat-mdc-mini-fab-mat-icon-color);
+    color: var(--chat-panel-mat-mdc-mini-fab-mat-icon-color, white);
+  }
+
+  &.mat-mdc-button-disabled {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    mat-icon {
+      color: rgba(255, 255, 255, 0.6) !important;
+    }
   }
 }
 
@@ -362,6 +408,38 @@
   width: 80px;
   text-align: center;
   margin-top: 5px;
+}
+
+.event-number-container {
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  min-width: 30px;
+}
+
+.bot-message .event-number-container {
+  margin-right: 8px;
+}
+
+.user-event-number {
+  margin-right: 8px;
+  align-self: center;
+}
+
+.event-number-label,
+.event-number-placeholder {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  display: inline-block;
+}
+
+.event-number-label {
+  color: var(--chat-panel-event-number-label-color, #5f6368);
+}
+
+.event-number-placeholder {
+  visibility: hidden;
 }
 
 :host ::ng-deep pre {

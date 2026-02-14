@@ -54,11 +54,9 @@ describe('ComputerActionComponent', () => {
 
   describe('Screenshot Display', () => {
     it('should format screenshot as data URI', () => {
-      component.message = {
-        functionResponse: {
-          name: 'computer',
-          response: {image: {data: 'base64data', mimetype: 'image/jpeg'}}
-        }
+      component.functionResponse = {
+        name: 'computer',
+        response: {image: {data: 'base64data', mimetype: 'image/jpeg'}}
       };
       fixture.detectChanges();
       const img = fixture.debugElement.query(CSS_SELECTORS.SCREENSHOT);
@@ -66,9 +64,9 @@ describe('ComputerActionComponent', () => {
     });
 
     it('should use default mimetype if missing', () => {
-      component.message = {
-        functionResponse:
-            {name: 'computer', response: {image: {data: 'base64data'}}}
+      component.functionResponse = {
+        name: 'computer',
+        response: {image: {data: 'base64data'}}
       };
       fixture.detectChanges();
       const img = fixture.debugElement.query(CSS_SELECTORS.SCREENSHOT);
@@ -79,15 +77,14 @@ describe('ComputerActionComponent', () => {
   describe('Coordinate Scaling', () => {
     it('should calculate style percentage for coordinates', () => {
       component.allMessages = [{
-        functionResponse:
+        functionResponses: [
             {name: 'computer', response: {image: {data: 'prev-img'}}}
+        ]
       }];
       component.index = 1;
-      component.message = {
-        functionCall: {
-          name: ComputerTool.COMPUTER,
-          args: {action: ComputerAction.LEFT_CLICK, coordinate: [500, 250]}
-        }
+      component.functionCall = {
+        name: ComputerTool.COMPUTER,
+        args: {action: ComputerAction.LEFT_CLICK, coordinate: [500, 250]}
       };
       fixture.detectChanges();
       const marker = fixture.debugElement.query(CSS_SELECTORS.CLICK_MARKER);
@@ -98,11 +95,9 @@ describe('ComputerActionComponent', () => {
     it(
         'should calculate actual pixel coordinates when image dimensions are known',
         () => {
-          component.message = {
-            functionCall: {
-              name: ComputerTool.COMPUTER,
-              args: {action: ComputerAction.LEFT_CLICK, coordinate: [500, 500]}
-            }
+          component.functionCall = {
+            name: ComputerTool.COMPUTER,
+            args: {action: ComputerAction.LEFT_CLICK, coordinate: [500, 500]}
           };
           component.index = 1;
           component.imageDimensions.set(1, {width: 1920, height: 1080});
@@ -112,11 +107,9 @@ describe('ComputerActionComponent', () => {
         });
 
     it('should match python normalization logic', () => {
-      component.message = {
-        functionCall: {
-          name: ComputerTool.COMPUTER,
-          args: {action: ComputerAction.LEFT_CLICK, coordinate: [333, 666]}
-        }
+      component.functionCall = {
+        name: ComputerTool.COMPUTER,
+        args: {action: ComputerAction.LEFT_CLICK, coordinate: [333, 666]}
       };
       component.index = 0;
       component.imageDimensions.set(0, {width: 800, height: 600});
@@ -128,23 +121,16 @@ describe('ComputerActionComponent', () => {
   });
 
   describe('Backward Screenshot Search', () => {
-    it('should find the last available screenshot in history', () => {
+    it('should find the last available screenshot in history (plural schema)', () => {
       component.index = 2;
       component.allMessages = [
         {
-          functionResponse:
-              {name: 'computer', response: {image: {data: 'img1'}}}
+          functionResponses: [
+            {name: 'computer', response: {image: {data: 'img1'}}}
+          ]
         },
-        {
-          functionCall: {
-            name: 'computer',
-            args: {action: 'left_click', coordinate: [0, 0]}
-          }
-        },
-        {
-          functionCall:
-              {name: 'computer', args: {action: 'type_text', text: 'hello'}}
-        }
+        {},
+        {}
       ];
 
       const screenshot = component.getPreviousComputerUseScreenshot();

@@ -17,7 +17,7 @@
 
 import {TextFieldModule} from '@angular/cdk/text-field';
 import {CommonModule, NgClass} from '@angular/common';
-import {AfterViewInit, Component, DestroyRef, effect, ElementRef, EventEmitter, inject, input, Input, OnChanges, Output, signal, SimpleChanges, Type, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, DestroyRef, effect, ElementRef, EventEmitter, HostListener, inject, input, Input, OnChanges, Output, signal, SimpleChanges, Type, ViewChild} from '@angular/core';
 import {takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
 import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
@@ -33,6 +33,8 @@ import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {NgxJsonViewerModule} from 'ngx-json-viewer';
 import {EMPTY, merge, NEVER, of, Subject} from 'rxjs';
 import {catchError, filter, first, switchMap, tap} from 'rxjs/operators';
+
+import {JsonTooltipDirective} from '../../directives/html-tooltip.directive';
 
 import type {EvalCase} from '../../core/models/Eval';
 import {FunctionCall, FunctionResponse} from '../../core/models/types';
@@ -76,6 +78,7 @@ const ROOT_AGENT = 'root_agent';
     MessageFeedbackComponent,
     MatTooltipModule,
     NgClass,
+    JsonTooltipDirective,
     ComputerActionComponent,
   ],
 })
@@ -93,6 +96,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Input() selectedFiles: {file: File; url: string}[] = [];
   @Input() updatedSessionState: any|null = null;
   @Input() eventData = new Map<string, any>();
+  @Input() selectedEvent: any = undefined;
   @Input() isAudioRecording: boolean = false;
   @Input() isVideoRecording: boolean = false;
   @Input() hoveredEventMessageIndices: number[] = [];
@@ -140,6 +144,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   private readonly sessionService = inject(SESSION_SERVICE);
   private readonly destroyRef = inject(DestroyRef);
   readonly MediaType = MediaType;
+  readonly JSON = JSON;
 
   readonly isMessageFileUploadEnabledObs =
       this.featureFlagService.isMessageFileUploadEnabled();
@@ -266,6 +271,125 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
     return this.hoveredEventMessageIndices.includes(index);
   }
 
+  isMessageEventSelected(index: number): boolean {
+    const message = this.messages[index];
+    return message.eventId &&
+           this.selectedEvent &&
+           message.eventId === this.selectedEvent.id;
+  }
+
+  shouldShowMessageCard(message: any): boolean {
+    return !!(
+        message.text || message.attachments || message.inlineData ||
+        message.executableCode || message.codeExecutionResult ||
+        message.a2uiData || message.renderedContent || message.isLoading ||
+        (message.failedMetric && message.evalStatus === 2));
+  }
+
+  getBotEventNumber(messageIndex: number): number {
+    const message = this.messages[messageIndex];
+
+    if (message.role !== 'bot' || !message.eventId) {
+      return -1;
+    }
+
+    const uniqueBotEventIds: string[] = [];
+    for (let i = 0; i <= messageIndex; i++) {
+      const msg = this.messages[i];
+      if (msg.role === 'bot' && msg.eventId && !uniqueBotEventIds.includes(msg.eventId)) {
+        uniqueBotEventIds.push(msg.eventId);
+      }
+    }
+
+    return uniqueBotEventIds.indexOf(message.eventId) + 1;
+  }
+
+
+  getOverallEventNumber(messageIndex: number): number {
+    let eventCount = 0;
+    let lastSeenGroupType: 'user' | 'bot' | null = null;
+    let lastBotEventId: string | null = null;
+
+    for (let i = 0; i <= messageIndex; i++) {
+      const msg = this.messages[i];
+
+      if (msg.role === 'user') {
+        // User messages increment when they start a new group
+        if (lastSeenGroupType !== 'user') {
+          eventCount++;
+          lastSeenGroupType = 'user';
+        }
+
+        if (i === messageIndex) {
+          return eventCount;
+        }
+      } else if (msg.role === 'bot' && msg.eventId) {
+        // Bot events increment when they're a new event
+        if (msg.eventId !== lastBotEventId) {
+          eventCount++;
+          lastBotEventId = msg.eventId;
+          lastSeenGroupType = 'bot';
+        }
+
+        if (i === messageIndex) {
+          return eventCount;
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  isFirstUserMessageInGroup(messageIndex: number): boolean {
+    const message = this.messages[messageIndex];
+
+    if (message.role !== 'user') {
+      return false;
+    }
+
+    if (messageIndex === 0) {
+      return true;
+    }
+
+    const prevMessage = this.messages[messageIndex - 1];
+    return prevMessage.role !== 'user';
+  }
+
+  isFirstMessageInEventGroup(messageIndex: number): boolean {
+    const message = this.messages[messageIndex];
+
+    if (message.role !== 'bot' || !message.eventId) {
+      return false;
+    }
+
+    if (messageIndex === 0) {
+      return true; // First message overall
+    }
+
+    const prevMessage = this.messages[messageIndex - 1];
+    return prevMessage.eventId !== message.eventId;
+  }
+
+
+  hasStateDelta(messageIndex: number): boolean {
+    const message = this.messages[messageIndex];
+    if (!message.eventId) return false;
+
+    const event = this.eventData.get(message.eventId);
+    const stateDelta = event?.actions?.stateDelta;
+    return stateDelta && Object.keys(stateDelta).length > 0;
+  }
+
+
+  hasArtifactDelta(messageIndex: number): boolean {
+    const message = this.messages[messageIndex];
+    if (!message.eventId) return false;
+
+    const event = this.eventData.get(message.eventId);
+    const artifactDelta = event?.actions?.artifactDelta;
+    return artifactDelta && Object.keys(artifactDelta).length > 0;
+  }
+
   renderGooglerSearch(content: string) {
     return this.sanitizer.bypassSecurityTrustHtml(content);
   }
@@ -284,11 +408,136 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
     }
   }
 
-  isComputerUseClick(message: {functionCall?: FunctionCall}): boolean {
-    return isVisibleComputerUseClick(message);
+  isComputerUseClick(input: any): boolean {
+    return isVisibleComputerUseClick(input);
   }
 
-  isComputerUseResponse(message: {functionResponse?: FunctionResponse}): boolean {
-    return isComputerUseResponse(message);
+  isComputerUseResponse(input: any): boolean {
+    return isComputerUseResponse(input);
+  }
+
+  getFunctionCallArgsTooltip(message: any): string {
+    if (!message.functionCall || !message.functionCall.args) {
+      return '';
+    }
+    try {
+      return JSON.stringify(message.functionCall.args);
+    } catch (e) {
+      return String(message.functionCall.args);
+    }
+  }
+
+
+  getFunctionResponseTooltip(message: any): string {
+    if (!message.functionResponse || !message.functionResponse.response) {
+      return '';
+    }
+    try {
+      return JSON.stringify(message.functionResponse.response);
+    } catch (e) {
+      return String(message.functionResponse.response);
+    }
+  }
+
+
+  getStateDeltaTooltip(messageIndex: number): string {
+    const message = this.messages[messageIndex];
+    if (!message.eventId) return '';
+
+    const event = this.eventData.get(message.eventId);
+    const stateDelta = event?.actions?.stateDelta;
+    if (!stateDelta) return '';
+
+    try {
+      return JSON.stringify(stateDelta);
+    } catch (e) {
+      return String(stateDelta);
+    }
+  }
+
+
+  getArtifactDeltaTooltip(messageIndex: number): string {
+    const message = this.messages[messageIndex];
+    if (!message.eventId) return '';
+
+    const event = this.eventData.get(message.eventId);
+    const artifactDelta = event?.actions?.artifactDelta;
+    if (!artifactDelta) return '';
+
+    try {
+      return JSON.stringify(artifactDelta);
+    } catch (e) {
+      return String(artifactDelta);
+    }
+  }
+
+  /**
+   * Handle row click, but ignore if user is selecting text
+   */
+  handleRowClick(event: MouseEvent, message: any, index: number) {
+    // Check if user is selecting text
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) {
+      // User is selecting text, don't trigger row selection
+      return;
+    }
+
+    // Select row for both bot and user messages
+    this.clickEvent.emit(index);
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardNavigation(event: KeyboardEvent) {
+    if (!this.selectedEvent) return;
+
+    // Only handle arrow keys
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+
+    event.preventDefault();
+
+    // Find unique eventIds and their first occurrence index
+    const uniqueEventMap = new Map<string, number>();
+    for (let i = 0; i < this.messages.length; i++) {
+      const msg = this.messages[i];
+      if (msg.eventId && !uniqueEventMap.has(msg.eventId)) {
+        uniqueEventMap.set(msg.eventId, i);
+      }
+    }
+
+    const eventIndices = Array.from(uniqueEventMap.values());
+
+    if (eventIndices.length === 0) return;
+
+    // Find current selected event index
+    const currentIndex = eventIndices.findIndex(
+      (idx) => this.messages[idx].eventId === this.selectedEvent.id
+    );
+
+    if (currentIndex === -1) return;
+
+    // Navigate to next or previous
+    let newIndex: number;
+    if (event.key === 'ArrowDown') {
+      newIndex = currentIndex + 1 >= eventIndices.length ? 0 : currentIndex + 1;
+    } else {
+      newIndex = currentIndex - 1 < 0 ? eventIndices.length - 1 : currentIndex - 1;
+    }
+
+    // Emit click event for the new index
+    this.clickEvent.emit(eventIndices[newIndex]);
+
+    // Scroll the selected message into view
+    setTimeout(() => {
+      if (!this.scrollContainer?.nativeElement) return;
+
+      const messageElements = this.scrollContainer.nativeElement.querySelectorAll('.message-column-container');
+      if (messageElements && messageElements[eventIndices[newIndex]]) {
+        messageElements[eventIndices[newIndex]].scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'nearest'
+        });
+      }
+    }, 0);
   }
 }

@@ -7,7 +7,7 @@
   --button-size: 32px;
   --icon-size: 12px;
 
-  margin-left: 54px;
+  margin-left: 96px;
   display: flex;
 
   button {
@@ -24,7 +24,23 @@
       width: var(--icon-size);
       transition: all 0.2s ease;
     }
+
+    &.selected {
+      background-color: var(
+        --side-panel-button-filled-container-color,
+        var(--mat-sys-primary)
+      );
+      color: var(--side-panel-button-filled-label-text-color, white);
+
+      mat-icon {
+        color: inherit;
+      }
+    }
   }
+}
+
+.reasons-chips {
+  margin-bottom: 20px;
 }
 
 .feedback-details-container {
@@ -38,7 +54,6 @@
 
   .additional-feedback {
     h3 {
-      font-size: 13px;
       font-weight: 500;
       margin-bottom: 8px;
       margin-top: 0;
@@ -51,7 +66,6 @@
       textarea {
         min-height: 60px;
         resize: vertical;
-        font-size: 13px;
       }
     }
   }
@@ -67,7 +81,6 @@
       padding: 0 16px;
       height: 32px;
       line-height: 32px;
-      font-size: 13px;
       font-weight: 500;
     }
   }

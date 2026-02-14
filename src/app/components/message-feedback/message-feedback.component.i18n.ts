@@ -36,6 +36,11 @@ export const MESSAGE_FEEDBACK_MESSAGES = {
   feedbackReasonLinks: 'Broken/incorrect links',
   feedbackReasonIrrelevant: 'Irrelevant information',
   feedbackReasonRepetitive: 'Repetitive',
+  feedbackReasonAccurate: 'Accurate info',
+  feedbackReasonHelpful: 'Helpful',
+  feedbackReasonConcise: 'Concise',
+  feedbackReasonUnderstanding: 'Good understanding',
+  feedbackReasonClear: 'Clear and easy to follow',
 };
 
 /**

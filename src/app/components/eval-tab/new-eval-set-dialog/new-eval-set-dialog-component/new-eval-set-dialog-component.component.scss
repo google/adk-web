@@ -14,3 +14,27 @@
  * limitations under the License.
  */
 
+h2[mat-dialog-title] {
+  color: var(--mdc-dialog-supporting-text-color) !important;
+}
+
+mat-dialog-content {
+  color: var(--mdc-dialog-supporting-text-color) !important;
+}
+
+button[mat-button] {
+  color: var(--mdc-dialog-supporting-text-color) !important;
+}
+
+mat-form-field {
+  input {
+    color: var(--mdc-dialog-supporting-text-color) !important;
+    caret-color: var(--mdc-dialog-supporting-text-color) !important;
+    background-color: transparent !important;
+  }
+}
+
+:host ::ng-deep .mat-mdc-text-field-wrapper {
+  background-color: #3f3f42;
+}
+

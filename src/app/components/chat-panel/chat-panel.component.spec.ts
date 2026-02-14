@@ -135,7 +135,7 @@ describe('ChatPanelComponent', () => {
 
     it('should display function call', () => {
       component.messages = [
-        {role: 'bot', functionCall: {name: 'test_func', args: {}}},
+        {role: 'bot', functionCalls: [{name: 'test_func', args: {}}]},
       ];
       fixture.detectChanges();
       const button =
@@ -145,7 +145,7 @@ describe('ChatPanelComponent', () => {
 
     it('should display function response', () => {
       component.messages = [
-        {role: 'bot', functionResponse: {name: 'test_func', response: {}}},
+        {role: 'bot', functionResponses: [{name: 'test_func', response: {}}]},
       ];
       fixture.detectChanges();
       const button =
@@ -223,7 +223,7 @@ describe('ChatPanelComponent', () => {
 
     it('should show edit button for function calls', async () => {
       component.messages =
-          [{role: 'bot', functionCall: {name: 'func1'}, eventId: '1'}];
+          [{role: 'bot', functionCalls: [{name: 'func1'}], eventId: '1'}];
       component.isEditFunctionArgsEnabled = true;
       fixture.detectChanges();
       await fixture.whenStable();
@@ -270,7 +270,7 @@ describe('ChatPanelComponent', () => {
         async () => {
           const message = {
             role: 'bot',
-            functionCall: {name: 'func1'},
+            functionCalls: [{name: 'func1'}],
             eventId: '1'
           };
           component.messages = [message];
@@ -309,7 +309,7 @@ describe('ChatPanelComponent', () => {
     it(
         'should emit clickEvent when function call button is clicked', () => {
           component.messages =
-              [{role: 'bot', functionCall: {name: 'func1'}, eventId: '1'}];
+              [{role: 'bot', functionCalls: [{name: 'func1'}], eventId: '1'}];
           component.eventData = new Map([['1', {id: '1', author: 'bot'}]]);
           spyOn(component.clickEvent, 'emit');
           fixture.detectChanges();
@@ -696,28 +696,24 @@ describe('ChatPanelComponent', () => {
     it(
         'isComputerUseResponse should return true when image data and url are present',
         () => {
-          const message = {
-            functionResponse: {
-              name: 'computer_use',
-              response: {
-                image: {data: 'base64data', mimetype: 'image/png'},
-                url: 'http://example.com'
-              }
+          const response: any = {
+            name: 'computer_use',
+            response: {
+              image: {data: 'base64data', mimetype: 'image/png'},
+              url: 'http://example.com'
             }
           };
-          expect(component.isComputerUseResponse(message)).toBeTrue();
+          expect(component.isComputerUseResponse(response)).toBeTrue();
         });
 
     it(
         'isComputerUseResponse should return false when image data is missing',
         () => {
-          const message = {
-            functionResponse: {
-              name: 'computer_use',
-              response: {image: null, url: 'http://example.com'}
-            }
+          const response: any = {
+            name: 'computer_use',
+            response: {image: null, url: 'http://example.com'}
           };
-          expect(component.isComputerUseResponse(message)).toBeFalse();
+          expect(component.isComputerUseResponse(response)).toBeFalse();
       });
     });
   });

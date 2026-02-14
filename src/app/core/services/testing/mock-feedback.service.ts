@@ -15,11 +15,23 @@
  * limitations under the License.
  */
 
+import {of} from 'rxjs';
+
 import {FeedbackService} from '../interfaces/feedback';
 
 /**
  * Mock feedback service for testing.
  */
 export class MockFeedbackService implements Partial<FeedbackService> {
-  sendFeedback = jasmine.createSpy('sendFeedback');
+  sendFeedback =
+      jasmine.createSpy('sendFeedback').and.returnValue(of(undefined));
+  getFeedback = jasmine.createSpy('getFeedback').and.returnValue(of(undefined));
+  deleteFeedback =
+      jasmine.createSpy('deleteFeedback').and.returnValue(of(undefined));
+  getPositiveFeedbackReasons =
+      jasmine.createSpy('getPositiveFeedbackReasons')
+          .and.returnValue(of(undefined));
+  getNegativeFeedbackReasons =
+      jasmine.createSpy('getNegativeFeedbackReasons')
+          .and.returnValue(of(undefined));
 }

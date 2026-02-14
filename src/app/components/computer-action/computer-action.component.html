@@ -1,12 +1,12 @@
-@if (message.functionCall && isComputerUseClick()) {
+@if (isComputerUseClick()) {
   @let screenshot = getPreviousComputerUseScreenshot();
   @if (screenshot) {
     <div class="computer-use-container click-visualization-container" (click)="clickEvent.emit(index)">
       <div class="computer-use-header">
         <span class="computer-use-tool-name">
-          {{ message.functionCall.name }}
-          @if (message.functionCall.args['action']) {
-            ({{ message.functionCall.args['action'] }})
+          {{ functionCall!.name }}
+          @if (functionCall!.args && functionCall!.args['action']) {
+            ({{ functionCall!.args['action'] }})
           }
           @let actualCoords = getActualPixelCoordinates();
           @if (actualCoords) {
@@ -25,10 +25,10 @@
       </div>
     </div>
   }
-} @else if (message.functionResponse && isComputerUseResponse()) {
+} @else if (isComputerUseResponse()) {
   <div class="computer-use-container" (click)="clickEvent.emit(index)">
     <div class="computer-use-header">
-      <span class="computer-use-tool-name">{{ message.functionResponse.name }}</span>
+      <span class="computer-use-tool-name">{{ functionResponse!.name }}</span>
     </div>
     <img [src]="getComputerUseScreenshot()" class="computer-use-screenshot" alt="Computer Use Screenshot" />
     <div class="computer-use-footprint">

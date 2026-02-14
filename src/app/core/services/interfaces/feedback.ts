@@ -16,11 +16,13 @@
  */
 
 import {InjectionToken} from '@angular/core';
+import {Observable} from 'rxjs';
 
 /**
  * Feedback metadata.
  */
 export interface Feedback {
+  id: string;
   direction: 'up'|'down';
   reasons?: string[];
   comment?: string;
@@ -33,8 +35,13 @@ export declare abstract class FeedbackService {
   abstract sendFeedback(
       sessionId: string,
       eventId: string,
-      feedback: Feedback,
-      ): void;
+      feedback: Partial<Feedback>,
+      ): Observable<void>;
+  abstract getFeedback(sessionId: string, eventId: string):
+      Observable<Feedback|undefined>;
+  abstract deleteFeedback(sessionId: string, eventId: string): Observable<void>;
+  abstract getPositiveFeedbackReasons(): Observable<string[]>;
+  abstract getNegativeFeedbackReasons(): Observable<string[]>;
 }
 
 /**

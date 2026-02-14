@@ -1,30 +1,45 @@
 <div class="message-feedback-container">
   <div class="feedback-buttons">
-    <button mat-icon-button [matTooltip]="i18n.goodResponseTooltip" (click)="sendFeedback('up')">
-      @if (selectedFeedback() === 'up') {
-        <mat-icon>thumb_up_filled</mat-icon>
+    <button
+      mat-icon-button
+      [matTooltip]="i18n.goodResponseTooltip"
+      (click)="sendFeedback('up')"
+      [disabled]="isLoading()"
+    >
+      @if (feedbackDirection() === 'up') {
+      <mat-icon>thumb_up_filled</mat-icon>
       } @else {
-        <mat-icon>thumb_up</mat-icon>
+      <mat-icon>thumb_up</mat-icon>
       }
     </button>
-    <button mat-icon-button [matTooltip]="i18n.badResponseTooltip" (click)="sendFeedback('down')">
-      @if (selectedFeedback() === 'down') {
-        <mat-icon>thumb_down_filled</mat-icon>
+    <button
+      mat-icon-button
+      [matTooltip]="i18n.badResponseTooltip"
+      (click)="sendFeedback('down')"
+      [disabled]="isLoading()"
+    >
+      @if (feedbackDirection() === 'down') {
+      <mat-icon>thumb_down_filled</mat-icon>
       } @else {
-        <mat-icon>thumb_down</mat-icon>
+      <mat-icon>thumb_down</mat-icon>
       }
     </button>
   </div>
 
   <div class="feedback-details-container" *ngIf="isDetailedFeedbackVisible()">
+    <div class="reasons-chips">
+      <h3>{{ i18n.feedbackDialogTitle }}</h3>
+      <mat-chip-listbox multiple [formControl]="selectedReasons">
+        @for (reason of reasons(); track reason) {
+        <mat-chip-option [value]="reason"> {{ reason }} </mat-chip-option>
+        }
+      </mat-chip-listbox>
+    </div>
 
     <div class="additional-feedback">
       <h3>{{ i18n.feedbackAdditionalLabel }}</h3>
       <mat-form-field appearance="outline">
-        <textarea
-          matInput
-          [formControl]="comment"
-          [placeholder]="feedbackPlaceholder()">
+        <textarea matInput [formControl]="comment" [placeholder]="feedbackPlaceholder()">
         </textarea>
       </mat-form-field>
     </div>
@@ -33,10 +48,7 @@
       <button mat-stroked-button (click)="onDetailedFeedbackCancelled()">
         {{ i18n.feedbackCancelButton }}
       </button>
-      <button
-        mat-flat-button
-        color="primary"
-        (click)="onDetailedFeedbackSubmitted()">
+      <button mat-flat-button color="primary" (click)="onDetailedFeedbackSubmitted()">
         {{ i18n.feedbackSubmitButton }}
       </button>
     </div>

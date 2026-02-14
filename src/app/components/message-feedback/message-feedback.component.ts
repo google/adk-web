@@ -17,8 +17,10 @@
 
 import {CommonModule} from '@angular/common';
 import {Component, computed, inject, input, signal} from '@angular/core';
+import {rxResource} from '@angular/core/rxjs-interop';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
+import {MatChipsModule} from '@angular/material/chips';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
@@ -37,6 +39,7 @@ import {MessageFeedbackMessagesInjectionToken} from './message-feedback.componen
     CommonModule,
     ReactiveFormsModule,
     MatButtonModule,
+    MatChipsModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -50,39 +53,90 @@ export class MessageFeedbackComponent {
   protected readonly i18n = inject(MessageFeedbackMessagesInjectionToken);
   private readonly feedbackService = inject(FEEDBACK_SERVICE);
 
-  readonly isDetailedFeedbackVisible = signal(false);
-  readonly selectedFeedback =
+  private readonly existingFeedback = rxResource({
+    params: () => ({
+      sessionName: this.sessionName(),
+      eventId: this.eventId(),
+    }),
+    stream: ({params}) =>
+        this.feedbackService.getFeedback(params.sessionName, params.eventId)
+  });
+  private readonly selectedFeedbackDirection =
       signal<Feedback['direction']|undefined>(undefined);
+
+  readonly feedbackDirection = computed(
+      () => this.selectedFeedbackDirection() ??
+          this.existingFeedback.value()?.direction);
+  readonly isDetailedFeedbackVisible = signal(false);
   readonly feedbackPlaceholder = computed(() => {
-    return this.selectedFeedback() === 'up' ?
+    return this.feedbackDirection() === 'up' ?
         this.i18n.feedbackCommentPlaceholderUp :
         this.i18n.feedbackCommentPlaceholderDown;
   });
+  private readonly positiveReasonsResource = rxResource({
+    stream: () => this.feedbackService.getPositiveFeedbackReasons(),
+  });
+  private readonly negativeReasonsResource = rxResource({
+    stream: () => this.feedbackService.getNegativeFeedbackReasons(),
+  });
+  readonly reasons = computed(() => {
+    return this.feedbackDirection() === 'up' ?
+        this.positiveReasonsResource.value() :
+        this.negativeReasonsResource.value();
+  });
+  readonly selectedReasons = new FormControl<string[]>([]);
   readonly comment = new FormControl('');
+  readonly isLoading = signal(false);
 
   sendFeedback(direction: Feedback['direction']) {
-    this.isDetailedFeedbackVisible.set(true);
-    this.selectedFeedback.set(direction);
+    if (this.feedbackDirection() === direction) {
+      this.isLoading.set(true);
+      this.feedbackService.deleteFeedback(this.sessionName(), this.eventId())
+          .subscribe(() => {
+            this.isLoading.set(false);
+            this.selectedFeedbackDirection.set(undefined);
+            this.resetDetailedFeedback();
+          });
+    } else {
+      this.selectedReasons.reset();
+      this.isLoading.set(true);
+      this.feedbackService
+          .sendFeedback(this.sessionName(), this.eventId(), {
+            direction,
+          })
+          .subscribe(() => {
+            this.isLoading.set(false);
+            this.isDetailedFeedbackVisible.set(true);
+            this.selectedFeedbackDirection.set(direction);
+          });
+    }
   }
 
   onDetailedFeedbackSubmitted() {
-    const direction = this.selectedFeedback();
+    const direction = this.feedbackDirection();
     if (!direction) return;
 
-    this.feedbackService.sendFeedback(this.sessionName(), this.eventId(), {
-      direction,
-      comment: this.comment.value ?? undefined,
-    });
-    this.resetDetailedFeedback();
+    this.isLoading.set(true);
+    this.feedbackService
+        .sendFeedback(this.sessionName(), this.eventId(), {
+          direction,
+          reasons: this.selectedReasons.value ?? [],
+          comment: this.comment.value ?? undefined,
+        })
+        .subscribe(() => {
+          this.isLoading.set(false);
+          this.resetDetailedFeedback();
+        });
   }
 
   onDetailedFeedbackCancelled() {
-    this.selectedFeedback.set(undefined);
+    this.selectedFeedbackDirection.set(undefined);
     this.resetDetailedFeedback();
   }
 
   private resetDetailedFeedback() {
     this.isDetailedFeedbackVisible.set(false);
     this.comment.reset();
+    this.selectedReasons.reset([]);
   }
 }

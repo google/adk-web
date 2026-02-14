@@ -22,102 +22,88 @@ import {ComputerAction, ComputerTool, isComputerUseResponse, isVisibleComputerUs
 describe('ComputerUse', () => {
   describe('isVisibleComputerUseClick', () => {
     it('should return true for valid computer tool with coordinate array', () => {
-      const message = {
-        functionCall: {
-          name: ComputerTool.COMPUTER,
-          args: {
-            action: ComputerAction.LEFT_CLICK,
-            coordinate: [500, 500]
-          }
+      const call = {
+        name: ComputerTool.COMPUTER,
+        args: {
+          action: ComputerAction.LEFT_CLICK,
+          coordinate: [500, 500]
         }
       };
-      expect(isVisibleComputerUseClick(message)).toBeTrue();
+      expect(isVisibleComputerUseClick(call)).toBeTrue();
     });
 
     it('should return false for computer tool without coordinates', () => {
-      const message = {
-        functionCall: {
-          name: ComputerTool.COMPUTER,
-          args: {
-            action: ComputerAction.LEFT_CLICK
-          }
+      const call = {
+        name: ComputerTool.COMPUTER,
+        args: {
+          action: ComputerAction.LEFT_CLICK
         }
       };
-      expect(isVisibleComputerUseClick(message)).toBeFalse();
+      expect(isVisibleComputerUseClick(call)).toBeFalse();
     });
 
     it('should return true for specialized tool with x and y args', () => {
-      const message = {
-        functionCall: {
-          name: ComputerTool.CLICK_AT,
-          args: {
-            x: 100,
-            y: 200
-          }
+      const call = {
+        name: ComputerTool.CLICK_AT,
+        args: {
+          x: 100,
+          y: 200
         }
       };
-      expect(isVisibleComputerUseClick(message)).toBeTrue();
+      expect(isVisibleComputerUseClick(call)).toBeTrue();
     });
 
     it('should return true for hover tool with coordinate array', () => {
-      const message = {
-        functionCall: {
-          name: ComputerTool.HOVER_AT,
-          args: {
-            coordinate: [300, 400]
-          }
+      const call = {
+        name: ComputerTool.HOVER_AT,
+        args: {
+          coordinate: [300, 400]
         }
       };
-      expect(isVisibleComputerUseClick(message)).toBeTrue();
+      expect(isVisibleComputerUseClick(call)).toBeTrue();
     });
 
     it('should return false for non-visual actions in computer tool', () => {
-      const message = {
-        functionCall: {
-          name: ComputerTool.COMPUTER,
-          args: {
-            action: ComputerAction.SCREENSHOT,
-            coordinate: [500, 500]
-          }
+      const call = {
+        name: ComputerTool.COMPUTER,
+        args: {
+          action: ComputerAction.SCREENSHOT,
+          coordinate: [500, 500]
         }
       };
-      expect(isVisibleComputerUseClick(message)).toBeFalse();
+      expect(isVisibleComputerUseClick(call)).toBeFalse();
     });
 
-    it('should return false when functionCall is missing', () => {
-      expect(isVisibleComputerUseClick({})).toBeFalse();
+    it('should return false when functionCall is missing (undefined)', () => {
+      expect(isVisibleComputerUseClick(undefined)).toBeFalse();
     });
   });
 
   describe('isComputerUseResponse', () => {
     it('should return true for valid response with image data', () => {
-      const message: any = {
-        functionResponse: {
-          name: 'computer',
-          response: {
-            image: {
-              data: 'base64-encoded-image-data'
-            }
+      const response: any = {
+        name: 'computer',
+        response: {
+          image: {
+            data: 'base64-encoded-image-data'
           }
         }
       };
-      expect(isComputerUseResponse(message)).toBeTrue();
+      expect(isComputerUseResponse(response)).toBeTrue();
     });
 
     it('should return false when image data is missing', () => {
-      const message: any = {
-        functionResponse: {
-          name: 'computer',
-          response: {
-            url: 'https://google.com'
-          }
+      const response: any = {
+        name: 'computer',
+        response: {
+          url: 'https://google.com'
         }
       };
-      expect(isComputerUseResponse(message)).toBeFalse();
+      expect(isComputerUseResponse(response)).toBeFalse();
     });
 
-    it('should return false when functionResponse is missing', () => {
-      expect(isComputerUseResponse({})).toBeFalse();
+    it('should return false when functionResponse is missing (undefined)', () => {
+      expect(isComputerUseResponse(undefined)).toBeFalse();
     });
   });
 });

@@ -17,6 +17,7 @@
 
 import {FunctionCall, FunctionResponse} from './types';
 
+
 export enum ComputerTool {
   COMPUTER = 'computer',
   CLICK_AT = 'click_at',
@@ -59,10 +60,7 @@ export interface ComputerUseClickCall extends FunctionCall {
   };
 }
 
-export function isVisibleComputerUseClick(message: {
-  functionCall?: FunctionCall;
-}): message is {functionCall: ComputerUseClickCall} {
-  const fc = message.functionCall;
+export function isVisibleComputerUseClick(fc: FunctionCall|undefined): boolean {
   if (!fc) return false;
 
   if (fc.name === ComputerTool.COMPUTER) {
@@ -95,10 +93,9 @@ export function isVisibleComputerUseClick(message: {
   return isVisibleClickTool && hasCoordinates;
 }
 
-export function isComputerUseResponse(message: {
-  functionResponse?: FunctionResponse;
-}): message is
-    {functionResponse: FunctionResponse & {response: ComputerUsePayload}} {
-  const response = message.functionResponse?.response as ComputerUsePayload;
-  return !!(response?.image?.data);
+export function isComputerUseResponse(
+    response: FunctionResponse|undefined): boolean {
+  if (!response) return false;
+  const responsePayload = response.response as ComputerUsePayload;
+  return !!(responsePayload?.image?.data);
 }

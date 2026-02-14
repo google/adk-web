@@ -1,4 +1,4 @@
-.dialog-container {
+build.dialog-container {
   border-radius: 12px;
   padding: 18px;
   width:500px;
@@ -31,4 +31,16 @@
   background-color: var(--mdc-slider-handle-color, var(--run-eval-config-dialog-mdc-slider-thumb-background-color));
   border: none !important;
   box-shadow: none !important;
+}
+
+h2[mat-dialog-title] {
+  color: var(--mdc-dialog-supporting-text-color) !important;
+}
+
+mat-dialog-content {
+  color: var(--mdc-dialog-supporting-text-color) !important;
+}
+
+button[mat-button] {
+  color: var(--mdc-dialog-supporting-text-color) !important;
 }
