@@ -214,6 +214,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   showSidePanel = true;
   showBuilderAssistant = true;
   useSse = false;
+  useLiveStreaming = false;
   currentSessionState: SessionState|undefined = {};
   root_agent = ROOT_AGENT;
   updatedSessionState: WritableSignal<any> = signal(null);
@@ -291,6 +292,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       this.featureFlagService.isApplicationSelectorEnabled();
   readonly isTokenStreamingEnabledObs: Observable<boolean> =
       this.featureFlagService.isTokenStreamingEnabled();
+  readonly isLiveStreamingEnabledObs: Observable<boolean> =
+      this.featureFlagService.isLiveStreamingEnabled();
   readonly isExportSessionEnabledObs: Observable<boolean> =
       this.featureFlagService.isExportSessionEnabled();
   readonly isEventFilteringEnabled =
@@ -537,6 +540,15 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       userMessage.text = this.userInput;
     }
 
+    if (this.useLiveStreaming) {
+      const messageText = this.userInput;
+      this.userInput = '';
+      this.selectedFiles = [];
+      this.streamChatService.sendTextMessage(messageText);
+      this.changeDetectorRef.detectChanges();
+      return;
+    }
+
     // Add user message attachments
     if (this.selectedFiles.length > 0) {
       const messageAttachments = this.selectedFiles.map((file) => ({
@@ -680,7 +692,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
               chunkJson.groundingMetadata.searchEntryPoint.renderedContent;
         }
 
-        if (!this.useSse) {
+        if (!this.useSse && !this.useLiveStreaming) {
           this.insertMessageBeforeLoadingMessage(this.streamingTextMessage);
           this.storeEvents(part, chunkJson);
           this.streamingTextMessage = null;
@@ -1915,6 +1927,77 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   toggleSse() {
     this.useSse = !this.useSse;
+    // If enabling SSE, disable live streaming
+    if (this.useSse && this.useLiveStreaming) {
+      this.useLiveStreaming = false;
+      this.streamChatService.stopTextStreaming();
+    }
+  }
+
+  toggleLiveStreaming() {
+    this.useLiveStreaming = !this.useLiveStreaming;
+    if (this.useLiveStreaming && this.sessionHasUsedBidi.has(this.sessionId)) {
+      this.openSnackBar(BIDI_STREAMING_RESTART_WARNING, 'OK');
+      return;
+    }
+
+    if (this.useLiveStreaming && this.useSse) {
+      this.useSse = false;
+    }
+
+    if (this.useLiveStreaming) {
+      this.streamChatService.startTextStreaming({
+        appName: this.appName,
+        userId: this.userId,
+        sessionId: this.sessionId,
+      });
+
+      this.streamChatService.getTextMessages().subscribe({
+        next: (event: any) => {
+
+          const hasAudioBlob = (event: any) => {
+            if (event.content?.parts) {
+              const hasAudioBlob = event.content.parts.some((part: any) =>
+                part.inlineData?.mimeType?.startsWith('audio/')
+              );
+              return hasAudioBlob
+            }
+            return false;
+          }
+
+          // Process incoming events similar to SSE
+          if (event.error) {
+            this.openSnackBar(event.error, 'OK');
+            return;
+          }
+          if (!hasAudioBlob(event) && event.content) {
+            let parts = this.combineTextParts(event.content.parts);
+            if (this.isEventA2aResponse(event)) {
+              parts = this.combineA2uiDataParts(parts);
+            }
+
+            for (let part of parts) {
+              this.processPart(event, part);
+              this.traceService.setEventData(this.eventData);
+            }
+          } else if (event.errorMessage) {
+            this.processErrorMessage(event);
+          }
+          if (event.actions) {
+            this.processActionArtifact(event);
+            this.processActionStateDelta(event);
+          }
+          this.changeDetectorRef.detectChanges();
+        },
+        error: (err: any) => {
+          console.error('Live streaming error:', err);
+          this.openSnackBar(err, 'OK');
+        },
+      });
+      this.sessionHasUsedBidi.add(this.sessionId);
+    } else {
+      this.streamChatService.stopTextStreaming();
+    }
   }
 
   enterBuilderMode() {
