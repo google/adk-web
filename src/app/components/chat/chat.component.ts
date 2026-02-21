@@ -106,15 +106,20 @@ class CustomPaginatorIntl extends MatPaginatorIntl {
   override firstPageLabel = 'First Event';
   override lastPageLabel = 'Last Event';
 
-  override getRangeLabel = (page: number, pageSize: number, length: number) => {
-    if (length === 0) {
-      return `Event 0 of ${length}`;
+  override getRangeLabel = (page: number, pageSize: number, length: number): string => {
+    if (length === 0 || pageSize === 0) {
+      return `0 of 0 events`;
     }
-
     length = Math.max(length, 0);
     const startIndex = page * pageSize;
-
-    return `Event ${startIndex + 1} of ${length}`;
+    const endIndex = Math.min(startIndex + pageSize, length);
+  
+    // If only one page or less than pageSize
+    if (length <= pageSize) {
+      return `Events 1-${length} of ${length}`;
+    }
+  
+    return `Events ${startIndex + 1}-${endIndex} of ${length}`;
   };
 }
 
