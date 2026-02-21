@@ -66,7 +66,9 @@ export class WebSocketService implements WebSocketServiceInterface {
   }
 
   sendMessage(data: LiveRequest) {
-    data.blob.data = this.arrayBufferToBase64(data.blob.data.buffer);
+    if (data.blob?.data) {
+      data.blob.data = this.arrayBufferToBase64(data.blob.data.buffer);
+    }
     if (!this.socket$ || this.socket$.closed) {
       console.error('WebSocket is not open.');
       return;
@@ -99,12 +101,14 @@ export class WebSocketService implements WebSocketServiceInterface {
   private handleIncomingAudio(message: any) {
     const msg = JSON.parse(message) as Event;
     if (
-      msg['content'] &&
-      msg['content']['parts'] &&
-      msg['content']['parts'][0]['inlineData']
+        msg.content &&
+        msg.content.parts &&
+        msg.content.parts[0] &&
+        msg.content.parts[0].inlineData &&
+        msg.content.parts[0].inlineData.mimeType?.startsWith('audio/pcm')
     ) {
       const pcmBytes = this.base64ToUint8Array(
-          msg['content']['parts'][0]['inlineData']['data'],
+          msg.content.parts[0].inlineData.data,
       );
       this.audioBuffer.push(pcmBytes);
     }

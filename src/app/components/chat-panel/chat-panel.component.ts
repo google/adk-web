@@ -97,6 +97,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Input() updatedSessionState: any|null = null;
   @Input() eventData = new Map<string, any>();
   @Input() selectedEvent: any = undefined;
+  @Input() useLive: boolean = false;
   @Input() isAudioRecording: boolean = false;
   @Input() isVideoRecording: boolean = false;
   @Input() hoveredEventMessageIndices: number[] = [];

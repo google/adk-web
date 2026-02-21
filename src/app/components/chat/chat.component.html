@@ -197,11 +197,21 @@
       </div>
       @if (isSessionLoading === false) {
       <div class="toolbar-actions">
-        <div class="toolbar-sse-toggle">
+        <div class="toolbar-live-toggle">
           <mat-slide-toggle
             class="example-margin"
-            [checked]="enableSseIndicator()"
-            (change)="toggleSse()"
+            [checked]="enableLiveIndicator()"
+            (change)="toggleLive()"
+            [disabled]="!(isBidiStreamingEnabledObs | async)"
+          >
+            {{ i18n.liveLabel }}
+          </mat-slide-toggle>
+        </div>
+        <div class="toolbar-streaming-toggle">
+          <mat-slide-toggle
+            class="example-margin"
+            [checked]="enableStreamingIndicator()"
+            (change)="toggleStreaming()"
             [disabled]="!(isTokenStreamingEnabledObs | async)"
           >
             {{ i18n.tokenStreamingLabel }}
@@ -297,6 +307,7 @@
         [updatedSessionState]="updatedSessionState()"
         [eventData]="eventData"
         [selectedEvent]="selectedEvent"
+        [useLive]="useLive"
         [isAudioRecording]="isAudioRecording"
         [isVideoRecording]="isVideoRecording"
         [hoveredEventMessageIndices]="hoveredEventMessageIndices"
