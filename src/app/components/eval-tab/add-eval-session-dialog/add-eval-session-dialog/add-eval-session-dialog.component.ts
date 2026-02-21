@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {Component, inject} from '@angular/core';
+import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
 import {uuidv4} from 'uuidv7';
 import {EVAL_SERVICE} from '../../../../core/services/interfaces/eval';
@@ -26,7 +26,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 
 @Component({
-    selector: 'app-add-eval-session-dialog',
+    changeDetection: ChangeDetectionStrategy.Eager,selector: 'app-add-eval-session-dialog',
     templateUrl: './add-eval-session-dialog.component.html',
     styleUrl: './add-eval-session-dialog.component.scss',
     imports: [

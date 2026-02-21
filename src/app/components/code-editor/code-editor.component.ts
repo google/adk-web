@@ -23,7 +23,7 @@ import {
   Input,
   OnDestroy,
   Output,
-  ViewChild,
+  ViewChild, ChangeDetectionStrategy,
 } from '@angular/core';
 import {HighlightStyle, syntaxHighlighting, syntaxTree} from '@codemirror/language';
 import {python} from '@codemirror/lang-python';
@@ -89,7 +89,7 @@ const pythonLinter = linter((view) => {
 });
 
 @Component({
-  selector: 'app-code-editor',
+  changeDetection: ChangeDetectionStrategy.Eager,selector: 'app-code-editor',
   templateUrl: './code-editor.component.html',
   styleUrls: ['./code-editor.component.scss'],
 })

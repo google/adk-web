@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnInit } from "@angular/core";
+import { Component, Inject, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from "@angular/material/dialog";
 import { CdkScrollable } from "@angular/cdk/scrolling";
 import { MatButton } from "@angular/material/button";
@@ -44,7 +44,7 @@ interface TimeTick {
 }
 
 @Component({
-    selector: 'app-trace-chart',
+    changeDetection: ChangeDetectionStrategy.Eager,selector: 'app-trace-chart',
     templateUrl: './trace-chart.component.html',
     styleUrl: './trace-chart.component.scss',
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatDialogActions, MatButton, MatDialogClose]

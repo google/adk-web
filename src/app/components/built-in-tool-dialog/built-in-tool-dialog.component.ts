@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
@@ -30,7 +30,7 @@ interface ToolCategory {
 }
 
 @Component({
-  selector: 'app-built-in-tool-dialog',
+  changeDetection: ChangeDetectionStrategy.Eager,selector: 'app-built-in-tool-dialog',
   templateUrl: './built-in-tool-dialog.component.html',
   styleUrl: './built-in-tool-dialog.component.scss',
   standalone: true,

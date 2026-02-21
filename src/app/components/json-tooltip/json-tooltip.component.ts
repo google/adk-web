@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 
 @Component({
-  selector: 'app-json-tooltip',
+  changeDetection: ChangeDetectionStrategy.Eager,selector: 'app-json-tooltip',
   template: `<div [innerHTML]="formattedJson"></div>`,
   styles: [`
     :host {
