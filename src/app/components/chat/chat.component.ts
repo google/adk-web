@@ -74,6 +74,7 @@ import {TraceEventComponent} from '../trace-tab/trace-event/trace-event.componen
 import {ViewImageDialogComponent} from '../view-image-dialog/view-image-dialog.component';
 
 import {ChatMessagesInjectionToken} from './chat.component.i18n';
+import {SnackbarType} from '../../core/constants/snackbar.constants';
 
 const ROOT_AGENT = 'root_agent';
 /** Query parameter for pre-filling user input. */
@@ -340,7 +341,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.streamChatService.onStreamClose().subscribe((closeReason) => {
       const error =
           'Please check server log for full details: \n' + closeReason;
-      this.openSnackBar(error, 'OK');
+      this.openSnackBar(error, 'OK', SnackbarType.ERROR);
     });
 
     // OAuth HACK: Opens oauth poup in a new window. If the oauth callback
@@ -406,7 +407,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
             this.uiStateService.onNewMessagesLoadingFailed().subscribe(
                 (error: {message: string}) => {
-                  this.openSnackBar(error.message, 'OK');
+                  this.openSnackBar(error.message, 'OK', SnackbarType.ERROR);
                 });
           }
         });
@@ -579,7 +580,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.agentService.runSse(req).subscribe({
       next: async (chunkJson: AdkEvent) => {
         if (chunkJson.error) {
-          this.openSnackBar(chunkJson.error, 'OK');
+          this.openSnackBar(chunkJson.error, 'OK', SnackbarType.ERROR);
           return;
         }
         if (chunkJson.content) {
@@ -603,7 +604,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: (err) => {
         console.error('Send message error:', err);
-        this.openSnackBar(err, 'OK');
+        this.openSnackBar(err, 'OK', SnackbarType.ERROR);
       },
       complete: () => {
         if (this.updatedSessionState()) {
@@ -1401,7 +1402,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   startAudioRecording() {
     if (this.sessionHasUsedBidi.has(this.sessionId)) {
-      this.openSnackBar(BIDI_STREAMING_RESTART_WARNING, 'OK');
+      this.openSnackBar(BIDI_STREAMING_RESTART_WARNING, 'OK', SnackbarType.WARNING);
       return;
     }
 
@@ -1432,7 +1433,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   startVideoRecording() {
     if (this.sessionHasUsedBidi.has(this.sessionId)) {
-      this.openSnackBar(BIDI_STREAMING_RESTART_WARNING, 'OK');
+      this.openSnackBar(BIDI_STREAMING_RESTART_WARNING, 'OK', SnackbarType.WARNING);
       return;
     }
     const videoContainer = this.chatPanel()?.videoContainer;
@@ -1526,7 +1527,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   protected handleEvalNotInstalled(errorMsg: string) {
     if (errorMsg) {
-      this.openSnackBar(errorMsg, 'OK');
+      this.openSnackBar(errorMsg, 'OK', SnackbarType.ERROR);
     }
   }
 
@@ -1797,7 +1798,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
             this.appName, this.evalSetId, this.updatedEvalCase!.evalId,
             this.updatedEvalCase!)
         .subscribe((res) => {
-          this.openSnackBar('Eval case updated', 'OK');
+          this.openSnackBar('Eval case updated', 'OK', SnackbarType.SUCCESS);
           this.resetEditEvalCaseVars();
         });
   }
@@ -1873,7 +1874,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     dialogRef.afterClosed().subscribe((result: boolean) => {
       if (result) {
         this.evalTab()?.deleteEvalCase(this.evalCase!.evalId);
-        this.openSnackBar('Eval case deleted', 'OK');
+        this.openSnackBar('Eval case deleted', 'OK', SnackbarType.SUCCESS);
       }
     });
   }
@@ -2063,7 +2064,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       const app = params['app'];
       if (apps && apps.length && app) {
         if (!apps.includes(app)) {
-          this.openSnackBar(`Agent '${app}' not found`, 'OK');
+          this.openSnackBar(`Agent '${app}' not found`, 'OK', SnackbarType.ERROR);
           return;
         }
 
@@ -2193,8 +2194,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     return undefined;  // Index out of bounds
   }
 
-  openSnackBar(message: string, action: string) {
-    this._snackBar.open(message, action);
+  openSnackBar(message: string, action: string, type: SnackbarType = SnackbarType.INFO) {
+    this._snackBar.open(message, action, {
+      panelClass: ['custom-snackbar', `snackbar-${type}`],
+    });
   }
 
   private processThoughtText(text: string) {
@@ -2279,18 +2282,18 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
                 JSON.parse(e.target.result as string) as Session;
             if (!sessionData.userId || !sessionData.appName ||
                 !sessionData.events) {
-              this.openSnackBar('Invalid session file format', 'OK');
+              this.openSnackBar('Invalid session file format', 'OK', SnackbarType.ERROR);
               return;
             }
             this.sessionService
                 .importSession(
                     sessionData.userId, sessionData.appName, sessionData.events)
                 .subscribe((res) => {
-                  this.openSnackBar('Session imported', 'OK');
+                  this.openSnackBar('Session imported', 'OK', SnackbarType.SUCCESS);
                   this.sessionTab?.refreshSession();
                 });
           } catch (error) {
-            this.openSnackBar('Error parsing session file', 'OK');
+            this.openSnackBar('Error parsing session file', 'OK', SnackbarType.ERROR);
           }
         }
       };
