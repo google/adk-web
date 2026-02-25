@@ -15,19 +15,10 @@
  * limitations under the License.
  */
 
-import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  Input,
-  OnChanges,
-  SimpleChanges,
-  signal,
-  computed,
-} from '@angular/core';
-import { MessageProcessor, Surface } from '@a2ui/angular';
-import { Types } from '@a2ui/lit/0.8';
+import {MessageProcessor, Surface} from '@a2ui/angular';
+import * as Types from '@a2ui/web_core/types/types';
+import {CommonModule} from '@angular/common';
+import {ChangeDetectionStrategy, Component, computed, inject, Input, OnChanges, signal, SimpleChanges,} from '@angular/core';
 
 /**
  * Component responsible for rendering A2UI content on a canvas.

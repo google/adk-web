@@ -17,7 +17,7 @@
 
 
 import {MessageProcessor} from '@a2ui/angular';
-import {Types} from '@a2ui/lit/0.8';
+import * as Types from '@a2ui/web_core/types/types';
 import {SimpleChanges} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
