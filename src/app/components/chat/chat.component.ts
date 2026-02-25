@@ -67,7 +67,6 @@ import {CanvasComponent} from '../canvas/canvas.component';
 import {ChatPanelComponent} from '../chat-panel/chat-panel.component';
 import {EditJsonDialogComponent} from '../edit-json-dialog/edit-json-dialog.component';
 import {EvalTabComponent} from '../eval-tab/eval-tab.component';
-import {PendingEventDialogComponent} from '../pending-event-dialog/pending-event-dialog.component';
 import {DeleteSessionDialogComponent, DeleteSessionDialogData,} from '../session-tab/delete-session-dialog/delete-session-dialog.component';
 import {SidePanelComponent} from '../side-panel/side-panel.component';
 import {TraceEventComponent} from '../trace-tab/trace-event/trace-event.component';
@@ -929,29 +928,35 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (e?.longRunningToolIds && e.longRunningToolIds.length > 0) {
+      const startIndex = this.longRunningEvents.length;
       this.getAsyncFunctionsFromParts(
           e.longRunningToolIds, e.content.parts, e.invocationId);
-      const func = this.longRunningEvents[0].function;
-      if (func.args.authConfig &&
-          func.args.authConfig.exchangedAuthCredential &&
-          func.args.authConfig.exchangedAuthCredential.oauth2) {
-        // for OAuth
-        const authUri =
-            func.args.authConfig.exchangedAuthCredential.oauth2.authUri;
-        const updatedAuthUri = this.updateRedirectUri(
-            authUri,
-            this.redirectUri,
-        );
-        this.openOAuthPopup(updatedAuthUri)
-            .then((authResponseUrl) => {
-              this.functionCallEventId = e.id;
-              this.sendOAuthResponse(func, authResponseUrl, this.redirectUri);
-            })
-            .catch((error) => {
-              console.error('OAuth Error:', error);
-            });
-      } else {
-        this.functionCallEventId = e.id;
+
+      // Store event ID for later reference
+      this.functionCallEventId = e.id;
+
+      // Check all newly added events for OAuth requirements
+      for (let i = startIndex; i < this.longRunningEvents.length; i++) {
+        const func = this.longRunningEvents[i].function;
+        if (func.args.authConfig &&
+            func.args.authConfig.exchangedAuthCredential &&
+            func.args.authConfig.exchangedAuthCredential.oauth2) {
+          // for OAuth
+          const authUri =
+              func.args.authConfig.exchangedAuthCredential.oauth2.authUri;
+          const updatedAuthUri = this.updateRedirectUri(
+              authUri,
+              this.redirectUri,
+          );
+          this.openOAuthPopup(updatedAuthUri)
+              .then((authResponseUrl) => {
+                this.sendOAuthResponse(func, authResponseUrl, this.redirectUri);
+              })
+              .catch((error) => {
+                console.error('OAuth Error:', error);
+              });
+          break; // Handle one OAuth at a time
+        }
       }
     }
     if (e?.actions && e.actions.artifactDelta) {
@@ -1009,7 +1014,20 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         message.eventId = e?.id;
       } else if (part.functionCall) {
-        message.functionCalls = [part.functionCall];
+        // Enrich function call with long-running metadata if applicable
+        const isLongRunning = e?.longRunningToolIds?.includes(part.functionCall.id);
+        const enrichedFunctionCall = {
+          ...part.functionCall,
+          ...(isLongRunning && {
+            isLongRunning: true,
+            invocationId: e.invocationId,
+            functionCallEventId: e.id,
+            needsResponse: true,
+            responseStatus: 'pending',
+            userResponse: '',
+          }),
+        };
+        message.functionCalls = [enrichedFunctionCall];
         message.eventId = e?.id;
       } else if (part.functionResponse) {
         message.functionResponses = [part.functionResponse];
@@ -1297,7 +1315,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private processRunSseResponse(response: any) {
+  protected processRunSseResponse(response: any) {
     for (const e of response) {
       if (e.content) {
         for (let part of e.content.parts) {
@@ -1307,33 +1325,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  openDialog(): void {
-    const dialogRef = this.dialog.open(PendingEventDialogComponent, {
-      width: '600px',
-      data: {
-        event: this.longRunningEvents[0].function,
-        appName: this.appName,
-        userId: this.userId,
-        sessionId: this.sessionId,
-        functionCallEventId: this.functionCallEventId,
-        invocationId: this.longRunningEvents[0].invocationId
-      },
-    });
-
-    dialogRef.afterClosed().subscribe((t) => {
-      if (t) {
-        this.removeFinishedLongRunningEvents(t.events);
-        this.processRunSseResponse(t.response);
-        this.changeDetectorRef.detectChanges();
-      }
-    });
-  }
-
-  removeFinishedLongRunningEvents(finishedEvents: any[]) {
-    const idsToExclude = new Set(finishedEvents.map((obj: any) => obj.id));
-    this.longRunningEvents =
-        this.longRunningEvents.filter(obj => !idsToExclude.has(obj.id));
-  }
 
   createAgentIconColorClass(agentName: string) {
     const agentIconColor = this.stringToColorService.stc(agentName);

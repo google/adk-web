@@ -229,6 +229,11 @@ html.dark-theme {
   );
   --chat-panel-function-event-button-highlight-border-color: rgb(15, 82, 35);
   --chat-panel-function-event-button-highlight-color: white;
+  --long-running-response-input-text-color: #000;
+  --long-running-response-input-caret-color: #000;
+  --long-running-response-input-placeholder-color: rgba(0, 0, 0, 0.5);
+  --long-running-response-icon-color: #000;
+  --long-running-response-send-button-color: #000;
   --chat-panel-user-message-message-card-background-color: #004a77;
   --chat-panel-user-message-message-card-color: white;
   --chat-panel-bot-message-message-card-background-color: #303030;
@@ -518,6 +523,11 @@ html.light-theme {
   --chat-panel-function-event-button-background-color: #f2f1ef;
   --chat-panel-function-event-button-highlight-border-color: #0f5223;
   --chat-panel-function-event-button-highlight-color: white;
+  --long-running-response-input-text-color: #202124;
+  --long-running-response-input-caret-color: #202124;
+  --long-running-response-input-placeholder-color: rgba(0, 0, 0, 0.5);
+  --long-running-response-icon-color: rgba(0, 0, 0, 0.7);
+  --long-running-response-send-button-color: #305f9d;
   --chat-panel-user-message-message-card-background-color: #d5e3ff;
   --chat-panel-user-message-message-card-color: #202124;
   --chat-panel-bot-message-message-card-background-color: #f3f0f0;

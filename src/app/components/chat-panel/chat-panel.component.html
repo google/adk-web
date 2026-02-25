@@ -275,6 +275,16 @@
                 {{ functionCall.name }}
               </button>
             }
+
+            @if (functionCall.needsResponse) {
+              <app-long-running-response
+                [functionCall]="functionCall"
+                [appName]="appName"
+                [userId]="userId"
+                [sessionId]="sessionId"
+                (responseComplete)="longRunningResponseComplete.emit($event)"
+              ></app-long-running-response>
+            }
           }
         }
         @if (message.functionResponses && message.functionResponses.length > 0) {

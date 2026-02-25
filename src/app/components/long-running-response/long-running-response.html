@@ -1,0 +1,47 @@
+<!--
+ Copyright 2026 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<div class="response-chip-container" (click)="$event.stopPropagation()">
+  @if (functionCall.responseStatus === 'sent') {
+    <div class="status-chip sent">
+      <mat-icon>check_circle</mat-icon>
+      <span>Response sent</span>
+    </div>
+  } @else if (functionCall.responseStatus === 'sending') {
+    <div class="status-chip sending">
+      <mat-icon>hourglass_empty</mat-icon>
+      <span>Sending...</span>
+    </div>
+  } @else {
+    <div class="input-chip">
+      <mat-icon class="input-icon">rate_review</mat-icon>
+      <input
+        class="response-input"
+        [(ngModel)]="functionCall.userResponse"
+        (keydown.enter)="onSend()"
+        placeholder="Enter response..."
+      />
+      <button
+        mat-icon-button
+        (click)="onSend()"
+        [disabled]="!functionCall.userResponse"
+        class="send-icon-btn"
+      >
+        <mat-icon>send</mat-icon>
+      </button>
+    </div>
+  }
+</div>

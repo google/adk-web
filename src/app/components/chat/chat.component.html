@@ -278,11 +278,7 @@
         </div>
         }
       </div>
-      } } @if (longRunningEvents.length > 0) {
-      <button mat-fab color="primary" class="fab-button" (click)="openDialog()">
-        <mat-icon>priority_high</mat-icon>
-      </button>
-      } @if (appName != "") {
+      } } @if (appName != "") {
       <app-chat-panel
         [appName]="appName"
         [messages]="messages()"
@@ -300,6 +296,8 @@
         [isAudioRecording]="isAudioRecording"
         [isVideoRecording]="isVideoRecording"
         [hoveredEventMessageIndices]="hoveredEventMessageIndices"
+        [userId]="userId"
+        [sessionId]="sessionId"
         (clickEvent)="clickEvent($event)"
         (handleKeydown)="handleKeydown($event.event, $event.message)"
         (cancelEditMessage)="cancelEditMessage($event)"
@@ -316,6 +314,7 @@
         (updateState)="updateState()"
         (toggleAudioRecording)="toggleAudioRecording()"
         (toggleVideoRecording)="toggleVideoRecording()"
+        (longRunningResponseComplete)="processRunSseResponse($event)"
         [sessionName]="sessionId"
       ></app-chat-panel>
       }

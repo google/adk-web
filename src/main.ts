@@ -58,7 +58,6 @@ import {FEEDBACK_SERVICE} from './app/core/services/interfaces/feedback';
 import {FEATURE_FLAG_SERVICE} from './app/core/services/interfaces/feature-flag';
 import {GRAPH_SERVICE} from './app/core/services/interfaces/graph';
 import {LOCAL_FILE_SERVICE} from './app/core/services/interfaces/localfile';
-import {PENDING_EVENT_SERVICE} from './app/core/services/interfaces/pendingevent';
 import {SAFE_VALUES_SERVICE} from './app/core/services/interfaces/safevalues';
 import {SESSION_SERVICE} from './app/core/services/interfaces/session';
 import {STREAM_CHAT_SERVICE} from './app/core/services/interfaces/stream-chat';
@@ -70,7 +69,6 @@ import {VIDEO_SERVICE} from './app/core/services/interfaces/video';
 import {WEBSOCKET_SERVICE} from './app/core/services/interfaces/websocket';
 import {LocalFileServiceImpl} from './app/core/services/local-file.service';
 import {LOCATION_SERVICE} from './app/core/services/location.service';
-import {PendingEventServiceImpl} from './app/core/services/pending-event.service';
 import {SafeValuesServiceImpl} from './app/core/services/safevalues.service';
 import {SessionService} from './app/core/services/session.service';
 import {StreamChatService} from './app/core/services/stream-chat.service';
@@ -119,7 +117,6 @@ fetch('./assets/config/runtime-config.json')
           {provide: LOCAL_FILE_SERVICE, useClass: LocalFileServiceImpl},
           {provide: Catalog, useValue: DEFAULT_CATALOG},
           {provide: Theme, useValue: A2UI_THEME},
-          {provide: PENDING_EVENT_SERVICE, useClass: PendingEventServiceImpl},
           {provide: MARKDOWN_COMPONENT, useValue: MarkdownComponent},
           ...(config.logo ?
                   [{provide: LOGO_COMPONENT, useValue: CustomLogoComponent}] :

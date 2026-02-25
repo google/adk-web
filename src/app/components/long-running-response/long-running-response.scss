@@ -1,0 +1,102 @@
+/**
+ * Copyright 2026 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.response-chip-container {
+  display: inline-block;
+  margin: 5px;
+}
+
+.input-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--mat-standard-button-toggle-divider-color);
+  border-radius: 16px;
+  padding: 0 4px 0 12px;
+  background-color: var(--chat-panel-function-event-button-background-color);
+  height: 30px;
+  box-sizing: border-box;
+  max-width: 300px;
+
+  .input-icon {
+    color: var(--long-running-response-icon-color);
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .response-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    flex: 1;
+    min-width: 120px;
+    padding: 0;
+    color: var(--long-running-response-input-text-color);
+    caret-color: var(--long-running-response-input-caret-color);
+
+    &::placeholder {
+      color: var(--long-running-response-input-placeholder-color);
+    }
+  }
+
+  .send-icon-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    min-width: unset;
+    color: var(--long-running-response-send-button-color);
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 16px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  height: 32px;
+  box-sizing: border-box;
+  border: 1px solid;
+  line-height: 32px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &.sending {
+    background-color: rgba(33, 150, 243, 0.1);
+    border-color: rgba(33, 150, 243, 0.3);
+    color: #2196f3;
+  }
+
+  &.sent {
+    background-color: rgba(76, 175, 80, 0.1);
+    border-color: rgba(76, 175, 80, 0.3);
+    color: #4caf50;
+  }
+}

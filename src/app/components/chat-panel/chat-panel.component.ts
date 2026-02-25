@@ -52,6 +52,7 @@ import {MARKDOWN_COMPONENT, MarkdownComponentInterface} from '../markdown/markdo
 import {MessageFeedbackComponent} from '../message-feedback/message-feedback.component';
 
 import {ChatPanelMessagesInjectionToken} from './chat-panel.component.i18n';
+import {LongRunningResponseComponent} from '../long-running-response/long-running-response';
 
 const ROOT_AGENT = 'root_agent';
 
@@ -80,6 +81,7 @@ const ROOT_AGENT = 'root_agent';
     NgClass,
     JsonTooltipDirective,
     ComputerActionComponent,
+    LongRunningResponseComponent,
   ],
 })
 export class ChatPanelComponent implements OnChanges, AfterViewInit {
@@ -100,6 +102,8 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Input() isAudioRecording: boolean = false;
   @Input() isVideoRecording: boolean = false;
   @Input() hoveredEventMessageIndices: number[] = [];
+  @Input() userId: string = '';
+  @Input() sessionId: string = '';
 
   @Output() readonly userInputChange = new EventEmitter<string>();
   @Output() readonly userEditEvalCaseMessageChange = new EventEmitter<string>();
@@ -125,6 +129,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Output() readonly updateState = new EventEmitter<void>();
   @Output() readonly toggleAudioRecording = new EventEmitter<void>();
   @Output() readonly toggleVideoRecording = new EventEmitter<void>();
+  @Output() readonly longRunningResponseComplete = new EventEmitter<any[]>();
 
   @ViewChild('videoContainer', {read: ElementRef}) videoContainer!: ElementRef;
   @ViewChild('autoScroll') scrollContainer!: ElementRef;
@@ -213,6 +218,9 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
             takeUntilDestroyed(this.destroyRef),
             )
         .subscribe();
+    this.agentService.getAppInfo(this.appName).subscribe((data) => {
+      console.log(data);
+    })
   }
 
   ngAfterViewInit() {
