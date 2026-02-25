@@ -16,14 +16,14 @@
  */
 
 import {AsyncPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
-import {AfterViewInit, Component, computed, DestroyRef, effect, EnvironmentInjector, inject, input, output, runInInjectionContext, signal, Type, viewChild, ViewContainerRef, type WritableSignal} from '@angular/core';
+import {AfterViewInit, Component, computed, effect, EnvironmentInjector, inject, input, output, runInInjectionContext, signal, Type, viewChild, ViewContainerRef, type WritableSignal} from '@angular/core';
 import {toObservable} from '@angular/core/rxjs-interop';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatMiniFabButton} from '@angular/material/button';
 import {MatOption} from '@angular/material/core';
 import {MatFormField} from '@angular/material/form-field';
-import {MatInput} from '@angular/material/input';
 import {MatIcon} from '@angular/material/icon';
+import {MatInput} from '@angular/material/input';
 import {MatPaginator, PageEvent} from '@angular/material/paginator';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatSelect, MatSelectChange} from '@angular/material/select';
@@ -35,7 +35,9 @@ import {combineLatest, Observable, of} from 'rxjs';
 import {first, map, startWith, switchMap} from 'rxjs/operators';
 
 import {EvalCase} from '../../core/models/Eval';
-import {Session} from '../../core/models/Session';
+import {Session, SessionState} from '../../core/models/Session';
+import {SpanNode} from '../../core/models/Trace';
+import {Blob, Event, LlmRequest, LlmResponse} from '../../core/models/types';
 import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 import {UI_STATE_SERVICE} from '../../core/services/interfaces/ui-state';
 import {LOGO_COMPONENT} from '../../injection_tokens';
@@ -88,16 +90,16 @@ export class SidePanelComponent implements AfterViewInit {
   appName = input('');
   userId = input('');
   sessionId = input('');
-  traceData = input<any[]>([]);
-  eventData = input(new Map<string, any>());
-  currentSessionState = input<any>();
-  artifacts = input<any[]>([]);
-  selectedEvent = input<any|undefined>();
+  traceData = input<SpanNode[]>([]);
+  eventData = input(new Map<string, Event>());
+  currentSessionState = input<SessionState>();
+  artifacts = input<Blob[]>([]);
+  selectedEvent = input<Event|undefined>();
   selectedEventIndex = input<number|undefined>();
   renderedEventGraph = input<SafeHtml|undefined>();
   rawSvgString = input<string|null>(null);
-  llmRequest = input<any|undefined>();
-  llmResponse = input<any|undefined>();
+  llmRequest = input<LlmRequest|undefined>();
+  llmResponse = input<LlmResponse|undefined>();
   showSidePanel = input(false);
   isApplicationSelectorEnabledObs = input<Observable<boolean>>(of(false));
   apps$ = input<Observable<string[]|undefined>>(of([]));
@@ -110,7 +112,7 @@ export class SidePanelComponent implements AfterViewInit {
 
   readonly closePanel = output<void>();
   readonly appSelectionChange = output<MatSelectChange>();
-  readonly tabChange = output<any>();
+  readonly tabChange = output<MatTabChangeEvent>();
   readonly sessionSelected = output<Session>();
   readonly sessionReloaded = output<Session>();
   readonly evalCaseSelected = output<EvalCase>();
@@ -136,7 +138,6 @@ export class SidePanelComponent implements AfterViewInit {
   readonly evalTabComponentClass = inject(EVAL_TAB_COMPONENT, {optional: true});
   private readonly environmentInjector = inject(EnvironmentInjector);
   protected readonly uiStateService = inject(UI_STATE_SERVICE);
-  private readonly destroyRef = inject(DestroyRef);
 
   // Feature flag references for use in template.
   readonly isAlwaysOnSidePanelEnabledObs =
@@ -183,14 +184,21 @@ export class SidePanelComponent implements AfterViewInit {
       return [];
     }
 
-    const artifacts: any[] = [];
+    const artifacts: Array<{
+      id: string; versionId: number; data: string; mimeType: string;
+      mediaType: string
+    }> = [];
     for (const [id, artifactData] of Object.entries(artifactDelta)) {
+      const data = artifactData as {
+        data?: string;
+        mimeType?: string
+      };
       artifacts.push({
         id,
         versionId: 1,
-        data: (artifactData as any).data || '',
-        mimeType: (artifactData as any).mimeType || '',
-        mediaType: getMediaTypeFromMimetype((artifactData as any).mimeType || ''),
+        data: data.data || '',
+        mimeType: data.mimeType || '',
+        mediaType: getMediaTypeFromMimetype(data.mimeType || ''),
       });
     }
     return artifacts;

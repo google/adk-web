@@ -19,27 +19,38 @@ import {Location} from '@angular/common';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {MatOption} from '@angular/material/core';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
-import {MatPaginator, PageEvent} from '@angular/material/paginator';
-import {MatSelect, MatSelectChange} from '@angular/material/select';
+import {MatPaginator} from '@angular/material/paginator';
+import {MatSelectChange} from '@angular/material/select';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {MatTabGroup} from '@angular/material/tabs';
+import {MatTab, MatTabGroup} from '@angular/material/tabs';
 import {By} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {ActivatedRoute, Router} from '@angular/router';
-import {of} from 'rxjs';
+import {ActivatedRoute, provideRouter} from '@angular/router';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
-import {
-  EVAL_TAB_COMPONENT,
-  EvalTabComponent,
-} from '../eval-tab/eval-tab.component';
+import {of} from 'rxjs';
+
+import {EvalCase} from '../../core/models/Eval';
+import {Session} from '../../core/models/Session';
 import {AgentService} from '../../core/services/agent.service';
 import {ArtifactService} from '../../core/services/artifact.service';
 import {AudioRecordingService} from '../../core/services/audio-recording.service';
 import {DownloadService} from '../../core/services/download.service';
 import {EvalService} from '../../core/services/eval.service';
 import {EventService} from '../../core/services/event.service';
-import {FeatureFlagService} from '../../core/services/feature-flag.service';
+import {AGENT_SERVICE} from '../../core/services/interfaces/agent';
+import {ARTIFACT_SERVICE} from '../../core/services/interfaces/artifact';
+import {AUDIO_RECORDING_SERVICE} from '../../core/services/interfaces/audio-recording';
+import {DOWNLOAD_SERVICE} from '../../core/services/interfaces/download';
+import {EVAL_SERVICE} from '../../core/services/interfaces/eval';
+import {EVENT_SERVICE} from '../../core/services/interfaces/event';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
+import {SESSION_SERVICE} from '../../core/services/interfaces/session';
+import {THEME_SERVICE} from '../../core/services/interfaces/theme';
+import {TRACE_SERVICE} from '../../core/services/interfaces/trace';
+import {UI_STATE_SERVICE} from '../../core/services/interfaces/ui-state';
+import {VIDEO_SERVICE} from '../../core/services/interfaces/video';
+import {WEBSOCKET_SERVICE} from '../../core/services/interfaces/websocket';
 import {SessionService} from '../../core/services/session.service';
 import {MockFeatureFlagService} from '../../core/services/testing/mock-feature-flag.service';
 import {MockSafeValuesService} from '../../core/services/testing/mock-safevalues.service';
@@ -48,20 +59,8 @@ import {MockUiStateService} from '../../core/services/testing/mock-ui-state.serv
 import {TraceService} from '../../core/services/trace.service';
 import {VideoService} from '../../core/services/video.service';
 import {WebSocketService} from '../../core/services/websocket.service';
-import {AGENT_SERVICE} from '../../core/services/interfaces/agent';
-import {ARTIFACT_SERVICE} from '../../core/services/interfaces/artifact';
-import {AUDIO_RECORDING_SERVICE} from '../../core/services/interfaces/audio-recording';
-import {DOWNLOAD_SERVICE} from '../../core/services/interfaces/download';
-import {EVAL_SERVICE} from '../../core/services/interfaces/eval';
-import {EVENT_SERVICE} from '../../core/services/interfaces/event';
-import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
-import {SESSION_SERVICE} from '../../core/services/interfaces/session';
-import {THEME_SERVICE} from '../../core/services/interfaces/theme';
-import {TRACE_SERVICE} from '../../core/services/interfaces/trace';
-import {UI_STATE_SERVICE, UiStateService as UiStateServiceInterface} from '../../core/services/interfaces/ui-state';
-import {VIDEO_SERVICE} from '../../core/services/interfaces/video';
-import {WEBSOCKET_SERVICE} from '../../core/services/interfaces/websocket';
 import {initTestBed} from '../../testing/utils';
+import {EVAL_TAB_COMPONENT, EvalTabComponent} from '../eval-tab/eval-tab.component';
 
 import {SidePanelComponent} from './side-panel.component';
 
@@ -95,11 +94,10 @@ describe('SidePanelComponent', () => {
   let mockFeatureFlagService: MockFeatureFlagService;
   let mockDialog: jasmine.SpyObj<MatDialog>;
   let mockSnackBar: jasmine.SpyObj<MatSnackBar>;
-  let mockRouter: jasmine.SpyObj<Router>;
   let mockActivatedRoute: Partial<ActivatedRoute>;
   let mockLocation: jasmine.SpyObj<Location>;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockSessionService = jasmine.createSpyObj(
         'SessionService',
         ['createSession', 'getSession', 'deleteSession', 'listSessions'],
@@ -160,12 +158,11 @@ describe('SidePanelComponent', () => {
     mockFeatureFlagService = new MockFeatureFlagService();
     mockDialog = jasmine.createSpyObj('MatDialog', ['open']);
     mockSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
     mockLocation = jasmine.createSpyObj('Location', ['replaceState']);
     mockActivatedRoute = {
       snapshot: {
         queryParams: {},
-      } as any,
+      } as unknown as ActivatedRoute['snapshot'],
       queryParams: of({}),
     };
     mockEvalService.getEvalSets.and.returnValue(of([]));
@@ -188,35 +185,31 @@ describe('SidePanelComponent', () => {
     mockFeatureFlagService.isBidiStreamingEnabled.and.returnValue(of(true));
 
     initTestBed();  // required for 1p compatibility
-    await TestBed
-        .configureTestingModule({
-          imports: [SidePanelComponent, MatDialogModule, NoopAnimationsModule],
-          providers: [
-            {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
-            {provide: SESSION_SERVICE, useValue: mockSessionService},
-            {provide: ARTIFACT_SERVICE, useValue: mockArtifactService},
-            {
-              provide: AUDIO_RECORDING_SERVICE,
-              useValue: mockAudioRecordingService
-            },
-            {provide: WEBSOCKET_SERVICE, useValue: mockWebSocketService},
-            {provide: VIDEO_SERVICE, useValue: mockVideoService},
-            {provide: EVENT_SERVICE, useValue: mockEventService},
-            {provide: DOWNLOAD_SERVICE, useValue: mockDownloadService},
-            {provide: EVAL_SERVICE, useValue: mockEvalService},
-            {provide: TRACE_SERVICE, useValue: mockTraceService},
-            {provide: AGENT_SERVICE, useValue: mockAgentService},
-            {provide: UI_STATE_SERVICE, useValue: mockUiStateService},
-            {provide: FEATURE_FLAG_SERVICE, useValue: mockFeatureFlagService},
-            {provide: MatDialog, useValue: mockDialog},
-            {provide: MatSnackBar, useValue: mockSnackBar},
-            {provide: Router, useValue: mockRouter},
-            {provide: ActivatedRoute, useValue: mockActivatedRoute},
-            {provide: Location, useValue: mockLocation},
-            {provide: SAFE_VALUES_SERVICE, useClass: MockSafeValuesService},
-            {provide: THEME_SERVICE, useClass: MockThemeService}
-          ],
-        });
+    TestBed.configureTestingModule({
+      imports: [SidePanelComponent, MatDialogModule, NoopAnimationsModule],
+      providers: [
+        {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
+        {provide: SESSION_SERVICE, useValue: mockSessionService},
+        {provide: ARTIFACT_SERVICE, useValue: mockArtifactService},
+        {provide: AUDIO_RECORDING_SERVICE, useValue: mockAudioRecordingService},
+        {provide: WEBSOCKET_SERVICE, useValue: mockWebSocketService},
+        {provide: VIDEO_SERVICE, useValue: mockVideoService},
+        {provide: EVENT_SERVICE, useValue: mockEventService},
+        {provide: DOWNLOAD_SERVICE, useValue: mockDownloadService},
+        {provide: EVAL_SERVICE, useValue: mockEvalService},
+        {provide: TRACE_SERVICE, useValue: mockTraceService},
+        {provide: AGENT_SERVICE, useValue: mockAgentService},
+        {provide: UI_STATE_SERVICE, useValue: mockUiStateService},
+        {provide: FEATURE_FLAG_SERVICE, useValue: mockFeatureFlagService},
+        {provide: MatDialog, useValue: mockDialog},
+        {provide: MatSnackBar, useValue: mockSnackBar},
+        provideRouter([]),
+        {provide: ActivatedRoute, useValue: mockActivatedRoute},
+        {provide: Location, useValue: mockLocation},
+        {provide: SAFE_VALUES_SERVICE, useClass: MockSafeValuesService},
+        {provide: THEME_SERVICE, useClass: MockThemeService}
+      ],
+    });
 
     fixture = TestBed.createComponent(SidePanelComponent);
     component = fixture.componentInstance;
@@ -378,11 +371,11 @@ describe('SidePanelComponent', () => {
         spyOn(component.tabChange, 'emit');
         const tabGroup = fixture.debugElement.query(By.directive(MatTabGroup));
         tabGroup.triggerEventHandler(
-            'selectedTabChange', {index: 1, tab: {} as any});
+            'selectedTabChange', {index: 1, tab: {} as MatTab});
       });
       it('emits tabChange event', () => {
         expect(component.tabChange.emit)
-            .toHaveBeenCalledWith({index: 1, tab: {} as any});
+            .toHaveBeenCalledWith({index: 1, tab: {} as MatTab});
       });
     });
 
@@ -396,12 +389,12 @@ describe('SidePanelComponent', () => {
           spyOn(component.sessionSelected, 'emit');
           const sessionTab = fixture.debugElement.query(SESSION_TAB_SELECTOR);
           sessionTab.triggerEventHandler(
-              'sessionSelected', {sessionId: 'session1'} as any);
+              'sessionSelected', {id: 'session1'} as Session);
         });
         it('emits sessionSelected', () => {
           expect(component.sessionSelected.emit).toHaveBeenCalledWith({
-            sessionId: 'session1'
-          } as any);
+            id: 'session1'
+          } as Session);
         });
       });
 
@@ -410,12 +403,12 @@ describe('SidePanelComponent', () => {
           spyOn(component.sessionReloaded, 'emit');
           const sessionTab = fixture.debugElement.query(SESSION_TAB_SELECTOR);
           sessionTab.triggerEventHandler(
-              'sessionReloaded', {sessionId: 'session1'} as any);
+              'sessionReloaded', {id: 'session1'} as Session);
         });
         it('emits sessionReloaded', () => {
           expect(component.sessionReloaded.emit).toHaveBeenCalledWith({
-            sessionId: 'session1'
-          } as any);
+            id: 'session1'
+          } as Session);
         });
       });
     });
@@ -432,13 +425,13 @@ describe('SidePanelComponent', () => {
             const evalTab = fixture.debugElement.query(EVAL_TAB_SELECTOR);
             evalTab.componentInstance.evalCaseSelected.emit({
               evalId: 'eval1',
-            } as any);
+            } as unknown as EvalCase);
             fixture.detectChanges();
           });
           it('emits evalCaseSelected', () => {
             expect(component.evalCaseSelected.emit).toHaveBeenCalledWith({
               evalId: 'eval1'
-            } as any);
+            } as unknown as EvalCase);
           });
         });
 

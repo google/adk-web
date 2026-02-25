@@ -178,7 +178,7 @@
           <ngx-json-viewer [json]="selectedEvent()"></ngx-json-viewer>
         </div>
       </mat-tab>
-      @if ((uiStateService.isEventRequestResponseLoading() | async) === true || (llmRequest() && Object.keys(llmRequest()).length > 0)) {
+      @if ((uiStateService.isEventRequestResponseLoading() | async) === true || (llmRequest() && Object.keys(llmRequest()!).length > 0)) {
       <mat-tab label="{{ i18n.requestDetailsTabLabel }}">
         @if ((uiStateService.isEventRequestResponseLoading() | async) === true) {
           <div class="request-response-loading-spinner-container">
@@ -193,7 +193,7 @@
         }
       </mat-tab>
       }
-      @if ((uiStateService.isEventRequestResponseLoading() | async) === true || (llmResponse() && Object.keys(llmResponse()).length > 0)) {
+      @if ((uiStateService.isEventRequestResponseLoading() | async) === true || (llmResponse() && Object.keys(llmResponse()!).length > 0)) {
       <mat-tab label="{{ i18n.responseDetailsTabLabel }}">
         @if ((uiStateService.isEventRequestResponseLoading() | async) === true) {
           <div class="request-response-loading-spinner-container">
