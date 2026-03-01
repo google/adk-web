@@ -16,7 +16,7 @@
  */
 
 import {AsyncPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
-import {AfterViewInit, Component, computed, effect, EnvironmentInjector, inject, input, output, runInInjectionContext, signal, Type, viewChild, ViewContainerRef, type WritableSignal} from '@angular/core';
+import {Component, ComponentRef, computed, effect, EnvironmentInjector, inject, input, output, signal, Type, viewChild, ViewContainerRef, type WritableSignal} from '@angular/core';
 import {toObservable} from '@angular/core/rxjs-interop';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatMiniFabButton} from '@angular/material/button';
@@ -84,7 +84,7 @@ import {SidePanelMessagesInjectionToken} from './side-panel.component.i18n';
     MatInput,
   ],
 })
-export class SidePanelComponent implements AfterViewInit {
+export class SidePanelComponent {
   protected readonly Object = Object;
 
   appName = input('');
@@ -129,6 +129,9 @@ export class SidePanelComponent implements AfterViewInit {
   readonly evalTabComponent = viewChild(EvalTabComponent);
   readonly evalTabContainer =
       viewChild('evalTabContainer', {read: ViewContainerRef});
+  private initializedEvalTabContainer: ViewContainerRef|undefined;
+  private readonly evalTabComponentRef =
+      signal<ComponentRef<EvalTabComponent>|undefined>(undefined);
 
   readonly logoComponent: Type<Component>|null = inject(LOGO_COMPONENT, {
     optional: true,
@@ -204,11 +207,27 @@ export class SidePanelComponent implements AfterViewInit {
     return artifacts;
   });
 
-  ngAfterViewInit() {
-    // Wait one tick until the eval tab container is ready.
-    setTimeout(() => {
-      this.initEvalTab();
-    }, 500);
+  constructor() {
+    // Initialize Eval tab only when its dynamic container becomes available.
+    effect(() => {
+      const container = this.evalTabContainer();
+      if (!container || container === this.initializedEvalTabContainer) {
+        return;
+      }
+      this.initEvalTab(container);
+      this.initializedEvalTabContainer = container;
+    });
+
+    // Keep dynamic eval-tab inputs in sync without nesting effects.
+    effect(() => {
+      const evalTabComponent = this.evalTabComponentRef();
+      if (!evalTabComponent) {
+        return;
+      }
+      evalTabComponent.setInput('appName', this.appName());
+      evalTabComponent.setInput('userId', this.userId());
+      evalTabComponent.setInput('sessionId', this.sessionId());
+    });
   }
 
   /**
@@ -216,23 +235,15 @@ export class SidePanelComponent implements AfterViewInit {
    * ngComponentOutlet supports input/output bindings:
    * https://github.com/angular/angular/issues/63099
    */
-  private initEvalTab() {
+  private initEvalTab(container: ViewContainerRef) {
     this.isEvalEnabledObs.pipe(first()).subscribe((isEvalEnabled) => {
       if (isEvalEnabled) {
-        const evalTabComponent = this.evalTabContainer()?.createComponent(
+        const evalTabComponent = container.createComponent(
             this.evalTabComponentClass ?? EvalTabComponent, {
               environmentInjector: this.environmentInjector,
             });
         if (!evalTabComponent) return;
-
-        runInInjectionContext(this.environmentInjector, () => {
-          // Ensure inputs are updated dynamically using effect.
-          effect(() => {
-            evalTabComponent.setInput('appName', this.appName());
-            evalTabComponent.setInput('userId', this.userId());
-            evalTabComponent.setInput('sessionId', this.sessionId());
-          });
-        });
+        this.evalTabComponentRef.set(evalTabComponent);
         evalTabComponent.instance.sessionSelected.subscribe(
             (session: Session) => {
               this.sessionSelected.emit(session);
