@@ -138,29 +138,6 @@ describe('ChatPanelComponent', () => {
       expect(messages[1].nativeElement.textContent).toContain('Bot message');
     });
 
-    it('should keep stable render keys when message refs are unchanged', () => {
-      const userMessage = {role: 'user', text: 'User message', eventId: 'u1'};
-      const botMessage = {role: 'bot', text: 'Bot message', eventId: 'b1'};
-      const initialMessages = [userMessage, botMessage];
-      component.messages = initialMessages;
-      component.ngOnChanges({
-        'messages': new SimpleChange([], initialMessages, true),
-      });
-
-      const initialRenderKeys = component.displayMessages.map(
-          (message) => message.__renderKey);
-
-      const wrappedMessages = [...initialMessages];
-      component.messages = wrappedMessages;
-      component.ngOnChanges({
-        'messages': new SimpleChange(initialMessages, wrappedMessages, false),
-      });
-
-      const wrappedRenderKeys = component.displayMessages.map(
-          (message) => message.__renderKey);
-      expect(wrappedRenderKeys).toEqual(initialRenderKeys);
-    });
-
     it('should display function call', () => {
       component.messages = [
         {role: 'bot', functionCalls: [{name: 'test_func', args: {}}]},

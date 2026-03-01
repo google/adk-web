@@ -90,12 +90,10 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Input()
   set messages(value: any[]) {
     this._messages = value ?? [];
-    this.syncDisplayMessages();
   }
   get messages(): any[] {
     return this._messages;
   }
-  displayMessages: any[] = [];
   @Input() isChatMode: boolean = true;
   @Input() evalCase: EvalCase|null = null;
   @Input() isEvalEditMode: boolean = false;
@@ -145,8 +143,6 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   scrollInterrupted = false;
   private scrollHeight = 0;
   private lastMessageRef: any = null;
-  private readonly messageRenderKeyByRef = new WeakMap<object, string>();
-  private nextMessageRenderKey = 0;
   private nextPageToken = '';
   protected readonly i18n = inject(ChatPanelMessagesInjectionToken);
   protected readonly uiStateService = inject(UI_STATE_SERVICE);
@@ -206,7 +202,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
     this.featureFlagService.isInfinityMessageScrollingEnabled()
         .pipe(
             first(),
-            filter((enabled) => enabled),
+            filter((enabled) => enabled === true),
             switchMap(
                 () => merge(
                     this.uiStateService.onNewMessagesLoaded().pipe(
@@ -265,36 +261,6 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
       }
       this.lastMessageRef = currentLastMessage;
     }
-  }
-
-  private syncDisplayMessages() {
-    // Render from a snapshot to avoid binding against in-flight mutations.
-    this.displayMessages = this.messages.map((message) => ({
-      ...message,
-      __renderKey: this.getOrCreateMessageRenderKey(message),
-    }));
-  }
-
-  private getOrCreateMessageRenderKey(message: any): string {
-    if (!message || typeof message !== 'object') {
-      const fallbackKey = `message-${this.nextMessageRenderKey++}`;
-      return fallbackKey;
-    }
-
-    const existingKey = this.messageRenderKeyByRef.get(message);
-    if (existingKey) {
-      return existingKey;
-    }
-
-    const base = message.eventId ? `${message.role ?? 'message'}-${message.eventId}` :
-                                   `${message.role ?? 'message'}-no-event`;
-    const newKey = `${base}-${this.nextMessageRenderKey++}`;
-    this.messageRenderKeyByRef.set(message, newKey);
-    return newKey;
-  }
-
-  protected getSourceMessage(index: number, displayMessage: any): any {
-    return this.messages[index] ?? displayMessage;
   }
 
   scrollToBottom() {
