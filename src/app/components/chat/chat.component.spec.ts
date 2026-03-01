@@ -585,6 +585,36 @@ describe('ChatComponent', () => {
       });
     });
 
+    describe('when synthetic eval session ID is provided in URL', () => {
+      const EVAL_SYNTHETIC_SESSION_ID = '___eval___session___case-1';
+
+      beforeEach(() => {
+        mockAgentService.listAppsResponse.next([TEST_APP_1_NAME]);
+        mockFeatureFlagService.isSessionUrlEnabledResponse.next(true);
+        mockActivatedRoute.snapshot!.queryParams = {
+          [APP_QUERY_PARAM]: TEST_APP_1_NAME,
+          [SESSION_QUERY_PARAM]: EVAL_SYNTHETIC_SESSION_ID,
+        };
+      });
+
+      it('should create a new session instead of restoring from URL',
+         async () => {
+           mockSessionService.createSession.calls.reset();
+           mockSessionService.getSession.calls.reset();
+           mockFeatureFlagService.isApplicationSelectorEnabledResponse.next(
+               false);
+           fixture = TestBed.createComponent(ChatComponent);
+           component = fixture.componentInstance;
+           fixture.detectChanges();
+           await fixture.whenStable();
+
+           expect(mockSessionService.getSession).not.toHaveBeenCalledWith(
+               USER_ID, TEST_APP_1_NAME, EVAL_SYNTHETIC_SESSION_ID);
+           expect(mockSessionService.createSession)
+               .toHaveBeenCalledWith(USER_ID, TEST_APP_1_NAME);
+         });
+    });
+
     describe('when session in URL is not found', () => {
       beforeEach(async () => {
         mockActivatedRoute.snapshot!.queryParams = {
@@ -768,6 +798,12 @@ describe('ChatComponent', () => {
                 id: 'event-2',
                 author: 'bot',
                 content: {parts: [{text: 'bot response'}]},
+                evalStatus: 2,
+                failedMetric: 'response_match_score',
+                evalScore: 0.4,
+                evalThreshold: 0.7,
+                actualFinalResponse: '',
+                expectedFinalResponse: 'Expected bot response',
               },
             ],
           };
@@ -795,6 +831,18 @@ describe('ChatComponent', () => {
             expect(component.messages()[1]).toEqual(jasmine.objectContaining({
               role: 'bot',
               text: 'bot response'
+            }));
+          });
+
+          it('should preserve eval comparison fields on bot messages', () => {
+            expect(component.messages()[1]).toEqual(jasmine.objectContaining({
+              role: 'bot',
+              evalStatus: 2,
+              failedMetric: 'response_match_score',
+              evalScore: 0.4,
+              evalThreshold: 0.7,
+              actualFinalResponse: '',
+              expectedFinalResponse: 'Expected bot response',
             }));
           });
 

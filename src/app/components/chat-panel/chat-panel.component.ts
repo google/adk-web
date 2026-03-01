@@ -30,12 +30,11 @@ import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {NgxJsonViewerModule} from 'ngx-json-viewer';
-import {EMPTY, merge, NEVER, of, Subject} from 'rxjs';
+import {defer, EMPTY, merge, NEVER, Subject} from 'rxjs';
 import {catchError, filter, first, switchMap, tap} from 'rxjs/operators';
 
 import {isComputerUseResponse, isVisibleComputerUseClick} from '../../core/models/ComputerUse';
 import type {EvalCase} from '../../core/models/Eval';
-import {FunctionCall, FunctionResponse} from '../../core/models/types';
 import {AGENT_SERVICE} from '../../core/services/interfaces/agent';
 import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
@@ -87,7 +86,16 @@ const ROOT_AGENT = 'root_agent';
 export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Input() appName: string = '';
   sessionName = input<string>('');
-  @Input() messages: any[] = [];
+  private _messages: any[] = [];
+  @Input()
+  set messages(value: any[]) {
+    this._messages = value ?? [];
+    this.syncDisplayMessages();
+  }
+  get messages(): any[] {
+    return this._messages;
+  }
+  displayMessages: any[] = [];
   @Input() isChatMode: boolean = true;
   @Input() evalCase: EvalCase|null = null;
   @Input() isEvalEditMode: boolean = false;
@@ -137,6 +145,8 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   scrollInterrupted = false;
   private scrollHeight = 0;
   private lastMessageRef: any = null;
+  private readonly messageRenderKeyByRef = new WeakMap<object, string>();
+  private nextMessageRenderKey = 0;
   private nextPageToken = '';
   protected readonly i18n = inject(ChatPanelMessagesInjectionToken);
   protected readonly uiStateService = inject(UI_STATE_SERVICE);
@@ -157,6 +167,10 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
       this.featureFlagService.isManualStateUpdateEnabled();
   readonly isBidiStreamingEnabledObs =
       this.featureFlagService.isBidiStreamingEnabled();
+  readonly isInfinityMessageScrollingEnabled =
+      toSignal(this.featureFlagService.isInfinityMessageScrollingEnabled(), {
+        initialValue: false,
+      });
   readonly canEditSession = signal(true);
   readonly isUserFeedbackEnabled =
       toSignal(this.featureFlagService.isFeedbackServiceEnabled());
@@ -169,17 +183,23 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   constructor() {
     effect(() => {
       const sessionName = this.sessionName();
-      if (sessionName) {
-        this.nextPageToken = '';
-        this.uiStateService
-            .lazyLoadMessages(sessionName, {
-              pageSize: 100,
-              pageToken: this.nextPageToken,
-            })
-            .pipe(first())
-            .subscribe();
+      const isInfinityEnabled = this.isInfinityMessageScrollingEnabled();
+      if (!sessionName || !isInfinityEnabled) {
+        return;
       }
+
+      this.loadInitialMessagesPage(sessionName);
     });
+  }
+
+  private loadInitialMessagesPage(sessionName: string): void {
+    this.nextPageToken = '';
+    defer(() => this.uiStateService.lazyLoadMessages(sessionName, {
+      pageSize: 100,
+      pageToken: this.nextPageToken,
+    }))
+        .pipe(first(), catchError(() => EMPTY))
+        .subscribe();
   }
 
   ngOnInit() {
@@ -208,11 +228,11 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
                       }
 
                       this.scrollHeight = element.scrollHeight;
-                      return this.uiStateService
-                          .lazyLoadMessages(this.sessionName(), {
+                      return defer(() => this.uiStateService.lazyLoadMessages(
+                                       this.sessionName(), {
                             pageSize: 100,
                             pageToken: this.nextPageToken,
-                          })
+                          }))
                           .pipe(first(), catchError(() => NEVER));
                     })))),
             takeUntilDestroyed(this.destroyRef),
@@ -245,6 +265,36 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
       }
       this.lastMessageRef = currentLastMessage;
     }
+  }
+
+  private syncDisplayMessages() {
+    // Render from a snapshot to avoid binding against in-flight mutations.
+    this.displayMessages = this.messages.map((message) => ({
+      ...message,
+      __renderKey: this.getOrCreateMessageRenderKey(message),
+    }));
+  }
+
+  private getOrCreateMessageRenderKey(message: any): string {
+    if (!message || typeof message !== 'object') {
+      const fallbackKey = `message-${this.nextMessageRenderKey++}`;
+      return fallbackKey;
+    }
+
+    const existingKey = this.messageRenderKeyByRef.get(message);
+    if (existingKey) {
+      return existingKey;
+    }
+
+    const base = message.eventId ? `${message.role ?? 'message'}-${message.eventId}` :
+                                   `${message.role ?? 'message'}-no-event`;
+    const newKey = `${base}-${this.nextMessageRenderKey++}`;
+    this.messageRenderKeyByRef.set(message, newKey);
+    return newKey;
+  }
+
+  protected getSourceMessage(index: number, displayMessage: any): any {
+    return this.messages[index] ?? displayMessage;
   }
 
   scrollToBottom() {

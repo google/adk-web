@@ -138,6 +138,29 @@ describe('ChatPanelComponent', () => {
       expect(messages[1].nativeElement.textContent).toContain('Bot message');
     });
 
+    it('should keep stable render keys when message refs are unchanged', () => {
+      const userMessage = {role: 'user', text: 'User message', eventId: 'u1'};
+      const botMessage = {role: 'bot', text: 'Bot message', eventId: 'b1'};
+      const initialMessages = [userMessage, botMessage];
+      component.messages = initialMessages;
+      component.ngOnChanges({
+        'messages': new SimpleChange([], initialMessages, true),
+      });
+
+      const initialRenderKeys = component.displayMessages.map(
+          (message) => message.__renderKey);
+
+      const wrappedMessages = [...initialMessages];
+      component.messages = wrappedMessages;
+      component.ngOnChanges({
+        'messages': new SimpleChange(initialMessages, wrappedMessages, false),
+      });
+
+      const wrappedRenderKeys = component.displayMessages.map(
+          (message) => message.__renderKey);
+      expect(wrappedRenderKeys).toEqual(initialRenderKeys);
+    });
+
     it('should display function call', () => {
       component.messages = [
         {role: 'bot', functionCalls: [{name: 'test_func', args: {}}]},
@@ -184,6 +207,27 @@ describe('ChatPanelComponent', () => {
       const canvas = fixture.debugElement.query(By.css('app-a2ui-canvas'));
       expect(canvas).toBeTruthy();
     });
+
+    it(
+        'should render failed eval response compare when actual response is empty',
+        async () => {
+          component.messages = [{
+            role: 'bot',
+            evalStatus: 2,
+            failedMetric: 'response_match_score',
+            actualFinalResponse: '',
+            expectedFinalResponse: 'Expected eval response',
+          }];
+          fixture.detectChanges();
+          await fixture.whenStable();
+          fixture.detectChanges();
+
+          const compareContainer =
+              fixture.debugElement.query(By.css('.eval-compare-container'));
+          expect(compareContainer).toBeTruthy();
+          expect(compareContainer.nativeElement.textContent)
+              .toContain('Expected eval response');
+        });
   });
 
   it('should display loading bar if message isLoading', async () => {

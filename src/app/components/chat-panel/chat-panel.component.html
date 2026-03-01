@@ -23,7 +23,7 @@
     </div>
   }
   <div #videoContainer></div>
-  @for (message of messages; track message; let i = $index) {
+  @for (message of displayMessages; track message.__renderKey; let i = $index) {
     <div class="message-row-container">
       <div class="message-column-container"
         [ngClass]="{
@@ -118,14 +118,14 @@
                   <span
                     class="material-symbols-outlined cancel-edit-button"
                     [matTooltip]="i18n.cancelEditingTooltip"
-                    (click)="cancelEditMessage.emit(message)"
+                    (click)="cancelEditMessage.emit(getSourceMessage(i, message))"
                   >
                     close
                   </span>
                   <span
                     class="material-symbols-outlined save-edit-button"
                     [matTooltip]="i18n.saveEvalMessageTooltip"
-                    (click)="saveEditMessage.emit(message)"
+                    (click)="saveEditMessage.emit(getSourceMessage(i, message))"
                   >
                     check
                   </span>
@@ -236,7 +236,10 @@
                 <div class="eval-response-header header-expected">{{ i18n.expectedToolUsesLabel }}</div>
                 <ngx-json-viewer [json]="message.expectedInvocationToolUses"></ngx-json-viewer>
               </div>
-              } @else if (message.actualFinalResponse) {
+              } @else if (
+                message.actualFinalResponse != null ||
+                message.expectedFinalResponse != null
+              ) {
               <div class="actual-result">
                 <div class="eval-response-header header-actual">{{ i18n.actualResponseLabel }}</div>
                 <div>{{ message.actualFinalResponse }}</div>
@@ -345,7 +348,7 @@
                 class="material-symbols-outlined eval-case-edit-button"
                 [ngClass]="{ hidden: isEvalCaseEditing }"
                 [matTooltip]="i18n.editEvalMessageTooltip"
-                (click)="editEvalCaseMessage.emit(message)"
+                (click)="editEvalCaseMessage.emit(getSourceMessage(i, message))"
               >
                 edit
               </span>
@@ -353,7 +356,7 @@
                 class="material-symbols-outlined eval-case-edit-button"
                 [ngClass]="{ hidden: isEvalCaseEditing }"
                 [matTooltip]="i18n.deleteEvalMessageTooltip"
-                (click)="deleteEvalCaseMessage.emit({message: message, index: i})"
+                (click)="deleteEvalCaseMessage.emit({message: getSourceMessage(i, message), index: i})"
               >
                 delete
               </span>
@@ -364,7 +367,7 @@
             class="material-symbols-outlined eval-case-edit-button"
             [ngClass]="{ hidden: isEvalCaseEditing }"
             [matTooltip]="i18n.editFunctionArgsTooltip"
-            (click)="editFunctionArgs.emit(message)"
+            (click)="editFunctionArgs.emit(getSourceMessage(i, message))"
           >
             edit
           </span>
