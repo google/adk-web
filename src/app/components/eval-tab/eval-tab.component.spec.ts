@@ -216,4 +216,63 @@ describe('EvalTabComponent', () => {
 
     expect(refreshSpy).toHaveBeenCalledTimes(1);
   });
+
+  it('treats listEvalResults 404 as empty history', () => {
+    evalService.listEvalResults.and.returnValue(
+        throwError(() => ({status: 404, statusText: 'Not Found'})));
+
+    fixture.componentRef.setInput('appName', 'test-app');
+    fixture.detectChanges();
+    component.selectEvalSet('set-1');
+
+    expect(evalService.getEvalResult).not.toHaveBeenCalled();
+    expect(component['evalHistorySorted']).toEqual([]);
+  });
+
+  it('preserves existing eval results when listEvalResults fails non-404', () => {
+    evalService.listEvalResults.and.returnValue(
+        throwError(() => ({status: 500, statusText: 'Server Error'})));
+    component['appEvaluationResults'] = {
+      'test-app': {
+        'set-1': {
+          '1710000000': {
+            isToggled: false,
+            evaluationResults: [{
+              setId: 'set-1',
+              evalId: 'case-1',
+              finalEvalStatus: 1,
+              evalMetricResults: [],
+              overallEvalMetricResults: [],
+              sessionId: 'session-id',
+              sessionDetails: {},
+            }],
+          },
+        },
+      },
+    } as any;
+    component.selectedEvalSet = 'set-1';
+    component['refreshEvalHistorySorted']();
+    const previousHistory = [...component['evalHistorySorted']];
+
+    fixture.componentRef.setInput('appName', 'test-app');
+    fixture.detectChanges();
+    component['getEvaluationResult']();
+
+    expect(evalService.getEvalResult).not.toHaveBeenCalled();
+    expect(component['appEvaluationResults']['test-app']['set-1']['1710000000'])
+        .toBeDefined();
+    expect(component['evalHistorySorted']).toEqual(previousHistory);
+  });
+
+  it('hides eval tab when getEvalSet returns 404 regardless of statusText', () => {
+    const shouldShowTabSpy = spyOn(component.shouldShowTab, 'emit');
+    evalService.getEvalSets.and.returnValue(
+        throwError(() => ({status: 404, statusText: 'Anything'})));
+
+    fixture.componentRef.setInput('appName', 'test-app');
+    fixture.detectChanges();
+    component.getEvalSet();
+
+    expect(shouldShowTabSpy).toHaveBeenCalledWith(false);
+  });
 });

@@ -24,7 +24,7 @@ import {MatIcon} from '@angular/material/icon';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatCell, MatCellDef, MatColumnDef, MatHeaderCell, MatHeaderCellDef, MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef, MatTable, MatTableDataSource} from '@angular/material/table';
 import {MatTooltip} from '@angular/material/tooltip';
-import {BehaviorSubject, forkJoin, Observable, of} from 'rxjs';
+import {BehaviorSubject, forkJoin, Observable, of, throwError} from 'rxjs';
 import {catchError, map, switchMap} from 'rxjs/operators';
 
 import {DEFAULT_EVAL_METRICS, EvalCase, EvalMetric, Invocation} from '../../core/models/Eval';
@@ -214,18 +214,23 @@ export class EvalTabComponent implements OnInit, OnChanges {
     if (this.appName() !== '') {
       this.evalService.getEvalSets(this.appName())
           .pipe(catchError((error) => {
-            if (error.status === 404 && error.statusText === 'Not Found') {
+            if (error.status === 404) {
               this.shouldShowTab.emit(false);
               return of(null);
             }
-            return of([]);
+            return throwError(() => error);
           }))
-          .subscribe((sets) => {
-            if (sets !== null) {
-              this.shouldShowTab.emit(true);
-              this.evalsets = sets;
-              this.changeDetectorRef.detectChanges();
-            }
+          .subscribe({
+            next: (sets: any[]|null) => {
+              if (sets !== null) {
+                this.shouldShowTab.emit(true);
+                this.evalsets = sets;
+                this.changeDetectorRef.detectChanges();
+              }
+            },
+            error: () => {
+              // Preserve current tab state/data when fetch fails unexpectedly.
+            },
           });
       ;
     }
@@ -571,7 +576,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
           if (error.status === 404) {
             return of([]);
           }
-          return of([]);
+          return throwError(() => error);
         }),
               switchMap((res): Observable<Array<EvalResultApiResponse|null>> => {
                 if (!Array.isArray(res) || res.length === 0) {
@@ -600,11 +605,16 @@ export class EvalTabComponent implements OnInit, OnChanges {
                 }
                 return appEvalResults;
               }))
-        .subscribe((appEvalResults: SetEvaluationResult) => {
-          this.appEvaluationResults[appNameSnapshot] = appEvalResults;
-          if (this.appName() === appNameSnapshot) {
-            this.refreshEvalHistorySorted();
-          }
+        .subscribe({
+          next: (appEvalResults: SetEvaluationResult) => {
+            this.appEvaluationResults[appNameSnapshot] = appEvalResults;
+            if (this.appName() === appNameSnapshot) {
+              this.refreshEvalHistorySorted();
+            }
+          },
+          error: () => {
+            // Preserve existing cached results when backend fails unexpectedly.
+          },
         });
   }
 
