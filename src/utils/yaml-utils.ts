@@ -47,6 +47,19 @@ export class YamlUtils {
       tools: YamlUtils.buildToolsConfig(agentNode.tools, allTabAgents)
     }
 
+    if (agentNode.isRoot) {
+      yamlConfig.visual_builder = true;
+      if (agentNode.logging?.enabled) {
+        const logging = agentNode.logging!;
+        yamlConfig.logging = {
+          project_id: logging.project_id,
+          dataset_id: logging.dataset_id,
+          table_id: logging.table_id,
+          dataset_location: logging.dataset_location
+        };
+      }
+    }
+
     if (!agentNode.description || agentNode.description.trim() === '') {
       delete yamlConfig.description;
     }
