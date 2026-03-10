@@ -111,12 +111,12 @@
           }
           @if (showEvalHistory()) {
             <div>
-              @for (evalResult of getEvalHistoryOfCurrentSetSorted(); track evalResult) {
+              @for (evalResult of evalHistorySorted; track evalResult.timestamp) {
                 <div>
                   <div class="status-card">
                     <div class="status-card__overview">
                       <div class="status-card__info">
-                        <div class="status-card__timestamp">{{ formatTimestamp(evalResult.timestamp) }}</div>
+                        <div class="status-card__timestamp">{{ evalResult.formattedTimestamp }}</div>
                         <div class="status-card__summary">
                           <span class="status-card__passed">{{ getPassCountForCurrentResult(evalResult.evaluationResults.evaluationResults) }} {{ i18n.passedSuffix }}</span>
                           @if (getFailCountForCurrentResult(evalResult.evaluationResults.evaluationResults) > 0) {
@@ -126,9 +126,9 @@
                             </div>
                           }
                         </div>
-                        @if (getEvalMetrics(evalResult)) {
+                        @if (evalResult.metrics.length > 0) {
                           <div class="status-card__metrics">
-                            @for (evalMetric of getEvalMetrics(evalResult); track evalMetric) {
+                            @for (evalMetric of evalResult.metrics; track evalMetric.metricName) {
                               <span class="status-card__metric"> {{ evalMetric.metricName }}:
                                 {{ evalMetric.threshold }}
                               </span>

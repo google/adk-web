@@ -236,7 +236,10 @@
                 <div class="eval-response-header header-expected">{{ i18n.expectedToolUsesLabel }}</div>
                 <ngx-json-viewer [json]="message.expectedInvocationToolUses"></ngx-json-viewer>
               </div>
-              } @else if (message.actualFinalResponse) {
+              } @else if (
+                message.actualFinalResponse != null ||
+                message.expectedFinalResponse != null
+              ) {
               <div class="actual-result">
                 <div class="eval-response-header header-actual">{{ i18n.actualResponseLabel }}</div>
                 <div>{{ message.actualFinalResponse }}</div>

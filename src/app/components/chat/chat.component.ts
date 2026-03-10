@@ -20,7 +20,7 @@ import {HttpErrorResponse} from '@angular/common/http';
 import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, inject, Injectable, OnDestroy, OnInit, Renderer2, signal, viewChild, WritableSignal} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {MatButton, MatFabButton} from '@angular/material/button';
+import {MatButton} from '@angular/material/button';
 import {MatCard} from '@angular/material/card';
 import {MatDialog} from '@angular/material/dialog';
 import {MatDivider} from '@angular/material/divider';
@@ -86,6 +86,17 @@ const A2A_DATA_PART_START_TAG = '<a2a_datapart_json>';
 const A2A_DATA_PART_END_TAG = '</a2a_datapart_json>';
 const A2UI_MIME_TYPE = 'application/json+a2ui';
 
+interface EvalCompareFields {
+  evalStatus?: number;
+  failedMetric?: string;
+  evalScore?: number;
+  evalThreshold?: number;
+  actualInvocationToolUses?: any[];
+  expectedInvocationToolUses?: any[];
+  actualFinalResponse?: string;
+  expectedFinalResponse?: string;
+}
+
 function fixBase64String(base64: string): string {
   // Replace URL-safe characters if they exist
   base64 = base64.replace(/-/g, '+').replace(/_/g, '/');
@@ -119,6 +130,7 @@ class CustomPaginatorIntl extends MatPaginatorIntl {
 
 const BIDI_STREAMING_RESTART_WARNING =
     'Restarting bidirectional streaming is not currently supported. Please refresh the page or start a new session.';
+const EVAL_SYNTHETIC_SESSION_PREFIX = '___eval___session___';
 
 @Component({
   selector: 'app-chat',
@@ -141,7 +153,6 @@ const BIDI_STREAMING_RESTART_WARNING =
     MatSlideToggle,
     MatDivider,
     MatCard,
-    MatFabButton,
     ResizableBottomDirective,
     TraceEventComponent,
     AsyncPipe,
@@ -438,12 +449,15 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       const queryParams = this.activatedRoute.snapshot.queryParams;
       const sessionUrl = queryParams['session'];
       const userUrl = queryParams['userId'];
+      const isEvalSyntheticSession =
+          typeof sessionUrl === 'string' &&
+          sessionUrl.startsWith(EVAL_SYNTHETIC_SESSION_PREFIX);
 
       if (userUrl) {
         this.userId = userUrl;
       }
 
-      if (!sessionUrlEnabled || !sessionUrl) {
+      if (!sessionUrlEnabled || !sessionUrl || isEvalSyntheticSession) {
         this.createSessionAndReset();
 
         return;
@@ -973,14 +987,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     let message: any = {
       role,
-      evalStatus: e?.evalStatus,
-      failedMetric: e?.failedMetric,
-      evalScore: e?.evalScore,
-      evalThreshold: e?.evalThreshold,
-      actualInvocationToolUses: e?.actualInvocationToolUses,
-      expectedInvocationToolUses: e?.expectedInvocationToolUses,
-      actualFinalResponse: e?.actualFinalResponse,
-      expectedFinalResponse: e?.expectedFinalResponse,
+      ...this.mapEvalCompareFields(e),
       invocationIndex: invocationIndex !== undefined ? invocationIndex :
                                                        undefined,
       finalResponsePartIndex:
@@ -1090,6 +1097,27 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private formatBase64Data(data: string, mimeType: string) {
     const fixedBase64Data = fixBase64String(data);
     return `data:${mimeType};base64,${fixedBase64Data}`;
+  }
+
+  // Centralized mapper keeps eval compare fields consistent
+  // across streamed and hydrated message construction paths.
+  private mapEvalCompareFields(event: any): EvalCompareFields {
+    return {
+      evalStatus: event?.evalStatus,
+      failedMetric: event?.failedMetric,
+      evalScore: event?.evalScore,
+      evalThreshold: event?.evalThreshold,
+      actualInvocationToolUses: event?.actualInvocationToolUses,
+      expectedInvocationToolUses: event?.expectedInvocationToolUses,
+      actualFinalResponse: event?.actualFinalResponse,
+      expectedFinalResponse: event?.expectedFinalResponse,
+    };
+  }
+
+  private addEvalFieldsToMessage(event: any, message: any) {
+    if (message.role !== 'bot') return;
+
+    Object.assign(message, this.mapEvalCompareFields(event));
   }
 
   private processPartIntoMessage(part: any, event: any, message: any) {
@@ -1586,6 +1614,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           role: 'bot',
           eventId: event.id
         };
+        this.addEvalFieldsToMessage(event, botMessage);
 
         partsToProcess.forEach((part: any) => {
           if (isA2aResponse && this.isA2uiDataPart(part)) {
@@ -1654,6 +1683,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           role: 'bot',
           eventId: event.id
         };
+        this.addEvalFieldsToMessage(event, botMessage);
 
         event.content?.parts?.forEach((part: any) => {
           this.processPartIntoMessage(part, event, botMessage);

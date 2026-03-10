@@ -414,6 +414,37 @@ describe('SidePanelComponent', () => {
     });
 
     describe('Eval tab', () => {
+      it('initializes eval tab only once for the same container', () => {
+        const localFixture = TestBed.createComponent(SidePanelComponent);
+        const localComponent = localFixture.componentInstance;
+        localFixture.componentRef.setInput('appName', 'test-app');
+        localFixture.componentRef.setInput('showSidePanel', true);
+        const initEvalTabSpy =
+            spyOn<any>(localComponent, 'initEvalTab').and.callThrough();
+
+        localFixture.detectChanges();
+        localFixture.detectChanges();
+
+        expect(initEvalTabSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('keeps dynamic eval tab inputs in sync', async () => {
+        await switchTab(EVAL_TAB_INDEX);
+
+        fixture.componentRef.setInput('appName', 'updated-app');
+        fixture.componentRef.setInput('userId', 'updated-user');
+        fixture.componentRef.setInput('sessionId', 'updated-session');
+        fixture.detectChanges();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        const evalTab = fixture.debugElement.query(EVAL_TAB_SELECTOR)
+                            .componentInstance as EvalTabComponent;
+        expect(evalTab.appName()).toBe('updated-app');
+        expect(evalTab.userId()).toBe('updated-user');
+        expect(evalTab.sessionId()).toBe('updated-session');
+      });
+
       describe('Interactions', () => {
         beforeEach(async () => {
           await switchTab(EVAL_TAB_INDEX);

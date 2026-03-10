@@ -24,8 +24,8 @@ import {MatIcon} from '@angular/material/icon';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatCell, MatCellDef, MatColumnDef, MatHeaderCell, MatHeaderCellDef, MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef, MatTable, MatTableDataSource} from '@angular/material/table';
 import {MatTooltip} from '@angular/material/tooltip';
-import {BehaviorSubject, of} from 'rxjs';
-import {catchError} from 'rxjs/operators';
+import {BehaviorSubject, forkJoin, Observable, of, throwError} from 'rxjs';
+import {catchError, map, switchMap} from 'rxjs/operators';
 
 import {DEFAULT_EVAL_METRICS, EvalCase, EvalMetric, Invocation} from '../../core/models/Eval';
 import {Session} from '../../core/models/Session';
@@ -76,6 +76,30 @@ interface SetEvaluationResult {
 // Value: SetEvaluationResult
 interface AppEvaluationResult {
   [key: string]: SetEvaluationResult;
+}
+
+interface EvalHistoryEntry {
+  timestamp: string;
+  formattedTimestamp: string;
+  evaluationResults: UIEvaluationResult;
+  metrics: EvalMetric[];
+}
+
+interface EvalResultApiCaseResult {
+  id: string;
+  evalId: string;
+  finalEvalStatus: number;
+  evalMetricResults: any[];
+  evalMetricResultPerInvocation?: any[];
+  sessionId: string;
+  sessionDetails: any;
+  overallEvalMetricResults?: any[];
+}
+
+interface EvalResultApiResponse {
+  evalSetId: string;
+  creationTimestamp: number|string;
+  evalCaseResults: EvalResultApiCaseResult[];
 }
 
 @Component({
@@ -140,6 +164,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
   readonly dialog = inject(MatDialog);
 
   protected appEvaluationResults: AppEvaluationResult = {};
+  protected evalHistorySorted: EvalHistoryEntry[] = [];
   private readonly evalService = inject(EVAL_SERVICE);
   private readonly sessionService = inject(SESSION_SERVICE);
 
@@ -156,14 +181,26 @@ export class EvalTabComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['appName']) {
-      this.selectedEvalSet = '';
-      this.evalCases = [];
-      this.getEvalSet();
-      this.getEvaluationResult();
+    if (changes['appName']?.currentValue) {
+      this.loadDataForApp(changes['appName'].currentValue);
     }
   }
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (this.appName()) {
+      this.loadDataForApp(this.appName());
+    }
+  }
+
+  private loadDataForApp(appName: string) {
+    if (!appName) {
+      return;
+    }
+    this.selectedEvalSet = '';
+    this.evalCases = [];
+    this.evalHistorySorted = [];
+    this.getEvalSet();
+    this.getEvaluationResult();
+  }
 
   selectNewEvalCase(evalCases: string[]) {
     let caseToSelect = this.deletedEvalCaseIndex;
@@ -177,18 +214,23 @@ export class EvalTabComponent implements OnInit, OnChanges {
     if (this.appName() !== '') {
       this.evalService.getEvalSets(this.appName())
           .pipe(catchError((error) => {
-            if (error.status === 404 && error.statusText === 'Not Found') {
+            if (error.status === 404) {
               this.shouldShowTab.emit(false);
               return of(null);
             }
-            return of([]);
+            return throwError(() => error);
           }))
-          .subscribe((sets) => {
-            if (sets !== null) {
-              this.shouldShowTab.emit(true);
-              this.evalsets = sets;
-              this.changeDetectorRef.detectChanges();
-            }
+          .subscribe({
+            next: (sets: any[]|null) => {
+              if (sets !== null) {
+                this.shouldShowTab.emit(true);
+                this.evalsets = sets;
+                this.changeDetectorRef.detectChanges();
+              }
+            },
+            error: () => {
+              // Preserve current tab state/data when fetch fails unexpectedly.
+            },
           });
       ;
     }
@@ -263,12 +305,12 @@ export class EvalTabComponent implements OnInit, OnChanges {
           this.currentEvalResultBySet.set(this.selectedEvalSet, res);
 
           this.getEvaluationResult();
-          this.changeDetectorRef.detectChanges();
         });
   }
 
   selectEvalSet(set: string) {
     this.selectedEvalSet = set;
+    this.refreshEvalHistorySorted();
     this.listEvalCases();
   }
 
@@ -278,6 +320,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
       return;
     }
     this.selectedEvalSet = '';
+    this.evalHistorySorted = [];
   }
 
   isAllSelected() {
@@ -398,19 +441,42 @@ export class EvalTabComponent implements OnInit, OnChanges {
   }
 
   protected getEvalHistoryOfCurrentSet() {
-    return this.appEvaluationResults[this.appName()][this.selectedEvalSet];
+    const appEvalHistory = this.appEvaluationResults[this.appName()] ?? {};
+    return appEvalHistory[this.selectedEvalSet] ?? {};
   }
 
-  protected getEvalHistoryOfCurrentSetSorted(): any[] {
+  private refreshEvalHistorySorted() {
     const evalHistory = this.getEvalHistoryOfCurrentSet();
     const evalHistorySorted =
         Object.keys(evalHistory).sort((a, b) => b.localeCompare(a));
 
-    const evalHistorySortedArray = evalHistorySorted.map((key) => {
-      return {timestamp: key, evaluationResults: evalHistory[key]};
+    this.evalHistorySorted = evalHistorySorted.map((key) => {
+      const evaluationResults = evalHistory[key];
+      return {
+        timestamp: key,
+        formattedTimestamp: this.formatTimestamp(key),
+        evaluationResults,
+        metrics: this.resolveEvalMetricsForHistory(evaluationResults),
+      };
     });
+  }
 
-    return evalHistorySortedArray;
+  private resolveEvalMetricsForHistory(
+      uiEvaluationResult: UIEvaluationResult): EvalMetric[] {
+    const results = uiEvaluationResult.evaluationResults;
+    if (results.length === 0) {
+      return this.evalMetrics.map((metric) => ({...metric}));
+    }
+
+    const overallEvalMetricResults = results[0].overallEvalMetricResults;
+    if (!overallEvalMetricResults || overallEvalMetricResults.length === 0) {
+      return this.evalMetrics.map((metric) => ({...metric}));
+    }
+
+    return overallEvalMetricResults.map((result: any) => ({
+      metricName: result.metricName,
+      threshold: result.threshold,
+    }));
   }
 
   protected getPassCountForCurrentResult(result: any[]) {
@@ -503,61 +569,83 @@ export class EvalTabComponent implements OnInit, OnChanges {
   }
 
   protected getEvaluationResult() {
-    this.evalService.listEvalResults(this.appName())
+    const appNameSnapshot = this.appName();
+    this.evalService.listEvalResults(appNameSnapshot)
         .pipe(catchError((error) => {
-          if (error.status === 404 && error.statusText === 'Not Found') {
-            this.shouldShowTab.emit(false);
-            return of(null);
+          // No eval run history yet is valid; keep Eval tab visible.
+          if (error.status === 404) {
+            return of([]);
           }
-          return of([]);
-        }))
-        .subscribe((res) => {
-          for (const evalResultId of res) {
-            this.evalService.getEvalResult(this.appName(), evalResultId)
-                .subscribe((res) => {
-                  if (!this.appEvaluationResults[this.appName()]) {
-                    this.appEvaluationResults[this.appName()] = {};
+          return throwError(() => error);
+        }),
+              switchMap((res): Observable<Array<EvalResultApiResponse|null>> => {
+                if (!Array.isArray(res) || res.length === 0) {
+                  return of([]);
+                }
+                const resultRequests: Array<Observable<EvalResultApiResponse|null>> =
+                    res.map((evalResultId: string) => {
+                      return this.evalService
+                          .getEvalResult(appNameSnapshot, evalResultId)
+                          .pipe(
+                              map((evalResult) =>
+                                      evalResult as EvalResultApiResponse),
+                              catchError(() => of(null)),
+                          );
+                    });
+                return forkJoin(resultRequests);
+              }),
+              map((evalResults: Array<EvalResultApiResponse|null>) => {
+                const appEvalResults: SetEvaluationResult = {};
+                for (const evalResult of evalResults) {
+                  if (!evalResult) {
+                    continue;
                   }
-
-                  if (!this.appEvaluationResults[this.appName()]
-                                                [res.evalSetId]) {
-                    this.appEvaluationResults[this.appName()][res.evalSetId] =
-                        {};
-                  }
-
-                  const timeStamp = res.creationTimestamp;
-
-                  if (!this.appEvaluationResults[this.appName()][res.evalSetId]
-                                                [timeStamp]) {
-                    this.appEvaluationResults[this.appName()][res.evalSetId][timeStamp] =
-                        {isToggled: false, evaluationResults: []};
-                  }
-
-                  const uiEvaluationResult: UIEvaluationResult = {
-                    isToggled: false,
-                    evaluationResults:
-                        res.evalCaseResults.map((result: any) => {
-                          return {
-                            setId: result.id,
-                            evalId: result.evalId,
-                            finalEvalStatus: result.finalEvalStatus,
-                            evalMetricResults: result.evalMetricResults,
-                            evalMetricResultPerInvocation:
-                                result.evalMetricResultPerInvocation,
-                            sessionId: result.sessionId,
-                            sessionDetails: result.sessionDetails,
-                            overallEvalMetricResults:
-                                result.overallEvalMetricResults ?? [],
-                          };
-                        }),
-                  };
-
-                  this.appEvaluationResults[this.appName()][res.evalSetId][timeStamp] =
-                      uiEvaluationResult;
-                  this.changeDetectorRef.detectChanges();
-                });
-          }
+                  this.mergeEvalResultIntoSet(
+                      appEvalResults, evalResult as EvalResultApiResponse);
+                }
+                return appEvalResults;
+              }))
+        .subscribe({
+          next: (appEvalResults: SetEvaluationResult) => {
+            this.appEvaluationResults[appNameSnapshot] = appEvalResults;
+            if (this.appName() === appNameSnapshot) {
+              this.refreshEvalHistorySorted();
+            }
+          },
+          error: () => {
+            // Preserve existing cached results when backend fails unexpectedly.
+          },
         });
+  }
+
+  private mergeEvalResultIntoSet(
+      appEvalResults: SetEvaluationResult,
+      evalResult: EvalResultApiResponse) {
+    if (!appEvalResults[evalResult.evalSetId]) {
+      appEvalResults[evalResult.evalSetId] = {};
+    }
+    const timeStamp = evalResult.creationTimestamp;
+    appEvalResults[evalResult.evalSetId][timeStamp] =
+        this.mapEvalResultToUi(evalResult);
+  }
+
+  private mapEvalResultToUi(evalResult: EvalResultApiResponse):
+      UIEvaluationResult {
+    return {
+      isToggled: false,
+      evaluationResults: evalResult.evalCaseResults.map((result) => {
+        return {
+          setId: result.id,
+          evalId: result.evalId,
+          finalEvalStatus: result.finalEvalStatus,
+          evalMetricResults: result.evalMetricResults,
+          evalMetricResultPerInvocation: result.evalMetricResultPerInvocation,
+          sessionId: result.sessionId,
+          sessionDetails: result.sessionDetails,
+          overallEvalMetricResults: result.overallEvalMetricResults ?? [],
+        };
+      }),
+    };
   }
 
   protected openEvalConfigDialog() {
@@ -583,31 +671,4 @@ export class EvalTabComponent implements OnInit, OnChanges {
     });
   }
 
-  protected getEvalMetrics(evalResult: any|undefined) {
-    if (!evalResult || !evalResult.evaluationResults ||
-        !evalResult.evaluationResults.evaluationResults) {
-      return this.evalMetrics;
-    }
-
-    const results = evalResult.evaluationResults.evaluationResults;
-
-    if (results.length === 0) {
-      return this.evalMetrics;
-    }
-
-    if (typeof results[0].overallEvalMetricResults === 'undefined' ||
-        !results[0].overallEvalMetricResults ||
-        results[0].overallEvalMetricResults.length === 0) {
-      return this.evalMetrics;
-    }
-
-    const overallEvalMetricResults = results[0].overallEvalMetricResults;
-
-    return overallEvalMetricResults.map((result: any) => {
-      return {
-        metricName: result.metricName,
-        threshold: result.threshold,
-      };
-    });
-  }
 }

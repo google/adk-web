@@ -20,7 +20,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { EvalTabComponent } from './eval-tab.component';
 import { EvalService } from '../../core/services/eval.service';
 import { SessionService } from '../../core/services/session.service';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -33,9 +33,10 @@ import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag'
 describe('EvalTabComponent', () => {
   let component: EvalTabComponent;
   let fixture: ComponentFixture<EvalTabComponent>;
+  let evalService: jasmine.SpyObj<EvalService>;
 
   beforeEach(async () => {
-    const evalService = jasmine.createSpyObj<EvalService>([
+    evalService = jasmine.createSpyObj<EvalService>([
       'getEvalSets',
       'listEvalCases',
       'runEval',
@@ -92,5 +93,186 @@ describe('EvalTabComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should build stable sorted eval history entries', () => {
+    evalService.listEvalResults.and.returnValue(of(['result-1', 'result-2']));
+    evalService.getEvalResult.and.callFake((appName: string, evalResultId: string) => {
+      const creationTimestamp =
+          evalResultId === 'result-1' ? 1710000000 : 1720000000;
+
+      return of({
+        evalSetId: 'set-1',
+        creationTimestamp,
+        evalCaseResults: [{
+          id: evalResultId,
+          evalId: `case-${evalResultId}`,
+          finalEvalStatus: 1,
+          evalMetricResults: [],
+          evalMetricResultPerInvocation: [],
+          sessionId: 'session-id',
+          sessionDetails: {},
+          overallEvalMetricResults: [],
+        }],
+      } as any);
+    });
+
+    fixture.componentRef.setInput('appName', 'test-app');
+    fixture.detectChanges();
+    component.selectEvalSet('set-1');
+
+    expect(component['evalHistorySorted'].map((entry: any) => entry.timestamp))
+        .toEqual(['1720000000', '1710000000']);
+  });
+
+  it('should toggle history card without errors after history refresh', () => {
+    fixture.componentRef.setInput('appName', 'test-app');
+    fixture.detectChanges();
+
+    component['appEvaluationResults'] = {
+      'test-app': {
+        'set-1': {
+          '1710000000': {isToggled: false, evaluationResults: []},
+        },
+      },
+    } as any;
+    component.selectEvalSet('set-1');
+
+    expect(() => component.toggleHistoryStatusCard('1710000000')).not.toThrow();
+    expect(component.isEvaluationStatusCardToggled('1710000000')).toBeTrue();
+  });
+
+  it('should keep successful eval history entries when one result fails', () => {
+    evalService.listEvalResults.and.returnValue(of(['result-1', 'result-2']));
+    evalService.getEvalResult.and.callFake((appName: string, evalResultId: string) => {
+      if (evalResultId === 'result-2') {
+        return throwError(() => new Error('result failed'));
+      }
+
+      return of({
+        evalSetId: 'set-1',
+        creationTimestamp: 1710000000,
+        evalCaseResults: [{
+          id: evalResultId,
+          evalId: `case-${evalResultId}`,
+          finalEvalStatus: 1,
+          evalMetricResults: [],
+          evalMetricResultPerInvocation: [],
+          sessionId: 'session-id',
+          sessionDetails: {},
+          overallEvalMetricResults: [],
+        }],
+      } as any);
+    });
+
+    fixture.componentRef.setInput('appName', 'test-app');
+    fixture.detectChanges();
+    component.selectEvalSet('set-1');
+
+    expect(component['evalHistorySorted'].length).toBe(1);
+    expect(component['evalHistorySorted'][0].timestamp).toBe('1710000000');
+  });
+
+  it('should safely ignore non-array eval result id responses', () => {
+    evalService.listEvalResults.and.returnValue(of({not: 'an array'} as any));
+
+    fixture.componentRef.setInput('appName', 'test-app');
+    fixture.detectChanges();
+    component.selectEvalSet('set-1');
+
+    expect(evalService.getEvalResult).not.toHaveBeenCalled();
+    expect(component['evalHistorySorted']).toEqual([]);
+  });
+
+  it('should refresh history once after loading all eval results', () => {
+    evalService.listEvalResults.and.returnValue(of(['result-1', 'result-2']));
+    evalService.getEvalResult.and.callFake((appName: string, evalResultId: string) => {
+      const creationTimestamp =
+          evalResultId === 'result-1' ? 1710000000 : 1720000000;
+
+      return of({
+        evalSetId: 'set-1',
+        creationTimestamp,
+        evalCaseResults: [{
+          id: evalResultId,
+          evalId: `case-${evalResultId}`,
+          finalEvalStatus: 1,
+          evalMetricResults: [],
+          evalMetricResultPerInvocation: [],
+          sessionId: 'session-id',
+          sessionDetails: {},
+          overallEvalMetricResults: [],
+        }],
+      } as any);
+    });
+    const refreshSpy =
+        spyOn<any>(component, 'refreshEvalHistorySorted').and.callThrough();
+
+    fixture.componentRef.setInput('appName', 'test-app');
+    fixture.detectChanges();
+    component.selectedEvalSet = 'set-1';
+    refreshSpy.calls.reset();
+    component['getEvaluationResult']();
+
+    expect(refreshSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('treats listEvalResults 404 as empty history', () => {
+    evalService.listEvalResults.and.returnValue(
+        throwError(() => ({status: 404, statusText: 'Not Found'})));
+
+    fixture.componentRef.setInput('appName', 'test-app');
+    fixture.detectChanges();
+    component.selectEvalSet('set-1');
+
+    expect(evalService.getEvalResult).not.toHaveBeenCalled();
+    expect(component['evalHistorySorted']).toEqual([]);
+  });
+
+  it('preserves existing eval results when listEvalResults fails non-404', () => {
+    evalService.listEvalResults.and.returnValue(
+        throwError(() => ({status: 500, statusText: 'Server Error'})));
+    component['appEvaluationResults'] = {
+      'test-app': {
+        'set-1': {
+          '1710000000': {
+            isToggled: false,
+            evaluationResults: [{
+              setId: 'set-1',
+              evalId: 'case-1',
+              finalEvalStatus: 1,
+              evalMetricResults: [],
+              overallEvalMetricResults: [],
+              sessionId: 'session-id',
+              sessionDetails: {},
+            }],
+          },
+        },
+      },
+    } as any;
+    component.selectedEvalSet = 'set-1';
+    component['refreshEvalHistorySorted']();
+    const previousHistory = [...component['evalHistorySorted']];
+
+    fixture.componentRef.setInput('appName', 'test-app');
+    fixture.detectChanges();
+    component['getEvaluationResult']();
+
+    expect(evalService.getEvalResult).not.toHaveBeenCalled();
+    expect(component['appEvaluationResults']['test-app']['set-1']['1710000000'])
+        .toBeDefined();
+    expect(component['evalHistorySorted']).toEqual(previousHistory);
+  });
+
+  it('hides eval tab when getEvalSet returns 404 regardless of statusText', () => {
+    const shouldShowTabSpy = spyOn(component.shouldShowTab, 'emit');
+    evalService.getEvalSets.and.returnValue(
+        throwError(() => ({status: 404, statusText: 'Anything'})));
+
+    fixture.componentRef.setInput('appName', 'test-app');
+    fixture.detectChanges();
+    component.getEvalSet();
+
+    expect(shouldShowTabSpy).toHaveBeenCalledWith(false);
   });
 });

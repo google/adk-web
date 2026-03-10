@@ -184,6 +184,27 @@ describe('ChatPanelComponent', () => {
       const canvas = fixture.debugElement.query(By.css('app-a2ui-canvas'));
       expect(canvas).toBeTruthy();
     });
+
+    it(
+        'should render failed eval response compare when actual response is empty',
+        async () => {
+          component.messages = [{
+            role: 'bot',
+            evalStatus: 2,
+            failedMetric: 'response_match_score',
+            actualFinalResponse: '',
+            expectedFinalResponse: 'Expected eval response',
+          }];
+          fixture.detectChanges();
+          await fixture.whenStable();
+          fixture.detectChanges();
+
+          const compareContainer =
+              fixture.debugElement.query(By.css('.eval-compare-container'));
+          expect(compareContainer).toBeTruthy();
+          expect(compareContainer.nativeElement.textContent)
+              .toContain('Expected eval response');
+        });
   });
 
   it('should display loading bar if message isLoading', async () => {
