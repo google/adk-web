@@ -18,6 +18,7 @@
 import {ElementRef} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it,}
+import {firstValueFrom, Subject, toArray} from 'rxjs';
 
 import {URLUtil} from '../../../utils/url-util';
 import {fakeAsync,
@@ -31,6 +32,7 @@ import {MockVideoService} from './testing/mock-video.service';
 import {MockWebSocketService} from './testing/mock-websocket.service';
 import {VIDEO_SERVICE} from './interfaces/video';
 import {WEBSOCKET_SERVICE} from './interfaces/websocket';
+import {createFakeLlmResponse} from '../models/testing/fake_genai_types';
 
 describe('StreamChatService', () => {
   let service: StreamChatService;
@@ -44,6 +46,7 @@ describe('StreamChatService', () => {
     initTestBed();  // required for 1p compat
     spyOn(URLUtil, 'getWSServerUrl').and.returnValue('localhost:9876');
     mockWebSocketService = new MockWebSocketService();
+    (mockWebSocketService as any).socket$ = new Subject();
     mockAudioRecordingService = new MockAudioRecordingService();
     mockVideoService = new MockVideoService();
     videoContainer = new ElementRef(document.createElement('div'));
@@ -262,5 +265,121 @@ describe('StreamChatService', () => {
 
          expect(mockWebSocketService.sendMessage).toHaveBeenCalledTimes(2);
        }));
+  });
+
+  describe('Text Streaming', () => {
+    const TEXT_STREAMING_CONFIG = {
+      appName: 'test-app',
+      userId: 'test-user',
+      sessionId: 'test-session'
+    };
+
+    describe('startTextStreaming', () => {
+      it('should connect to WebSocket with correct URL', () => {
+        service.startTextStreaming(TEXT_STREAMING_CONFIG);
+
+        expect(mockWebSocketService.connect)
+            .toHaveBeenCalledWith(
+                'ws://localhost:9876/run_live?app_name=test-app&user_id=test-user&session_id=test-session');
+      });
+
+      it('should subscribe to WebSocket messages', () => {
+        service.startTextStreaming(TEXT_STREAMING_CONFIG);
+
+        expect(mockWebSocketService.getMessages).toHaveBeenCalled();
+      });
+
+      it('should parse and emit incoming JSON messages', () => {
+        const fakeResponse = createFakeLlmResponse();
+        service.startTextStreaming(TEXT_STREAMING_CONFIG);
+
+        let receivedMessage: any;
+        service.getTextMessages().subscribe((message) => {
+          receivedMessage = message;
+        });
+
+        mockWebSocketService.getMessagesResponse.next(
+            JSON.stringify(fakeResponse));
+
+        expect(receivedMessage).toEqual(fakeResponse);
+      });
+    });
+
+    describe('stopTextStreaming', () => {
+      it('should close WebSocket connection', () => {
+        service.stopTextStreaming();
+
+        expect(mockWebSocketService.closeConnection).toHaveBeenCalled();
+      });
+    });
+
+    describe('sendTextMessage', () => {
+      it('should format message in LiveRequest structure', () => {
+        const socketSpy = spyOn(
+            (mockWebSocketService as any).socket$, 'next');
+
+        service.startTextStreaming(TEXT_STREAMING_CONFIG);
+        service.sendTextMessage('Hello world');
+
+        expect(socketSpy).toHaveBeenCalledWith({
+          content: {
+            parts: [{text: 'Hello world'}]
+          }
+        });
+      });
+
+      it('should log error when streaming is not active', () => {
+        spyOn(console, 'error');
+
+        service.sendTextMessage('test');
+
+        expect(console.error)
+            .toHaveBeenCalledWith('Text streaming is not active');
+      });
+    });
+
+    describe('getTextMessages', () => {
+      it('should emit multiple messages from WebSocket stream', () => {
+        const fakeResponse1 = createFakeLlmResponse();
+        const fakeResponse2 = createFakeLlmResponse({
+          content: {role: 'model', parts: [{text: 'fake response 2'}]},
+        });
+
+        service.startTextStreaming(TEXT_STREAMING_CONFIG);
+
+        const receivedMessages: any[] = [];
+        service.getTextMessages().subscribe((message) => {
+          receivedMessages.push(message);
+        });
+
+        mockWebSocketService.getMessagesResponse.next(
+            JSON.stringify(fakeResponse1));
+        mockWebSocketService.getMessagesResponse.next(
+            JSON.stringify(fakeResponse2));
+
+        expect(receivedMessages).toEqual([fakeResponse1, fakeResponse2]);
+      });
+
+      it('should handle JSON parsing errors gracefully', () => {
+        spyOn(console, 'error');
+
+        service.startTextStreaming(TEXT_STREAMING_CONFIG);
+
+        let errorThrown = false;
+        service.getTextMessages().subscribe({
+          next: () => {},
+          error: () => {
+            errorThrown = true;
+          }
+        });
+
+        mockWebSocketService.getMessagesResponse.next('invalid-json');
+
+        expect(console.error)
+            .toHaveBeenCalledWith(
+                'Error parsing WebSocket message:', jasmine.any(Error));
+        expect(errorThrown).toBeFalse();
+      });
+    });
   });
 });
