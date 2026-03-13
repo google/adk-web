@@ -708,6 +708,19 @@ export class BuilderTabsComponent {
     }
   }
 
+  onTelemetryChange(enabled: boolean) {
+    if (this.agentConfig) {
+      if (!this.agentConfig.logging) {
+        this.agentConfig.logging = {
+          enabled: enabled,
+          dataset_location: 'US'
+        };
+      } else {
+        this.agentConfig.logging.enabled = enabled;
+      }
+    }
+  }
+
   createAgentTool() {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '750px',
@@ -734,6 +747,17 @@ export class BuilderTabsComponent {
   }
 
   saveChanges() {
+    if (this.agentConfig?.isRoot && this.agentConfig?.logging?.enabled) {
+      if (!this.agentConfig.logging.project_id?.trim() || 
+          !this.agentConfig.logging.dataset_id?.trim() || 
+          !this.agentConfig.logging.dataset_location?.trim()) {
+        this.snackBar.open("Project ID, Dataset ID, and Dataset Location are required when Agent Analytics is enabled.", "OK", {
+          duration: 3000
+        });
+        return;
+      }
+    }
+
     const rootAgent = this.agentBuilderService.getRootNode();
 
     if (!rootAgent) {
