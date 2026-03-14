@@ -485,7 +485,8 @@ button.audio-rec-btn,
 button.video-rec-btn {
   background-color: var(--chat-card-background-color);
   &.recording {
-    background-color: var(--chat-panel-eval-fail-color);
+    background-color: var(--chat-panel-eval-fail-color) !important;
+    color: white !important;
   }
 }
 
