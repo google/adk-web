@@ -30,7 +30,6 @@ export interface AgentNode {
     config_path?: string;
     isAgentTool?: boolean;
     skip_summarization?: boolean;
-    visual_builder?: boolean;
     logging?: LoggingConfig;
 }
 
@@ -66,7 +65,6 @@ export interface YamlConfig {
   sub_agents: any;
   tools?: any[];
   callbacks?: any[];
-  visual_builder?: boolean;
   logging?: LoggingConfig;
 }
 

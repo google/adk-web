@@ -48,7 +48,6 @@ export class YamlUtils {
     }
 
     if (agentNode.isRoot) {
-      yamlConfig.visual_builder = true;
       if (agentNode.logging?.enabled) {
         const logging = agentNode.logging!;
         yamlConfig.logging = {
