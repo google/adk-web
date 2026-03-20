@@ -133,8 +133,8 @@ export class ArtifactTabComponent implements OnChanges {
     );
   }
 
-  protected getArtifactName(artifactId: string) {
-    return artifactId ?? DEFAULT_ARTIFACT_NAME;
+  protected getArtifactName(artifactId: string, displayName?: string) {
+    return displayName || artifactId || DEFAULT_ARTIFACT_NAME;
   }
 
   protected getDistinctArtifactIds() {
