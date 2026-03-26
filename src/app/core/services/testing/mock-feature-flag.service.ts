@@ -115,4 +115,8 @@ export class MockFeatureFlagService implements FeatureFlagService {
   isInfinityMessageScrollingEnabled =
       jasmine.createSpy('isInfinityMessageScrollingEnabled')
           .and.returnValue(this.isInfinityMessageScrollingEnabledResponse);
+  isMoreOptionsButtonHiddenResponse = new ReplaySubject<boolean>(1);
+  isMoreOptionsButtonHidden =
+      jasmine.createSpy('isMoreOptionsButtonHidden')
+          .and.returnValue(this.isMoreOptionsButtonHiddenResponse);
 }

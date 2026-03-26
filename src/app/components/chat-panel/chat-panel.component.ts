@@ -17,7 +17,7 @@
 
 import {TextFieldModule} from '@angular/cdk/text-field';
 import {CommonModule, NgClass} from '@angular/common';
-import {AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, EventEmitter, HostListener, inject, input, Input, OnChanges, Output, signal, SimpleChanges, Type, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, EventEmitter, HostListener, inject, InjectionToken, input, Input, OnChanges, Output, signal, SimpleChanges, Type, ViewChild} from '@angular/core';
 import {takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
 import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
@@ -163,6 +163,8 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
       toSignal(this.featureFlagService.isFeedbackServiceEnabled());
   readonly isLoadingAgentResponse =
       toSignal(this.agentService.getLoadingState());
+  readonly hideMoreOptionsButton =
+      toSignal(this.featureFlagService.isMoreOptionsButtonHidden());
 
   protected readonly onScroll = new Subject<Event>();
   protected readonly sanitizer = inject(SAFE_VALUES_SERVICE);

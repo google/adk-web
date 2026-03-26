@@ -53,4 +53,5 @@ export declare abstract class FeatureFlagService {
   abstract isDeveloperUiDisclaimerEnabled(): Observable<boolean>;
   abstract isFeedbackServiceEnabled(): Observable<boolean>;
   abstract isInfinityMessageScrollingEnabled(): Observable<boolean>;
+  abstract isMoreOptionsButtonHidden(): Observable<boolean>;
 }

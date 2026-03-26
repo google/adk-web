@@ -65,6 +65,7 @@ describe('ChatPanelComponent', () => {
     mockFeatureFlagService.isBidiStreamingEnabledResponse.next(true);
     mockFeatureFlagService.isFeedbackServiceEnabledResponse.next(true);
     mockFeatureFlagService.isInfinityMessageScrollingEnabledResponse.next(true);
+    mockFeatureFlagService.isMoreOptionsButtonHiddenResponse.next(false);
 
     mockStringToColorService = new MockStringToColorService();
     mockStringToColorService.stc.and.returnValue('rgb(255, 0, 0)');
@@ -605,6 +606,22 @@ describe('ChatPanelComponent', () => {
       it('should render the chat input', () => {
         const textarea = fixture.debugElement.query(By.css('textarea'));
         expect(textarea).toBeTruthy();
+      });
+    });
+
+    describe('when more options button is hidden', () => {
+      beforeEach(() => {
+        mockFeatureFlagService.isMoreOptionsButtonHiddenResponse.next(true);
+        fixture.detectChanges();
+      });
+
+      it('should not show more options button', () => {
+        const allButtons =
+            fixture.debugElement.queryAll(By.css('button[mat-icon-button]'));
+        const button = allButtons.find(
+            b => b.nativeElement.querySelector('mat-icon')
+                     ?.textContent?.trim() === 'more_vert');
+        expect(button).toBeFalsy();
       });
     });
   });

@@ -448,20 +448,22 @@
           >
             <mat-icon>attach_file</mat-icon>
           </button>
-          <button
-            mat-icon-button
-            [matMenuTriggerFor]="moreMenu"
-            class="function-event-button"
-            [matTooltip]="i18n.moreOptionsTooltip"
-            [disabled]="!(isManualStateUpdateEnabledObs | async)"
-          >
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #moreMenu="matMenu">
-            <span mat-menu-item [matTooltip]="i18n.updateStateMenuTooltip"
-              (click)="updateState.emit()"> {{ i18n.updateStateMenuLabel }}
-            </span>
-          </mat-menu>
+          @if (!hideMoreOptionsButton()) {
+            <button
+              mat-icon-button
+              [matMenuTriggerFor]="moreMenu"
+              class="function-event-button"
+              [matTooltip]="i18n.moreOptionsTooltip"
+              [disabled]="!(isManualStateUpdateEnabledObs | async)"
+            >
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #moreMenu="matMenu">
+              <span mat-menu-item [matTooltip]="i18n.updateStateMenuTooltip"
+                (click)="updateState.emit()"> {{ i18n.updateStateMenuLabel }}
+              </span>
+            </mat-menu>
+          }
         </div>
         <div>
           <button
