@@ -30,6 +30,15 @@ export interface AgentNode {
     config_path?: string;
     isAgentTool?: boolean;
     skip_summarization?: boolean;
+    logging?: LoggingConfig;
+}
+
+export interface LoggingConfig {
+    enabled?: boolean;
+    project_id?: string;
+    dataset_id?: string;
+    table_id?: string;
+    dataset_location?: string;
 }
 
 export interface ToolNode {
@@ -56,6 +65,7 @@ export interface YamlConfig {
   sub_agents: any;
   tools?: any[];
   callbacks?: any[];
+  logging?: LoggingConfig;
 }
 
 export interface DiagramNode {

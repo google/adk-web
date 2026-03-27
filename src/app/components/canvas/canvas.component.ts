@@ -1403,6 +1403,13 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnChanges {
         sub_agents: yamlData.sub_agents || [],
         tools: this.parseToolsFromYaml(yamlData.tools || []),
         callbacks: this.parseCallbacksFromYaml(yamlData),
+        logging: yamlData.logging ? {
+          enabled: true,
+          project_id: yamlData.logging.project_id,
+          dataset_id: yamlData.logging.dataset_id,
+          table_id: yamlData.logging.table_id,
+          dataset_location: yamlData.logging.dataset_location,
+        } : undefined
       };
 
       // Add to agent builder service

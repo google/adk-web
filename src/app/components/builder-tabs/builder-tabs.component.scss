@@ -138,6 +138,56 @@
     margin-bottom: 8px;
   }
 
+  .analytics-hint {
+    margin: 0 0 16px 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--builder-text-secondary-color);
+
+    .learn-more-link {
+      color: var(--builder-text-link-color);
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 4px;
+      font-weight: 500;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .logging-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+
+    .logging-help-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #c4c7c5;
+      cursor: help;
+    }
+  }
+
+  .analytics-config-section {
+    margin-top: 8px;
+    padding: 16px;
+    border: 1px solid var(--builder-border-color);
+    border-radius: 8px;
+    background-color: var(--mat-sys-surface-container-low);
+
+    .logging-section-title {
+      font-weight: 500;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: var(--mat-sys-on-surface);
+    }
+  }
+
   .tool-code-section {
     margin-top: 16px;
 

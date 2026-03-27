@@ -101,6 +101,55 @@
                 </mat-form-field>
               }
 
+              @if (agentConfig.isRoot) {
+                <div class="logging-checkbox-row">
+                  <mat-checkbox 
+                    [ngModel]="!!agentConfig.logging?.enabled"
+                    (ngModelChange)="onTelemetryChange($event)"
+                    style="margin-bottom: 0;"
+                  >
+                    Enable logging to BigQuery
+                  </mat-checkbox>
+                  <mat-icon 
+                    class="logging-help-icon"
+                    matTooltip="Log agent interactions to Google BigQuery for analysis."
+                    matTooltipPosition="above"
+                  >help_outline</mat-icon>
+                </div>
+
+                @if (agentConfig.logging?.enabled) {
+                  <div class="analytics-config-section">
+                    <div class="logging-section-title">
+                      Logging to BigQuery
+                    </div>
+                    <p class="analytics-hint">
+                      <strong>Agent Analytics (powered by BigQuery):</strong> Please provide the dataset and table information to store interaction data. If the Table ID is left empty, the default table 'agent_events_v2' will be used. If the target table already exists, it will be used for logging (ensure you have table write permissions); otherwise, it will be created automatically (requires dataset write permissions).
+                      <a href="https://google.github.io/adk-docs/integrations/bigquery-agent-analytics/" target="_blank" class="learn-more-link">Learn more</a>
+                    </p>
+                    <div class="form-row">
+                      <mat-form-field style="width: 100%;">
+                        <mat-label>Project ID *</mat-label>
+                        <input matInput [(ngModel)]="agentConfig.logging!.project_id" required/>
+                      </mat-form-field>
+                      <mat-form-field style="width: 100%;">
+                        <mat-label>Dataset ID *</mat-label>
+                        <input matInput [(ngModel)]="agentConfig.logging!.dataset_id" required/>
+                      </mat-form-field>
+                    </div>
+                    <div class="form-row">
+                      <mat-form-field style="width: 100%;">
+                        <mat-label>Table ID (optional)</mat-label>
+                        <input matInput [(ngModel)]="agentConfig.logging!.table_id" placeholder="agent_events_v2"/>
+                      </mat-form-field>
+                      <mat-form-field style="width: 100%;">
+                        <mat-label>Dataset Location *</mat-label>
+                        <input matInput [(ngModel)]="agentConfig.logging!.dataset_location" required/>
+                      </mat-form-field>
+                    </div>
+                  </div>
+                }
+              }
+
               @if (agentConfig.agent_class === 'LoopAgent') {
                 <mat-form-field>
                   <mat-label>Max Iteration</mat-label>
