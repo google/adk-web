@@ -536,7 +536,43 @@ button {
   align-items: center;
 }
 
-.toolbar-sse-toggle {
+.toolbar-live-toggle {
+  @include mat.slide-toggle-overrides(
+    (
+      label-text-size: 14px,
+      label-text-color: var(--chat-toolbar-sse-toggle-label-text-color),
+      unselected-track-color:
+      var(--chat-toolbar-sse-toggle-unselected-track-color),
+      unselected-focus-track-color:
+      var(--chat-toolbar-sse-toggle-unselected-track-color),
+      unselected-hover-track-color:
+      var(--chat-toolbar-sse-toggle-unselected-track-color),
+      unselected-handle-color:
+      var(--chat-toolbar-sse-toggle-unselected-handle-color),
+      unselected-focus-handle-color:
+      var(--chat-toolbar-sse-toggle-unselected-handle-color),
+      unselected-hover-handle-color:
+      var(--chat-toolbar-sse-toggle-unselected-handle-color),
+      selected-track-color: var(--chat-toolbar-sse-toggle-selected-track-color),
+      selected-focus-track-color:
+      var(--chat-toolbar-sse-toggle-selected-track-color),
+      selected-hover-track-color:
+      var(--chat-toolbar-sse-toggle-selected-track-color),
+      selected-handle-color:
+      var(--chat-toolbar-sse-toggle-selected-handle-color),
+      selected-focus-handle-color:
+      var(--chat-toolbar-sse-toggle-selected-handle-color),
+      selected-hover-handle-color:
+      var(--chat-toolbar-sse-toggle-selected-handle-color),
+      track-height: 24px,
+      track-width: 46px,
+      track-outline-color: var(--chat-toolbar-sse-toggle-track-outline-color),
+      with-icon-handle-size: 20px,
+    )
+  );
+}
+
+.toolbar-streaming-toggle {
   @include mat.slide-toggle-overrides(
     (
       label-text-size: 14px,
