@@ -1122,7 +1122,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
     }
-    if (e?.actions && e.actions.artifactDelta) {
+    if (e?.actions && e.actions.artifactDelta && !part) {
       for (const key in e.actions.artifactDelta) {
         if (e.actions.artifactDelta.hasOwnProperty(key)) {
           this.renderArtifact(key, e.actions.artifactDelta[key], prepend);
