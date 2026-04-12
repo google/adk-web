@@ -21,6 +21,7 @@
 export declare interface Blob {
   mimeType?: string;
   data: string;
+  displayName?: string;
 }
 
 export declare interface FunctionCall {

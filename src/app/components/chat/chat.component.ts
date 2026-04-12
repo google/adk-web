@@ -1235,7 +1235,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
             )
         .subscribe({
           next: (res) => {
-            const {mimeType, data} = res.inlineData ?? {};
+            const {mimeType, data, displayName} = res.inlineData ?? {};
             if (!mimeType || !data) {
               this.handleArtifactFetchFailure(message, artifactId, versionId);
               return;
@@ -1273,6 +1273,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
                   data: base64Data,
                   mimeType,
                   mediaType,
+                  displayName,
                 };
               }
               return artifact;

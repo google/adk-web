@@ -25,7 +25,7 @@
           class="link-style-button"
           (click)="openArtifact(selectedArtifacts[i].data, selectedArtifacts[i].mimeType)"
           >
-          {{getArtifactName(artifactId)}}
+          {{getArtifactName(artifactId, selectedArtifacts[i].displayName)}}
         </button>
       </div>
       <div class="artifact-metadata">
