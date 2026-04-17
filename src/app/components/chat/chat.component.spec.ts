@@ -189,6 +189,7 @@ describe('ChatComponent', () => {
     mockFeatureFlagService.isDeleteSessionEnabledResponse.next(true);
     mockFeatureFlagService.isInfinityMessageScrollingEnabledResponse.next(
         false);
+    mockFeatureFlagService.isNewSessionButtonEnabledResponse.next(true);
 
     mockDialog = jasmine.createSpyObj('MatDialog', ['open']);
     mockDialog.open.and.returnValue({
@@ -759,6 +760,54 @@ describe('ChatComponent', () => {
           expect(component.sideDrawer()!.open).toHaveBeenCalled();
           expect(component.showSidePanel).toBe(true);
         });
+      });
+    });
+
+    describe('new session button', () => {
+      describe('when isNewSessionButtonEnabled is false', () => {
+        beforeEach(() => {
+          mockFeatureFlagService.isNewSessionButtonEnabledResponse.next(false);
+          fixture.detectChanges();
+        });
+
+        it('should not be visible', () => {
+          const newSessionButton = fixture.debugElement.query(
+              By.css('#toolbar-new-session-button'));
+          expect(newSessionButton).toBeFalsy();
+        });
+      });
+
+      describe('when isNewSessionButtonEnabled is true', () => {
+        beforeEach(() => {
+          mockFeatureFlagService.isNewSessionButtonEnabledResponse.next(true);
+          fixture.detectChanges();
+        });
+
+        it('should be visible', () => {
+          const newSessionButton = fixture.debugElement.query(
+              By.css('#toolbar-new-session-button'));
+          expect(newSessionButton).toBeTruthy();
+        });
+      });
+    });
+
+    describe('chatEmptyChange output', () => {
+      it('should emit true when messages are empty', () => {
+        // Set messages to a non-empty value to ensure the output is updated
+        // when the messages are cleared.
+        component.messages.set([{role: 'user', text: ''}]);
+        fixture.detectChanges();
+        const emitSpy = spyOn(component.chatEmptyChange, 'emit');
+        component.messages.set([]);
+        fixture.detectChanges();
+        expect(emitSpy).toHaveBeenCalledWith(true);
+      });
+
+      it('should emit false when messages are not empty', () => {
+        const emitSpy = spyOn(component.chatEmptyChange, 'emit');
+        component.messages.set([{role: USER_ID, text: 'hello'}]);
+        fixture.detectChanges();
+        expect(emitSpy).toHaveBeenCalledWith(false);
       });
     });
 

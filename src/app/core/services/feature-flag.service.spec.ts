@@ -109,4 +109,12 @@ describe('FeatureFlagService', () => {
          expect(isEnabled).toBeFalse();
        });
   });
+
+  describe('isNewSessionButtonEnabled', () => {
+    it('should return true by default', async () => {
+      const isEnabled =
+          await firstValueFrom(service.isNewSessionButtonEnabled());
+      expect(isEnabled).toBeTrue();
+    });
+  });
 });
