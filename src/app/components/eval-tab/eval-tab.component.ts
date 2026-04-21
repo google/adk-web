@@ -50,6 +50,7 @@ interface EvaluationResult {
   evalMetricResults: any[];
   overallEvalMetricResults: any[];
   evalMetricResultPerInvocation?: any[];
+  userId: string;
   sessionId: string;
   sessionDetails: any;
 }
@@ -385,7 +386,11 @@ export class EvalTabComponent implements OnInit, OnChanges {
         this.currentEvalResultBySet.get(this.selectedEvalSet)
             ?.filter((c) => c.evalId == evalId)[0];
     const sessionId = evalCaseResult!.sessionId;
-    this.sessionService.getSession(this.userId(), this.appName(), sessionId)
+    // Use the userId from the eval result instead of the component-level
+    // userId to avoid session 404 errors when the eval runner creates
+    // sessions with a different user_id than the UI default.
+    const evalUserId = evalCaseResult!.userId || this.userId();
+    this.sessionService.getSession(evalUserId, this.appName(), sessionId)
         .subscribe((res) => {
           this.addEvalCaseResultToEvents(res, evalCaseResult!);
           const session = this.fromApiResultToSession(res);
@@ -545,6 +550,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
                             evalMetricResults: result.evalMetricResults,
                             evalMetricResultPerInvocation:
                                 result.evalMetricResultPerInvocation,
+                            userId: result.userId,
                             sessionId: result.sessionId,
                             sessionDetails: result.sessionDetails,
                             overallEvalMetricResults:
