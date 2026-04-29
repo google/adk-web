@@ -979,3 +979,58 @@ html.light-theme {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
   max-width: 800px !important;
 }
+
+// Custom snackbar styling for error and success messages
+.custom-snackbar {
+  .mdc-snackbar__surface {
+    background: var(--chat-side-drawer-background-color) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  }
+  .mdc-snackbar__label {
+    color: var(--chat-side-drawer-color) !important;
+    font-size: 14px;
+  }
+  .mat-mdc-button {
+    color: var(--mdc-text-button-label-text-color) !important;
+    font-weight: 500;
+  }
+}
+
+// Error snackbar - red background
+.snackbar-error {
+  .mdc-snackbar__surface {
+    background: var(--chat-error-color) !important;
+  }
+  .mdc-snackbar__label {
+    color: white !important;
+  }
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+// Success snackbar - green background
+.snackbar-success {
+  .mdc-snackbar__surface {
+    background: var(--chat-panel-eval-pass-color) !important;
+  }
+  .mdc-snackbar__label {
+    color: white !important;
+  }
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+// Warning snackbar - orange background
+.snackbar-warning {
+  .mdc-snackbar__surface {
+    background: var(--chat-warning-color) !important;
+  }
+  .mdc-snackbar__label {
+    color: var(--chat-side-drawer-color) !important;
+  }
+  .mat-mdc-button {
+    color: var(--chat-side-drawer-color) !important;
+  }
+}
