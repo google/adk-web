@@ -22,7 +22,7 @@ export const STREAM_CHAT_SERVICE =
   new InjectionToken<StreamChatService>('StreamChatService');
 
 /**
- * Service for supporting live streaming with audio/video.
+ * Service for supporting live streaming with audio/video/text.
  */
 export declare abstract class StreamChatService {
   abstract startAudioChat(options: {
@@ -38,6 +38,14 @@ export declare abstract class StreamChatService {
     videoContainer: ElementRef;
   }): Promise<void>;
   abstract stopVideoChat(videoContainer: ElementRef): void;
+  abstract startTextStreaming(options: {
+    appName: string;
+    userId: string;
+    sessionId: string;
+  }): void;
+  abstract stopTextStreaming(): void;
+  abstract sendTextMessage(text: string): void;
+  abstract getTextMessages(): Observable<any>;
   abstract onStreamClose(): Observable<string>;
   abstract closeStream(): void;
 }

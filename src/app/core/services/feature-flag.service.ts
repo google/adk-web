@@ -75,6 +75,10 @@ export class FeatureFlagService implements FeatureFlagServiceInterface {
     return of(true);
   }
 
+  isLiveStreamingEnabled(): Observable<boolean> {
+    return of(true);
+  }
+
   isMessageFileUploadEnabled(): Observable<boolean> {
     return of(true);
   }

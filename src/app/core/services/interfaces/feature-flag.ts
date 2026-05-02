@@ -39,6 +39,7 @@ export declare abstract class FeatureFlagService {
   abstract isArtifactsTabEnabled(): Observable<boolean>;
   abstract isEvalEnabled(): Observable<boolean>;
   abstract isTokenStreamingEnabled(): Observable<boolean>;
+  abstract isLiveStreamingEnabled(): Observable<boolean>;
   abstract isMessageFileUploadEnabled(): Observable<boolean>;
   abstract isManualStateUpdateEnabled(): Observable<boolean>;
   abstract isBidiStreamingEnabled(): Observable<boolean>;

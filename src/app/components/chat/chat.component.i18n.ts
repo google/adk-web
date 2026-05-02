@@ -31,6 +31,7 @@ export const CHAT_MESSAGES = {
   userIdLabel: 'User ID',
   loadingSessionLabel: 'Loading session...',
   tokenStreamingLabel: 'Token Streaming',
+  liveStreamingLabel: 'Live Streaming',
   createNewSessionTooltip: 'Create a new Session',
   newSessionButton: 'New Session',
   deleteSessionTooltip: 'Delete current session',
