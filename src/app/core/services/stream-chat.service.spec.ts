@@ -263,4 +263,64 @@ describe('StreamChatService', () => {
          expect(mockWebSocketService.sendMessage).toHaveBeenCalledTimes(2);
        }));
   });
+
+  describe('restart audio chat', () => {
+    it('should allow restarting audio chat after stopping', async () => {
+         mockAudioRecordingService.getCombinedAudioBuffer.and.returnValue(
+             Uint8Array.of());
+
+         await service.startAudioChat({
+           appName: 'fake-app-name',
+           userId: 'fake-user-id',
+           sessionId: 'fake-session-id'
+         });
+         expect(mockWebSocketService.connect).toHaveBeenCalledTimes(1);
+         expect(mockAudioRecordingService.startRecording).toHaveBeenCalledTimes(1);
+
+         service.stopAudioChat();
+         expect(mockAudioRecordingService.stopRecording).toHaveBeenCalledTimes(1);
+         expect(mockWebSocketService.closeConnection).toHaveBeenCalledTimes(1);
+
+         await service.startAudioChat({
+           appName: 'fake-app-name',
+           userId: 'fake-user-id',
+           sessionId: 'fake-session-id'
+         });
+         expect(mockWebSocketService.connect).toHaveBeenCalledTimes(2);
+         expect(mockAudioRecordingService.startRecording).toHaveBeenCalledTimes(2);
+       });
+  });
+
+  describe('restart video chat', () => {
+    it('should allow restarting video chat after stopping', async () => {
+         mockAudioRecordingService.getCombinedAudioBuffer.and.returnValue(
+             Uint8Array.of());
+         mockVideoService.getCapturedFrame.and.resolveTo(Uint8Array.of());
+
+         await service.startVideoChat({
+           appName: 'fake-app-name',
+           userId: 'fake-user-id',
+           sessionId: 'fake-session-id',
+           videoContainer
+         });
+         expect(mockWebSocketService.connect).toHaveBeenCalledTimes(1);
+         expect(mockAudioRecordingService.startRecording).toHaveBeenCalledTimes(1);
+         expect(mockVideoService.startRecording).toHaveBeenCalledTimes(1);
+
+         service.stopVideoChat(videoContainer);
+         expect(mockAudioRecordingService.stopRecording).toHaveBeenCalledTimes(1);
+         expect(mockVideoService.stopRecording).toHaveBeenCalledTimes(1);
+         expect(mockWebSocketService.closeConnection).toHaveBeenCalledTimes(1);
+
+         await service.startVideoChat({
+           appName: 'fake-app-name',
+           userId: 'fake-user-id',
+           sessionId: 'fake-session-id',
+           videoContainer
+         });
+         expect(mockWebSocketService.connect).toHaveBeenCalledTimes(2);
+         expect(mockAudioRecordingService.startRecording).toHaveBeenCalledTimes(2);
+         expect(mockVideoService.startRecording).toHaveBeenCalledTimes(2);
+       });
+  });
 });
