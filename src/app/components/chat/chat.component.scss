@@ -516,7 +516,10 @@ button {
   line-height: 20px;
   letter-spacing: 0.25px;
   margin-left: 5px;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .toolbar-icon {
