@@ -177,7 +177,7 @@
         }
       </div>
       } @else {
-      <div style="display: flex; align-items: center">
+      <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
         @let isSessionLoading = uiStateService.isSessionLoading() | async; @if (isSessionLoading ===
         false) {
         <div class="toolbar-session-text">{{ i18n.sessionIdLabel }}</div>
