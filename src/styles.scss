@@ -100,6 +100,10 @@ markdown p {
 html.dark-theme {
   --mat-sys-primary: black;
   --mdc-checkbox-selected-icon-color: white;
+  --mdc-checkbox-unselected-icon-color: #c4c7c5;
+  --mdc-checkbox-unselected-hover-icon-color: #e8eaed;
+  --mdc-checkbox-unselected-focus-icon-color: #e8eaed;
+  --mdc-checkbox-unselected-pressed-icon-color: #c4c7c5;
   --mat-sys-background: #131314;
   // tab variable overrides
   --mat-tab-header-active-label-text-color: #8ab4f8;
