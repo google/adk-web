@@ -23,7 +23,7 @@ import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 })
 export class SnackbarService {
   private snackBar = inject(MatSnackBar);
-  private readonly MAX_LENGTH = 200;
+  private readonly MAX_LENGTH = 250;
 
   open(message: string, action?: string, config?: MatSnackBarConfig) {
     const truncatedMessage = this.truncate(message, this.MAX_LENGTH);
