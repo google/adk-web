@@ -1110,6 +1110,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   submitAgentRunRequest(req: AgentRunRequest) {
     this.autoSelectLatestEvent = true;
+    if (this.useLive()) {
+      this.streamChatService.sendMessage(req, {});
+      return;
+    }
     this.agentService.runSse(req).subscribe({
       next: async (chunkJson: any) => {
         if (chunkJson.error) {
@@ -1150,7 +1154,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private appendEventRow(apiEvent: any, reverseOrder: boolean = false) {
+  private appendEventRow(apiEvent: AdkEvent, reverseOrder: boolean = false) {
     if (apiEvent.inputTranscription !== undefined) {
       apiEvent.author = 'user';
     } else if (apiEvent.outputTranscription !== undefined) {
@@ -1173,7 +1177,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     if (apiEvent?.longRunningToolIds && apiEvent.longRunningToolIds.length > 0) {
       const startIndex = this.longRunningEvents.length;
       this.getAsyncFunctionsFromParts(
-        apiEvent.longRunningToolIds, apiEvent.content.parts, apiEvent.invocationId);
+        apiEvent.longRunningToolIds, apiEvent.content.parts, apiEvent.invocationId!!);
 
       // Store event ID for later reference
       this.functionCallEventId = apiEvent.id;
