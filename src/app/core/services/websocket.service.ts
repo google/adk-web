@@ -103,7 +103,8 @@ export class WebSocketService implements WebSocketServiceInterface {
     if (
       msg['content'] &&
       msg['content']['parts'] &&
-      msg['content']['parts'][0]['inlineData']
+      msg['content']['parts'][0]['inlineData'] &&
+      msg['content']['parts'][0]['inlineData']['mimeType']?.startsWith('audio/pcm')
     ) {
       const pcmBytes = this.base64ToUint8Array(
           msg['content']['parts'][0]['inlineData']['data'],
