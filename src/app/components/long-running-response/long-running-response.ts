@@ -77,7 +77,11 @@ export class LongRunningResponseComponent implements OnChanges {
     
     if (this.isConfirmationRequest) {
       this.confirmationModel.confirmed = this.functionCall.args?.toolConfirmation?.confirmed || false;
-      this.confirmationModel.payload = JSON.stringify(this.functionCall.args?.originalFunctionCall?.args || {}, null, 2);
+      this.confirmationModel.payload = JSON.stringify(
+        this.functionCall.args?.toolConfirmation?.payload ??
+        this.functionCall.args?.originalFunctionCall?.args ??
+        {}, null, 2
+      );
       return;
     }
 
