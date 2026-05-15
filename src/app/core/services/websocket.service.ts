@@ -66,7 +66,9 @@ export class WebSocketService implements WebSocketServiceInterface {
   }
 
   sendMessage(data: LiveRequest) {
-    data.blob.data = this.arrayBufferToBase64(data.blob.data.buffer);
+    if (data.blob?.data) {
+      data.blob.data = this.arrayBufferToBase64(data.blob.data.buffer);
+    }
     if (!this.socket$ || this.socket$.closed) {
       console.error('WebSocket is not open.');
       return;
