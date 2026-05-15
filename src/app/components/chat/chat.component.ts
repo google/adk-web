@@ -529,9 +529,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     window.localStorage.setItem('adk-hide-intermediate-events', String(newVal));
   }
 
-  // TODO: Remove this once backend supports restarting bidi streaming.
-  sessionHasUsedBidi = new Set<string>();
-
   eventData = new Map<string, any>();
   traceData: any[] = [];
   renderedEventGraph: SafeHtml | undefined;
@@ -1818,11 +1815,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async startAudioRecording(flags?: LiveFlags) {
-    if (this.sessionId && this.sessionHasUsedBidi.has(this.sessionId)) {
-      this.openSnackBar(BIDI_STREAMING_RESTART_WARNING, 'OK');
-      return;
-    }
-
     // Lazily create a real session if it does not exist
     const isSessionActive = await this.ensureSessionActive();
     if (!isSessionActive) {
@@ -1836,7 +1828,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       sessionId: this.sessionId,
       flags: flags,
     });
-    this.sessionHasUsedBidi.add(this.sessionId);
   }
 
   stopAudioRecording() {
