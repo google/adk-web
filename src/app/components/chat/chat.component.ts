@@ -289,7 +289,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   showBuilderAssistant = true;
   showAppSelectorDrawer = false;
   showSessionSelectorDrawer = false;
-  useSse = signal(window.localStorage.getItem('adk-use-sse') === 'true');
+  useStreaming = signal(window.localStorage.getItem('adk-use-streaming') === 'true');
   useLive = signal(window.localStorage.getItem('adk-use-live') === 'true');
   currentSessionState: SessionState | undefined = {};
   root_agent = ROOT_AGENT;
@@ -1100,7 +1100,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       userId: this.userId,
       sessionId: this.sessionId,
       newMessage: content,
-      streaming: this.useSse(),
+      streaming: this.useStreaming(),
       stateDelta: this.updatedSessionState(),
     };
     if (functionCallEventId) {
@@ -2726,9 +2726,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedFiles.splice(index, 1);
   }
 
-  toggleSse() {
-    this.useSse.set(!this.useSse());
-    window.localStorage.setItem('adk-use-sse', String(this.useSse()));
+  toggleStreaming() {
+    this.useStreaming.set(!this.useStreaming());
+    window.localStorage.setItem('adk-use-streaming', String(this.useStreaming()));
   }
 
   toggleLive() {

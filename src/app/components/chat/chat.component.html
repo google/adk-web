@@ -556,12 +556,12 @@
   }
 
   @if ((isTokenStreamingEnabledObs | async) && canEditSession()) {
-  <button mat-button (click)="toggleSse()" matTooltip="Enable real-time token streaming from the server"
-    [style.color]="useSse() ? 'var(--mat-sys-primary)' : 'var(--mat-sys-on-surface-variant)'"
+  <button mat-button (click)="toggleStreaming()" matTooltip="Enable real-time token streaming from the server"
+    [style.color]="useStreaming() ? 'var(--mat-sys-primary)' : 'var(--mat-sys-on-surface-variant)'"
     style="height: 32px; line-height: 32px; padding: 0 12px; border-radius: 16px;">
     <mat-icon
       style="font-size: 20px; width: 20px; height: 20px; line-height: 20px; margin-right: 4px; vertical-align: middle;">{{
-      useSse() ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+      useStreaming() ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
     <span style="font-size: 13px; font-weight: 500; vertical-align: middle;">Streaming</span>
   </button>
   }
@@ -590,8 +590,8 @@
               (toggleHideIntermediateEvents)="toggleHideIntermediateEvents()"
               [traceData]="traceData"
               [isTokenStreamingEnabled]="(isTokenStreamingEnabledObs | async) ?? false"
-              [useSse]="useSse()"
-              (toggleSse)="toggleSse()"
+              [useStreaming]="useStreaming()"
+              (toggleStreaming)="toggleStreaming()"
               [isChatMode]="true"
               [selectedFiles]="selectedFiles"
               [updatedSessionState]="updatedSessionState()"
@@ -750,8 +750,8 @@
                     (toggleHideIntermediateEvents)="toggleHideIntermediateEvents()"
                     [traceData]="traceData"
                     [isTokenStreamingEnabled]="(isTokenStreamingEnabledObs | async) ?? false"
-                    [useSse]="useSse()"
-                    (toggleSse)="toggleSse()"
+                    [useStreaming]="useStreaming()"
+                    (toggleStreaming)="toggleStreaming()"
                     [isChatMode]="false"
                     [evalCase]="evalCase"
                     [isEvalEditMode]="isEvalEditMode()"

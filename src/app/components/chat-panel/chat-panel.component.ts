@@ -134,7 +134,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Input() agentGraphData: any = null;
   @Input() isEditFunctionArgsEnabled: boolean = false;
   @Input() isTokenStreamingEnabled: boolean = false;
-  @Input() useSse: boolean = false;
+  @Input() useStreaming: boolean = false;
   @Input() useLive: boolean = false;
   @Input() userInput: string = '';
   @Input() userEditEvalCaseMessage: string = '';
@@ -179,7 +179,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Output() readonly toggleVideoRecording = new EventEmitter<void>();
   @Output() readonly longRunningResponseComplete = new EventEmitter<AgentRunRequest>();
   @Output() readonly toggleHideIntermediateEvents = new EventEmitter<void>();
-  @Output() readonly toggleSse = new EventEmitter<void>();
+  @Output() readonly toggleStreaming = new EventEmitter<void>();
 
   @ViewChild('videoContainer', { read: ElementRef }) videoContainer!: ElementRef;
   @ViewChild('autoScroll') scrollContainer!: ElementRef;
