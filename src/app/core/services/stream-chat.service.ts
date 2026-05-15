@@ -26,6 +26,8 @@ import {VIDEO_SERVICE} from './interfaces/video';
 import {WEBSOCKET_SERVICE} from './interfaces/websocket';
 import {VideoService} from './video.service';
 import {WebSocketService} from './websocket.service';
+import {map,filter} from 'rxjs/operators';
+import {AgentRunRequest} from '../models/AgentRunRequest';
 
 /**
  * Service for supporting live streaming with audio/video.
@@ -39,8 +41,24 @@ export class StreamChatService implements StreamChatServiceInterface {
   private readonly webSocketService = inject(WEBSOCKET_SERVICE);
   private audioIntervalId: number|undefined = undefined;
   private videoIntervalId: number|undefined = undefined;
+  private currentUrl: string|undefined = undefined;
 
   constructor() {}
+
+  connect(serverUrl: string) {
+    if (this.currentUrl !== serverUrl) {
+      this.webSocketService.connect(serverUrl);
+      this.currentUrl = serverUrl;
+    }
+  }
+
+  sendMessage({ appName, userId, sessionId, newMessage }: AgentRunRequest, flags?: LiveFlags): void {
+    this.connect(this.getWsUrl(appName, userId, sessionId!!, flags));
+    const request: LiveRequest = {
+      content: newMessage,
+    };
+    this.webSocketService.sendMessage(request);
+  }
 
   private getWsUrl(appName: string, userId: string, sessionId: string, flags?: LiveFlags): string {
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -68,14 +86,13 @@ export class StreamChatService implements StreamChatServiceInterface {
     sessionId,
     flags,
   }: {appName: string; userId: string; sessionId: string; flags?: LiveFlags;}) {
-    this.webSocketService.connect(this.getWsUrl(appName, userId, sessionId, flags));
+    this.connect(this.getWsUrl(appName, userId, sessionId, flags));
 
     await this.startAudioStreaming();
   }
 
   stopAudioChat() {
     this.stopAudioStreaming();
-    this.webSocketService.closeConnection();
   }
 
   private async startAudioStreaming() {
@@ -118,7 +135,7 @@ export class StreamChatService implements StreamChatServiceInterface {
     videoContainer: ElementRef;
     flags?: LiveFlags;
   }) {
-    this.webSocketService.connect(this.getWsUrl(appName, userId, sessionId, flags));
+    this.connect(this.getWsUrl(appName, userId, sessionId, flags));
 
     await this.startAudioStreaming();
     await this.startVideoStreaming(videoContainer);
@@ -127,7 +144,6 @@ export class StreamChatService implements StreamChatServiceInterface {
   stopVideoChat(videoContainer: ElementRef) {
     this.stopAudioStreaming();
     this.stopVideoStreaming(videoContainer);
-    this.webSocketService.closeConnection();
   }
 
   async startVideoStreaming(videoContainer: ElementRef) {
