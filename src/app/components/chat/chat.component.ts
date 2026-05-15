@@ -290,6 +290,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   showAppSelectorDrawer = false;
   showSessionSelectorDrawer = false;
   useSse = signal(window.localStorage.getItem('adk-use-sse') === 'true');
+  useLive = signal(window.localStorage.getItem('adk-use-live') === 'true');
   currentSessionState: SessionState | undefined = {};
   root_agent = ROOT_AGENT;
   updatedSessionState: WritableSignal<any> = signal(null);
@@ -630,6 +631,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.featureFlagService.isApplicationSelectorEnabled();
   readonly isTokenStreamingEnabledObs: Observable<boolean> =
     this.featureFlagService.isTokenStreamingEnabled();
+  readonly isBidiStreamingEnabledObs: Observable<boolean> =
+    this.featureFlagService.isBidiStreamingEnabled();
   readonly isExportSessionEnabledObs: Observable<boolean> =
     this.featureFlagService.isExportSessionEnabled();
   readonly isNewSessionButtonEnabledObs: Observable<boolean> =
@@ -2726,6 +2729,11 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   toggleSse() {
     this.useSse.set(!this.useSse());
     window.localStorage.setItem('adk-use-sse', String(this.useSse()));
+  }
+
+  toggleLive() {
+    this.useLive.set(!this.useLive());
+    window.localStorage.setItem('adk-use-live', String(this.useLive()));
   }
 
   enterBuilderMode() {

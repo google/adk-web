@@ -135,6 +135,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Input() isEditFunctionArgsEnabled: boolean = false;
   @Input() isTokenStreamingEnabled: boolean = false;
   @Input() useSse: boolean = false;
+  @Input() useLive: boolean = false;
   @Input() userInput: string = '';
   @Input() userEditEvalCaseMessage: string = '';
   @Input() selectedFiles: { file: File; url: string }[] = [];

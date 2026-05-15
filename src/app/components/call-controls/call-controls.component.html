@@ -5,7 +5,7 @@
     class="video-rec-btn"
     [class.recording]="isVideoRecording"
     [matTooltip]="isVideoRecording ? i18n.turnOffCamTooltip : i18n.useCamTooltip"
-    [disabled]="!isBidiStreamingEnabled"
+    [disabled]="!isBidiStreamingEnabled || !useLive"
   >
     <mat-icon>videocam</mat-icon>
   </button>
@@ -22,12 +22,12 @@
     (click)="onCallClick()"
     class="audio-rec-btn"
     [class.recording]="isAudioRecording"
-    [disabled]="!isBidiStreamingEnabled"
+    [disabled]="!isBidiStreamingEnabled || !useLive"
   >
     <mat-icon>{{ isAudioRecording ? 'call_end' : 'call' }}</mat-icon>
   </button>
 
-  @if (showFlags && !isAudioRecording) {
+  @if (useLive && showFlags && !isAudioRecording) {
     <div class="flags-panel">
       <div class="flags-title">Live Flags</div>
       <div class="flag-item">

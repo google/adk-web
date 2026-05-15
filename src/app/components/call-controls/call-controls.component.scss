@@ -19,6 +19,10 @@ button {
   }
 }
 
+button.audio-rec-btn:not(.recording):disabled {
+  color: gray !important;
+}
+
 button.audio-rec-btn:not(.recording) {
   color: #34a853 !important;
 }

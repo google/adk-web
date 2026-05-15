@@ -207,6 +207,7 @@
     <div class="chat-input-actions-right">
       <app-call-controls [isAudioRecording]="isAudioRecording" [isVideoRecording]="isVideoRecording"
         [micVolume]="micVolume" [isBidiStreamingEnabled]="(isBidiStreamingEnabledObs | async) ?? false"
+        [useLive]="useLive"
         (toggleAudioRecording)="toggleAudioRecording.emit($event)"
         (toggleVideoRecording)="toggleVideoRecording.emit()"></app-call-controls>
     </div>
