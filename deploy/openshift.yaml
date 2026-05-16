@@ -3,13 +3,20 @@
 # Deploys the ADK Web UI with configurable OIDC authentication.
 # Auth settings are injected via ConfigMap -- no image rebuild needed.
 #
-# Usage:
-#   1. Update the ConfigMap values below for your environment
-#   2. oc apply -f deploy/openshift.yaml
-#   3. Access via the Route URL
+# Prerequisites:
+#   - ADK agent deployed (e.g. branch-monitor service on port 8080)
+#   - Keycloak with an 'adk-web-ui' public client (see README)
 #
-# To disable auth: remove the "auth" section from runtime-config.json
-# or set "enabled": false.
+# Usage:
+#   1. Create pull secret:
+#      oc create secret docker-registry quay-pull-secret \
+#        --docker-server=quay.io --docker-username=<user> --docker-password=<pass>
+#   2. Update the ConfigMap below with your Keycloak authority URL
+#   3. oc apply -f deploy/openshift.yaml -n <namespace>
+#   4. oc get route adk-web  (to get the URL)
+#
+# To disable auth: set "enabled": false in the ConfigMap below,
+# or remove the "auth" section entirely.
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -18,9 +25,14 @@ metadata:
   labels:
     app: adk-web
 data:
+  # Edit authority to match your OIDC provider:
+  #   Keycloak: https://<keycloak-host>/realms/<realm>
+  #   Okta:     https://dev-<id>.okta.com
+  #   Auth0:    https://<tenant>.auth0.com
+  #   Azure AD: https://login.microsoftonline.com/<tenant>/v2.0
   runtime-config.json: |
     {
-      "backendUrl": "http://branch-monitor:8080",
+      "backendUrl": "",
       "auth": {
         "enabled": true,
         "authority": "https://KEYCLOAK_HOST/realms/REALM_NAME",
@@ -45,15 +57,15 @@ spec:
       labels:
         app: adk-web
     spec:
+      imagePullSecrets:
+        - name: quay-pull-secret
       containers:
         - name: adk-web
-          image: nginx:1.27-alpine
+          image: quay.io/rbrhssa/adk-web:latest
           ports:
             - containerPort: 8080
               name: http
           volumeMounts:
-            - name: app-dist
-              mountPath: /usr/share/nginx/html
             - name: config
               mountPath: /usr/share/nginx/html/assets/config/runtime-config.json
               subPath: runtime-config.json
@@ -80,8 +92,6 @@ spec:
             initialDelaySeconds: 3
             periodSeconds: 5
       volumes:
-        - name: app-dist
-          emptyDir: {}
         - name: config
           configMap:
             name: adk-web-config
@@ -98,37 +108,34 @@ metadata:
 data:
   default.conf: |
     server {
-      listen 8080;
-      server_name _;
-      root /usr/share/nginx/html;
-      index index.html;
+        listen 8080;
+        server_name _;
+        root /usr/share/nginx/html;
+        index index.html;
 
-      # SPA fallback -- all routes serve index.html
-      location / {
-        try_files $uri $uri/ /index.html;
-      }
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
 
-      # Proxy API requests to the ADK backend
-      location /list-apps { proxy_pass http://branch-monitor:8080; }
-      location /apps/     { proxy_pass http://branch-monitor:8080; }
-      location /run_sse   { proxy_pass http://branch-monitor:8080; }
-      location /run       { proxy_pass http://branch-monitor:8080; }
-      location /version   { proxy_pass http://branch-monitor:8080; }
-      location /debug/    { proxy_pass http://branch-monitor:8080; }
-      location /builder/  { proxy_pass http://branch-monitor:8080; }
-      location /dev/      { proxy_pass http://branch-monitor:8080; }
-      location /a2a/      { proxy_pass http://branch-monitor:8080; }
+        # Proxy API requests to the ADK agent backend
+        location /list-apps { proxy_pass http://branch-monitor:8080; }
+        location /apps/     { proxy_pass http://branch-monitor:8080; }
+        location /run_sse   { proxy_pass http://branch-monitor:8080; proxy_read_timeout 300s; }
+        location /run       { proxy_pass http://branch-monitor:8080; }
+        location /version   { proxy_pass http://branch-monitor:8080; }
+        location /debug/    { proxy_pass http://branch-monitor:8080; }
+        location /builder/  { proxy_pass http://branch-monitor:8080; }
+        location /dev/      { proxy_pass http://branch-monitor:8080; }
+        location /a2a/      { proxy_pass http://branch-monitor:8080; }
 
-      # Cache static assets
-      location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
-        expires 1d;
-        add_header Cache-Control "public, immutable";
-      }
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
+            expires 1d;
+            add_header Cache-Control "public, immutable";
+        }
 
-      # Security headers
-      add_header X-Frame-Options "SAMEORIGIN" always;
-      add_header X-Content-Type-Options "nosniff" always;
-      add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     }
 ---
 apiVersion: v1

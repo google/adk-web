@@ -176,6 +176,95 @@ The UI handles the first hop (Browser to Envoy). Kagenti infrastructure handles 
 
 When authentication is active, the "User ID" text field in the toolbar is replaced by an authenticated user menu showing the user's name, email, and roles from the OIDC token.
 
+### OpenShift Deployment
+
+A pre-built container image is available at `quay.io/rbrhssa/adk-web:latest`.
+
+**Step 1: Create a pull secret (if the image is private)**
+
+```bash
+oc create secret docker-registry quay-pull-secret \
+  --docker-server=quay.io \
+  --docker-username=<your-quay-user> \
+  --docker-password=<your-quay-password> \
+  -n <namespace>
+```
+
+**Step 2: Update the ConfigMap in `deploy/openshift.yaml`**
+
+Edit the `adk-web-config` ConfigMap with your OIDC provider's authority URL:
+
+```yaml
+# For Keycloak:
+"authority": "https://keycloak.example.com/realms/my-realm"
+# For Okta:
+"authority": "https://dev-12345.okta.com"
+```
+
+To disable auth entirely, set `"enabled": false` or remove the `auth` section.
+
+**Step 3: Deploy**
+
+```bash
+oc apply -f deploy/openshift.yaml -n <namespace>
+```
+
+**Step 4: Verify**
+
+```bash
+oc get pods -l app=adk-web        # Should be 1/1 Running
+oc get route adk-web -o jsonpath='{.spec.host}'  # Your URL
+```
+
+**Step 5: Access the UI** -- open the Route URL in your browser.
+
+### Keycloak Client Setup
+
+If using Keycloak as your OIDC provider, create a public client:
+
+1. Login to the Keycloak admin console
+2. Select your realm (e.g. `kagenti`)
+3. Go to **Clients** > **Create client**
+4. Set:
+   - **Client ID**: `adk-web-ui`
+   - **Client type**: OpenID Connect
+   - **Client authentication**: OFF (public client)
+   - **Standard flow**: ON
+   - **Direct access grants**: ON (optional, for testing)
+5. Under **Access settings**, set:
+   - **Root URL**: `https://<your-adk-web-route>`
+   - **Valid redirect URIs**: `https://<your-adk-web-route>/*`
+   - **Web origins**: `+` (allows all origins from redirect URIs)
+6. Save the client
+
+### Demo Test Prompts
+
+After deploying the agents and the UI, use these prompts to verify the system works:
+
+**Use Case 1 -- F5 VIP Provisioning** (select the `f5_provisioning` agent):
+
+```
+I need to provision a new F5 VIP. The hostname is myapp.prod.internal.bank.com,
+IP 10.120.100.50, port 443, pool members 10.120.100.10:8443 and 10.120.100.11:8443,
+partition production, VLAN 120. Validate the DNS naming, check for conflicts,
+and trigger the provisioning workflow.
+```
+
+Expected: The agent validates DNS naming conventions, checks subnet/VLAN compliance,
+reviews historical assignments, and either proceeds with the workflow or flags issues.
+
+**Use Case 2 -- Branch Network Monitoring** (select the `branch_monitor` agent):
+
+```
+Proactively check all Charlotte branches for network risks. Get branch inventory,
+weather alerts for Mecklenburg county NC, power outage and ISP status, equipment
+health, and correlate threats. Flag any branches at risk.
+```
+
+Expected: The agent calls 15+ tools (inventory, weather, power, ISP, equipment, correlation),
+produces a threat assessment per branch (HIGH/LOW with scores), and triggers response
+workflows for HIGH-threat branches.
+
 ## 🤝 Contributing
 
 We welcome contributions from the community! Whether it's bug reports, feature requests, documentation improvements, or code contributions, please see our
