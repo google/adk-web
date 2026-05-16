@@ -128,11 +128,12 @@ export declare interface Event extends LlmResponse {
   nodeInfo?: { path?: string;[key: string]: any; };
   data?: any;
   output?: { result?: any; };
-  inputTranscription?: { text: string; };
-  outputTranscription?: { text: string; };
+  inputTranscription?: { text: string; finished?: boolean; };
+  outputTranscription?: { text: string; finished?: boolean; };
   usageMetadata?: any;
   interrupted?: boolean;
   turnComplete?: boolean;
+  partial?: boolean;
 }
 
 export interface ComputerUsePayload {

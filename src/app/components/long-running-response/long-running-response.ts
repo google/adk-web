@@ -39,6 +39,7 @@ import {MatIcon} from '@angular/material/icon';
     MatButton,
     MatIcon,
     NgxJsonViewerModule,
+    MarkdownComponent,
   ],
 })
 export class LongRunningResponseComponent implements OnChanges {

@@ -289,7 +289,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   showBuilderAssistant = true;
   showAppSelectorDrawer = false;
   showSessionSelectorDrawer = false;
-  useSse = signal(window.localStorage.getItem('adk-use-sse') === 'true');
+  useStreaming = signal(window.localStorage.getItem('adk-use-streaming') === 'true');
+  useLive = signal(window.localStorage.getItem('adk-use-live') === 'true');
   currentSessionState: SessionState | undefined = {};
   root_agent = ROOT_AGENT;
   updatedSessionState: WritableSignal<any> = signal(null);
@@ -528,9 +529,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     window.localStorage.setItem('adk-hide-intermediate-events', String(newVal));
   }
 
-  // TODO: Remove this once backend supports restarting bidi streaming.
-  sessionHasUsedBidi = new Set<string>();
-
   eventData = new Map<string, any>();
   traceData: any[] = [];
   renderedEventGraph: SafeHtml | undefined;
@@ -630,6 +628,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.featureFlagService.isApplicationSelectorEnabled();
   readonly isTokenStreamingEnabledObs: Observable<boolean> =
     this.featureFlagService.isTokenStreamingEnabled();
+  readonly isBidiStreamingEnabledObs: Observable<boolean> =
+    this.featureFlagService.isBidiStreamingEnabled();
   readonly isExportSessionEnabledObs: Observable<boolean> =
     this.featureFlagService.isExportSessionEnabled();
   readonly isNewSessionButtonEnabledObs: Observable<boolean> =
@@ -1097,7 +1097,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       userId: this.userId,
       sessionId: this.sessionId,
       newMessage: content,
-      streaming: this.useSse(),
+      streaming: this.useStreaming(),
       stateDelta: this.updatedSessionState(),
     };
     if (functionCallEventId) {
@@ -1110,6 +1110,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   submitAgentRunRequest(req: AgentRunRequest) {
     this.autoSelectLatestEvent = true;
+    if (this.useLive()) {
+      this.streamChatService.sendMessage(req, {});
+      return;
+    }
     this.agentService.runSse(req).subscribe({
       next: async (chunkJson: any) => {
         if (chunkJson.error) {
@@ -1150,7 +1154,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private appendEventRow(apiEvent: any, reverseOrder: boolean = false) {
+  private appendEventRow(apiEvent: AdkEvent, reverseOrder: boolean = false) {
     if (apiEvent.inputTranscription !== undefined) {
       apiEvent.author = 'user';
     } else if (apiEvent.outputTranscription !== undefined) {
@@ -1173,7 +1177,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     if (apiEvent?.longRunningToolIds && apiEvent.longRunningToolIds.length > 0) {
       const startIndex = this.longRunningEvents.length;
       this.getAsyncFunctionsFromParts(
-        apiEvent.longRunningToolIds, apiEvent.content.parts, apiEvent.invocationId);
+        apiEvent.longRunningToolIds, apiEvent.content.parts, apiEvent.invocationId!!);
 
       // Store event ID for later reference
       this.functionCallEventId = apiEvent.id;
@@ -1815,11 +1819,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async startAudioRecording(flags?: LiveFlags) {
-    if (this.sessionId && this.sessionHasUsedBidi.has(this.sessionId)) {
-      this.openSnackBar(BIDI_STREAMING_RESTART_WARNING, 'OK');
-      return;
-    }
-
     // Lazily create a real session if it does not exist
     const isSessionActive = await this.ensureSessionActive();
     if (!isSessionActive) {
@@ -1833,7 +1832,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       sessionId: this.sessionId,
       flags: flags,
     });
-    this.sessionHasUsedBidi.add(this.sessionId);
   }
 
   stopAudioRecording() {
@@ -2723,9 +2721,14 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedFiles.splice(index, 1);
   }
 
-  toggleSse() {
-    this.useSse.set(!this.useSse());
-    window.localStorage.setItem('adk-use-sse', String(this.useSse()));
+  toggleStreaming() {
+    this.useStreaming.set(!this.useStreaming());
+    window.localStorage.setItem('adk-use-streaming', String(this.useStreaming()));
+  }
+
+  toggleLive() {
+    this.useLive.set(!this.useLive());
+    window.localStorage.setItem('adk-use-live', String(this.useLive()));
   }
 
   enterBuilderMode() {

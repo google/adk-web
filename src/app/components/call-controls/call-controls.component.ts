@@ -40,6 +40,7 @@ export class CallControlsComponent {
   @Input() isVideoRecording = false;
   @Input() micVolume = 0;
   @Input() isBidiStreamingEnabled: boolean | null = false;
+  @Input() useLive: boolean | null = false;
 
   @Output() readonly toggleAudioRecording = new EventEmitter<LiveFlags>();
   @Output() readonly toggleVideoRecording = new EventEmitter<void>();
