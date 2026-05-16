@@ -26,7 +26,7 @@ export const WEBSOCKET_SERVICE =
  * Service to provide methods to handle websocket connections.
  */
 export declare abstract class WebSocketService {
-  abstract connect(serverUrl: string): void;
+  abstract connect(serverUrl: string): void | Promise<void>;
   abstract sendMessage(data: LiveRequest): void;
   abstract closeConnection(): void;
   abstract getMessages(): Observable<string>;

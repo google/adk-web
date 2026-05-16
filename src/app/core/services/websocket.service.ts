@@ -24,12 +24,14 @@ import {Event} from '../models/types';
 
 import {AUDIO_PLAYING_SERVICE} from './interfaces/audio-playing';
 import {WebSocketService as WebSocketServiceInterface} from './interfaces/websocket';
+import {AuthService} from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WebSocketService implements WebSocketServiceInterface {
   private readonly audioPlayingService = inject(AUDIO_PLAYING_SERVICE);
+  private readonly authService = inject(AuthService);
 
   private socket$!: WebSocketSubject<any>;
   private messages$: BehaviorSubject<string> = new BehaviorSubject<string>('');
@@ -37,9 +39,16 @@ export class WebSocketService implements WebSocketServiceInterface {
   private audioIntervalId: any = null;
   private closeReasonSubject = new Subject<string>();
 
-  connect(serverUrl: string) {
+  async connect(serverUrl: string) {
+    let wsUrl = serverUrl;
+    const token = await this.authService.getToken();
+    if (token) {
+      const separator = wsUrl.includes('?') ? '&' : '?';
+      wsUrl = `${wsUrl}${separator}token=${encodeURIComponent(token)}`;
+    }
+
     this.socket$ = new WebSocketSubject({
-      url: serverUrl,
+      url: wsUrl,
       serializer: (msg) => JSON.stringify(msg),
       deserializer: (event) => event.data,
       closeObserver: {
