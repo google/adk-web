@@ -16,6 +16,7 @@
  */
 
 export {AuthService} from './auth.service';
-export {AuthInterceptor} from './auth.interceptor';
+export type {UserInfo} from './auth.service';
+export {authInterceptorFn} from './auth.interceptor';
 export {authGuard} from './auth.guard';
 export {resolveAuthConfig} from './auth.config';

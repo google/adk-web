@@ -24,14 +24,19 @@ import {Event} from '../models/types';
 
 import {AUDIO_PLAYING_SERVICE} from './interfaces/audio-playing';
 import {WebSocketService as WebSocketServiceInterface} from './interfaces/websocket';
-import {AuthService} from '../auth/auth.service';
+
+// TODO: WebSocket-based features (live audio) currently operate without
+// bearer auth. The HTTP API and SSE paths use Authorization headers, but
+// WebSocket does not support custom headers. Passing tokens as query
+// parameters is insecure (logged in server access logs, browser history,
+// proxies). Proper WebSocket auth requires server-side protocol changes
+// (e.g. subprotocol negotiation or first-message auth).
 
 @Injectable({
   providedIn: 'root',
 })
 export class WebSocketService implements WebSocketServiceInterface {
   private readonly audioPlayingService = inject(AUDIO_PLAYING_SERVICE);
-  private readonly authService = inject(AuthService);
 
   private socket$!: WebSocketSubject<any>;
   private messages$: BehaviorSubject<string> = new BehaviorSubject<string>('');
@@ -39,16 +44,9 @@ export class WebSocketService implements WebSocketServiceInterface {
   private audioIntervalId: any = null;
   private closeReasonSubject = new Subject<string>();
 
-  async connect(serverUrl: string) {
-    let wsUrl = serverUrl;
-    const token = await this.authService.getToken();
-    if (token) {
-      const separator = wsUrl.includes('?') ? '&' : '?';
-      wsUrl = `${wsUrl}${separator}token=${encodeURIComponent(token)}`;
-    }
-
+  connect(serverUrl: string) {
     this.socket$ = new WebSocketSubject({
-      url: wsUrl,
+      url: serverUrl,
       serializer: (msg) => JSON.stringify(msg),
       deserializer: (event) => event.data,
       closeObserver: {
@@ -134,7 +132,6 @@ export class WebSocketService implements WebSocketServiceInterface {
   urlSafeBase64ToBase64(urlSafeBase64: string): string {
     let base64 = urlSafeBase64.replace(/_/g, '/').replace(/-/g, '+');
 
-    // Ensure correct padding
     while (base64.length % 4 !== 0) {
       base64 += '=';
     }

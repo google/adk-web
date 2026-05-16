@@ -18,6 +18,12 @@
 import {AuthConfig} from '../models/RuntimeConfig';
 import {RuntimeConfigUtil} from '../../../utils/runtime-config-util';
 
+declare global {
+  interface Window {
+    __ADK_CONFIG__?: {auth?: AuthConfig};
+  }
+}
+
 /**
  * Resolves auth configuration from available sources.
  *
@@ -30,14 +36,11 @@ import {RuntimeConfigUtil} from '../../../utils/runtime-config-util';
  * that sets window.__ADK_CONFIG__.
  */
 export function resolveAuthConfig(): AuthConfig | undefined {
-  // Check for Kubernetes ConfigMap-injected config
-  const adkConfig =
-      (window as any)['__ADK_CONFIG__'] as {auth?: AuthConfig} | undefined;
+  const adkConfig = window.__ADK_CONFIG__;
   if (adkConfig?.auth?.enabled) {
     return adkConfig.auth;
   }
 
-  // Fall back to standard runtime-config.json
   const runtimeConfig = RuntimeConfigUtil.getRuntimeConfig();
   return runtimeConfig?.auth;
 }

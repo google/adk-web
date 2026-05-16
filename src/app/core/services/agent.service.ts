@@ -62,6 +62,9 @@ export class AgentService implements AgentServiceInterface {
           'Accept': 'text/event-stream',
         };
         const token = await this.authService.getToken();
+        if (this.authService.isEnabled && !token) {
+          throw new Error('Auth is enabled but no token is available');
+        }
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }
@@ -72,6 +75,12 @@ export class AgentService implements AgentServiceInterface {
         headers,
         body: JSON.stringify(req),
       }))
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`SSE request failed: ${response.status}`);
+          }
+          return response;
+        })
         .then((response) => {
           const reader = response.body?.getReader();
           const decoder = new TextDecoder('utf-8');

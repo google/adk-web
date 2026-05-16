@@ -91,6 +91,91 @@ Go to `localhost:4200` and start developing!
 
 ### And more!
 
+## 🔐 Authentication (Optional)
+
+ADK Web supports optional OIDC authentication for enterprise deployments. When enabled, users must authenticate via an OIDC-compliant provider before accessing the UI. When disabled (default), the UI is accessible without authentication.
+
+### Supported Providers
+
+Any OIDC-compliant identity provider works, including:
+- **Keycloak** (including Red Hat build of Keycloak)
+- **Okta** / Auth0
+- **Azure AD** / Entra ID
+- **Google Identity Platform**
+- Any provider with a standard `/.well-known/openid-configuration` endpoint
+
+### Enabling Authentication
+
+Add an `auth` section to `runtime-config.json`:
+
+```json
+{
+  "backendUrl": "http://localhost:8000",
+  "auth": {
+    "enabled": true,
+    "authority": "https://keycloak.example.com/realms/my-realm",
+    "clientId": "adk-web-ui",
+    "scopes": "openid profile email"
+  }
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `enabled` | Yes | Set to `true` to enable OIDC authentication |
+| `authority` | Yes | OIDC issuer URL. For Keycloak: `https://host/realms/{realm}` |
+| `clientId` | Yes | OIDC public client ID registered with your provider |
+| `scopes` | No | Space-separated scopes (default: `openid profile email`) |
+| `silentRefresh` | No | Enable background token refresh (default: `true`) |
+| `postLogoutRedirectUri` | No | URL to redirect to after logout |
+
+### Kubernetes / Container Deployments
+
+For container deployments, enable auth without rebuilding by injecting a ConfigMap:
+
+```javascript
+// Mount as runtime-config.js and include via script tag, or
+// inject into runtime-config.json via ConfigMap mount
+window.__ADK_CONFIG__ = {
+  auth: {
+    enabled: true,
+    authority: "https://keycloak.example.com/realms/kagenti",
+    clientId: "adk-web-ui"
+  }
+};
+```
+
+`window.__ADK_CONFIG__` takes priority over `runtime-config.json`.
+
+### Integration with Kagenti + SPIFFE/SPIRE
+
+When agents are managed by [Kagenti](https://github.com/kagenti) with SPIFFE/SPIRE zero-trust security, OIDC authentication provides the browser-to-agent security layer:
+
+```
+Browser  --OIDC-->  Identity Provider  --JWT-->  Browser
+   |
+   |  Authorization: Bearer <JWT>
+   v
+Envoy AuthBridge (Kagenti sidecar)  --validates JWT-->  ADK Agent
+   |
+   |  SPIFFE/SPIRE mTLS (automatic via ztunnel)
+   v
+Backend Services (SonataFlow, MCP servers, etc.)
+```
+
+The UI handles the first hop (Browser to Envoy). Kagenti infrastructure handles the second hop (Agent to Services) via SPIFFE/SPIRE mTLS -- no application code changes needed.
+
+### Security Model
+
+- **PKCE** (Proof Key for Code Exchange) is enforced for all authorization flows
+- **Fail-closed**: if auth is enabled but a token cannot be obtained, requests are blocked rather than sent without credentials
+- **Automatic refresh**: tokens are silently refreshed before expiry
+- **Provider-agnostic**: uses standard `oidc-client-ts`, not provider-specific adapters
+
+### Behavior When Auth Is Enabled
+
+When authentication is active, the "User ID" text field in the toolbar is replaced by an authenticated user menu showing the user's name, email, and roles from the OIDC token.
+
 ## 🤝 Contributing
 
 We welcome contributions from the community! Whether it's bug reports, feature requests, documentation improvements, or code contributions, please see our

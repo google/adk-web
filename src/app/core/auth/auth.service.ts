@@ -16,7 +16,7 @@
  */
 
 import {Injectable} from '@angular/core';
-import Keycloak from 'keycloak-js';
+import {UserManager, UserManagerSettings, User} from 'oidc-client-ts';
 
 import {AuthConfig} from '../models/RuntimeConfig';
 import {resolveAuthConfig} from './auth.config';
@@ -28,32 +28,45 @@ export interface UserInfo {
   roles: string[];
 }
 
+export interface OidcUserProfile {
+  name?: string;
+  preferred_username?: string;
+  email?: string;
+  realm_access?: {roles?: string[]};
+}
+
 /**
  * OIDC authentication service for ADK Web UI.
  *
  * When auth is enabled in runtime-config.json, this service manages
- * the Keycloak/OIDC lifecycle: login, token management, refresh, and
- * logout. When auth is disabled, all methods are no-ops and
- * isAuthenticated() returns true.
+ * the OIDC lifecycle via oidc-client-ts: login, token management,
+ * silent refresh, and logout. When auth is disabled, all methods are
+ * no-ops and isAuthenticated() returns true.
  *
  * Designed for enterprise deployments where agents are managed by
  * Kagenti with SPIFFE/SPIRE zero-trust security.
  */
 @Injectable({providedIn: 'root'})
 export class AuthService {
-  private keycloak: Keycloak | null = null;
+  private userManager: UserManager | null = null;
   private authConfig: AuthConfig | undefined;
   private initialized = false;
+  private initPromise: Promise<void> | null = null;
+  private currentUser: User | null = null;
 
   get isEnabled(): boolean {
     return !!this.authConfig?.enabled;
   }
 
-  /**
-   * Initialize the auth service. Must be called before the app renders.
-   * When auth is disabled, resolves immediately.
-   */
   async init(): Promise<void> {
+    if (this.initialized) return;
+    if (this.initPromise) return this.initPromise;
+
+    this.initPromise = this.doInit();
+    return this.initPromise;
+  }
+
+  private async doInit(): Promise<void> {
     const config = resolveAuthConfig();
     this.authConfig = config;
 
@@ -62,35 +75,49 @@ export class AuthService {
       return;
     }
 
-    this.keycloak = new Keycloak({
-      url: this.authConfig.oidcUrl,
-      realm: this.authConfig.oidcRealm,
-      clientId: this.authConfig.oidcClientId,
-    });
+    const settings: UserManagerSettings = {
+      authority: this.authConfig.authority,
+      client_id: this.authConfig.clientId,
+      redirect_uri: window.location.origin,
+      post_logout_redirect_uri:
+        this.authConfig.postLogoutRedirectUri ?? window.location.origin,
+      response_type: 'code',
+      scope: this.authConfig.scopes ?? 'openid profile email',
+      automaticSilentRenew: this.authConfig.silentRefresh !== false,
+      silent_redirect_uri:
+        window.location.origin + '/silent-check-sso.html',
+    };
+
+    this.userManager = new UserManager(settings);
 
     try {
-      const authenticated = await this.keycloak.init({
-        onLoad: 'login-required',
-        checkLoginIframe: false,
-        silentCheckSsoRedirectUri:
-            this.authConfig.silentRefresh !== false
-                ? `${window.location.origin}/silent-check-sso.html`
-                : undefined,
-      });
-
-      if (!authenticated) {
-        await this.keycloak.login();
+      if (
+        window.location.search.includes('code=') ||
+        window.location.hash.includes('code=')
+      ) {
+        const user = await this.userManager.signinCallback();
+        this.currentUser = user as User;
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
 
-      // Set up automatic token refresh
-      this.keycloak.onTokenExpired = () => {
-        this.keycloak?.updateToken(30).catch(() => {
-          console.warn('Token refresh failed, redirecting to login');
-          this.keycloak?.login();
-        });
-      };
+      if (!this.currentUser) {
+        this.currentUser = await this.userManager.getUser();
+      }
+
+      if (!this.currentUser || this.currentUser.expired) {
+        await this.userManager.signinRedirect();
+        return;
+      }
 
       this.initialized = true;
+
+      this.userManager.events.addUserLoaded((user: User) => {
+        this.currentUser = user;
+      });
+
+      this.userManager.events.addSilentRenewError(() => {
+        this.userManager?.signinRedirect();
+      });
     } catch (err) {
       console.error('OIDC initialization failed:', err);
       throw err;
@@ -99,35 +126,47 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     if (!this.isEnabled) return true;
-    return this.keycloak?.authenticated ?? false;
+    return this.currentUser != null && !this.currentUser.expired;
   }
 
-  async getToken(): Promise<string | undefined> {
-    if (!this.isEnabled || !this.keycloak) return undefined;
+  async getToken(): Promise<string> {
+    if (!this.isEnabled) return '';
+
+    if (this.currentUser && !this.currentUser.expired) {
+      return this.currentUser.access_token;
+    }
 
     try {
-      await this.keycloak.updateToken(5);
+      const user = await this.userManager!.signinSilent();
+      this.currentUser = user;
+      return user!.access_token;
     } catch {
-      // Token refresh failed, will be caught by onTokenExpired
+      this.userManager?.signinRedirect();
+      throw new Error('Token refresh failed');
     }
-    return this.keycloak.token;
   }
 
   getUserInfo(): UserInfo | null {
-    if (!this.isEnabled || !this.keycloak?.tokenParsed) return null;
+    if (!this.isEnabled || !this.currentUser) return null;
 
-    const parsed = this.keycloak.tokenParsed;
+    const profile = this.currentUser.profile as OidcUserProfile;
     return {
-      name: (parsed as any)['name'] ??
-          (parsed as any)['preferred_username'] ?? 'User',
-      email: (parsed as any)['email'] ?? '',
-      userId: parsed.sub ?? '',
-      roles: (parsed as any)['realm_access']?.['roles'] ?? [],
+      name: profile.name ?? profile.preferred_username ?? 'User',
+      email: profile.email ?? '',
+      userId: this.currentUser.profile.sub ?? '',
+      roles: profile.realm_access?.roles ?? [],
     };
   }
 
+  async login(): Promise<void> {
+    await this.userManager?.signinRedirect();
+  }
+
   async logout(): Promise<void> {
-    if (!this.isEnabled || !this.keycloak) return;
-    await this.keycloak.logout({redirectUri: window.location.origin});
+    if (!this.isEnabled || !this.userManager) return;
+    await this.userManager.signoutRedirect({
+      post_logout_redirect_uri:
+        this.authConfig?.postLogoutRedirectUri ?? window.location.origin,
+    });
   }
 }

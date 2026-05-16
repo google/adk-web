@@ -21,7 +21,7 @@ import {MatIcon} from '@angular/material/icon';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatTooltip} from '@angular/material/tooltip';
 
-import {AuthService, UserInfo} from '../../core/auth/auth.service';
+import {AuthService, UserInfo} from '../../core/auth';
 
 /**
  * User menu component for authenticated sessions.
@@ -32,7 +32,7 @@ import {AuthService, UserInfo} from '../../core/auth/auth.service';
  * remains visible instead.
  *
  * Designed to integrate with Kagenti-managed deployments where
- * Keycloak provides OIDC authentication.
+ * an OIDC provider handles authentication.
  */
 @Component({
   selector: 'app-auth-user-menu',

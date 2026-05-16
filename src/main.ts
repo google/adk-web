@@ -18,8 +18,8 @@
 
 import {Catalog, DEFAULT_CATALOG, Theme} from '@a2ui/angular';
 import {Location} from '@angular/common';
-import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
-import {APP_INITIALIZER, importProvidersFrom} from '@angular/core';
+import {provideHttpClient, withInterceptors} from '@angular/common/http';
+import {importProvidersFrom, inject, provideAppInitializer} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -36,7 +36,7 @@ import {MarkdownComponent} from './app/components/markdown/markdown.component';
 import {MARKDOWN_COMPONENT} from './app/components/markdown/markdown.component.interface';
 import {A2UI_THEME} from './app/core/constants/a2ui-theme';
 import {AuthService} from './app/core/auth/auth.service';
-import {AuthInterceptor} from './app/core/auth/auth.interceptor';
+import {authInterceptorFn} from './app/core/auth/auth.interceptor';
 import {AgentBuilderService} from './app/core/services/agent-builder.service';
 import {AgentService} from './app/core/services/agent.service';
 import {ArtifactService} from './app/core/services/artifact.service';
@@ -90,8 +90,9 @@ fetch('./assets/config/runtime-config.json')
       bootstrapApplication(AppComponent, {
         providers: [
           importProvidersFrom(
-              BrowserModule, FormsModule, HttpClientModule, AppRoutingModule,
+              BrowserModule, FormsModule, AppRoutingModule,
               MatInputModule, MatFormFieldModule, MatButtonModule),
+          provideHttpClient(withInterceptors([authInterceptorFn])),
           {provide: SESSION_SERVICE, useClass: SessionService},
           {provide: AGENT_SERVICE, useClass: AgentService},
           {provide: FEEDBACK_SERVICE, useClass: FeedbackService},
@@ -130,17 +131,20 @@ fetch('./assets/config/runtime-config.json')
           {provide: LOCATION_SERVICE, useClass: Location},
           {provide: UI_STATE_SERVICE, useClass: UiStateService},
           {provide: THEME_SERVICE, useClass: ThemeService},
-          {
-            provide: APP_INITIALIZER,
-            useFactory: (authService: AuthService) => () => authService.init(),
-            deps: [AuthService],
-            multi: true,
-          },
-          {
-            provide: HTTP_INTERCEPTORS,
-            useClass: AuthInterceptor,
-            multi: true,
-          },
+          provideAppInitializer(() => {
+            const authService = inject(AuthService);
+            return authService.init();
+          }),
         ]
-      }).catch((err) => console.error(err));
+      }).catch((err) => {
+        console.error(err);
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText =
+          'position:fixed;inset:0;display:flex;align-items:center;' +
+          'justify-content:center;background:#fafafa;color:#d32f2f;' +
+          'font-family:sans-serif;font-size:18px;padding:32px;text-align:center;';
+        errorDiv.textContent =
+          'Application failed to start. Please check the console for details.';
+        document.body.appendChild(errorDiv);
+      });
     });

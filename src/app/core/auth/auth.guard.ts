@@ -25,9 +25,10 @@ import {AuthService} from './auth.service';
  *
  * When auth is disabled (default), the guard always returns true.
  * When auth is enabled and the user is not authenticated, the guard
- * triggers the OIDC login flow via keycloak-js redirect.
+ * triggers the OIDC login redirect. APP_INITIALIZER handles initial
+ * authentication; this guard is a safety net for late navigation.
  */
-export const authGuard: CanActivateFn = async () => {
+export const authGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
 
   if (!authService.isEnabled) {
@@ -38,12 +39,6 @@ export const authGuard: CanActivateFn = async () => {
     return true;
   }
 
-  // Not authenticated -- keycloak init with onLoad: 'login-required'
-  // should have already redirected, but as a safety net, trigger login.
-  try {
-    await authService.init();
-    return authService.isAuthenticated();
-  } catch {
-    return false;
-  }
+  authService.login();
+  return false;
 };
