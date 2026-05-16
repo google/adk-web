@@ -22,6 +22,7 @@
 export declare interface RuntimeConfig {
   backendUrl: string;
   logo?: LogoConfig;
+  auth?: AuthConfig;
 }
 
 /**
@@ -30,4 +31,23 @@ export declare interface RuntimeConfig {
 export declare interface LogoConfig {
   text: string;
   imageUrl: string;
+}
+
+/**
+ * OIDC authentication configuration for enterprise deployments.
+ * When enabled, users must authenticate via an OIDC provider (Keycloak,
+ * Okta, Auth0, etc.) before accessing the UI. When disabled or absent,
+ * the UI is accessible without authentication (default behavior).
+ *
+ * Designed for use with Kagenti-managed agents where SPIFFE/SPIRE
+ * provides zero-trust workload identity and Envoy AuthBridge validates
+ * JWT tokens on inbound API requests.
+ */
+export declare interface AuthConfig {
+  enabled: boolean;
+  oidcUrl: string;
+  oidcRealm: string;
+  oidcClientId: string;
+  oidcScopes?: string;
+  silentRefresh?: boolean;
 }

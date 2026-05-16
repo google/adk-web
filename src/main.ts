@@ -18,8 +18,8 @@
 
 import {Catalog, DEFAULT_CATALOG, Theme} from '@a2ui/angular';
 import {Location} from '@angular/common';
-import {HttpClientModule} from '@angular/common/http';
-import {importProvidersFrom} from '@angular/core';
+import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
+import {APP_INITIALIZER, importProvidersFrom} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -35,6 +35,8 @@ import {EVAL_TAB_COMPONENT, EvalTabComponent} from './app/components/eval-tab/ev
 import {MarkdownComponent} from './app/components/markdown/markdown.component';
 import {MARKDOWN_COMPONENT} from './app/components/markdown/markdown.component.interface';
 import {A2UI_THEME} from './app/core/constants/a2ui-theme';
+import {AuthService} from './app/core/auth/auth.service';
+import {AuthInterceptor} from './app/core/auth/auth.interceptor';
 import {AgentBuilderService} from './app/core/services/agent-builder.service';
 import {AgentService} from './app/core/services/agent.service';
 import {ArtifactService} from './app/core/services/artifact.service';
@@ -127,7 +129,18 @@ fetch('./assets/config/runtime-config.json')
           provideMarkdown(),
           {provide: LOCATION_SERVICE, useClass: Location},
           {provide: UI_STATE_SERVICE, useClass: UiStateService},
-          {provide: THEME_SERVICE, useClass: ThemeService}
+          {provide: THEME_SERVICE, useClass: ThemeService},
+          {
+            provide: APP_INITIALIZER,
+            useFactory: (authService: AuthService) => () => authService.init(),
+            deps: [AuthService],
+            multi: true,
+          },
+          {
+            provide: HTTP_INTERCEPTORS,
+            useClass: AuthInterceptor,
+            multi: true,
+          },
         ]
       }).catch((err) => console.error(err));
     });

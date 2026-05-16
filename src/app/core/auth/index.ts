@@ -15,21 +15,7 @@
  * limitations under the License.
  */
 
-import {NgModule} from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
-import {AppComponent} from './app.component';
-import {authGuard} from './core/auth/auth.guard';
-
-const routes: Routes = [
-  {
-    path: '',
-    component: AppComponent,
-    canActivate: [authGuard],
-  }
-];
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule],
-})
-export class AppRoutingModule {}
+export {AuthService} from './auth.service';
+export {AuthInterceptor} from './auth.interceptor';
+export {authGuard} from './auth.guard';
+export {resolveAuthConfig} from './auth.config';
