@@ -25,6 +25,13 @@ import {Event} from '../models/types';
 import {AUDIO_PLAYING_SERVICE} from './interfaces/audio-playing';
 import {WebSocketService as WebSocketServiceInterface} from './interfaces/websocket';
 
+// TODO: WebSocket-based features (live audio) currently operate without
+// bearer auth. The HTTP API and SSE paths use Authorization headers, but
+// WebSocket does not support custom headers. Passing tokens as query
+// parameters is insecure (logged in server access logs, browser history,
+// proxies). Proper WebSocket auth requires server-side protocol changes
+// (e.g. subprotocol negotiation or first-message auth).
+
 @Injectable({
   providedIn: 'root',
 })
@@ -125,7 +132,6 @@ export class WebSocketService implements WebSocketServiceInterface {
   urlSafeBase64ToBase64(urlSafeBase64: string): string {
     let base64 = urlSafeBase64.replace(/_/g, '/').replace(/-/g, '+');
 
-    // Ensure correct padding
     while (base64.length % 4 !== 0) {
       base64 += '=';
     }

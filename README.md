@@ -91,6 +91,142 @@ Go to `localhost:4200` and start developing!
 
 ### And more!
 
+## 🔐 Authentication (Optional)
+
+ADK Web supports optional OIDC authentication for enterprise deployments. When enabled, users must authenticate via an OIDC-compliant provider before accessing the UI. When disabled (default), the UI is accessible without authentication.
+
+### Supported Providers
+
+Any OIDC-compliant identity provider works, including:
+- **Keycloak** (including Red Hat build of Keycloak)
+- **Okta** / Auth0
+- **Azure AD** / Entra ID
+- **Google Identity Platform**
+- Any provider with a standard `/.well-known/openid-configuration` endpoint
+
+### Enabling Authentication
+
+Add an `auth` section to `runtime-config.json`:
+
+```json
+{
+  "backendUrl": "http://localhost:8000",
+  "auth": {
+    "enabled": true,
+    "authority": "https://keycloak.example.com/realms/my-realm",
+    "clientId": "adk-web-ui",
+    "scopes": "openid profile email"
+  }
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `enabled` | Yes | Set to `true` to enable OIDC authentication |
+| `authority` | Yes | OIDC issuer URL. For Keycloak: `https://host/realms/{realm}` |
+| `clientId` | Yes | OIDC public client ID registered with your provider |
+| `scopes` | No | Space-separated scopes (default: `openid profile email`) |
+| `silentRefresh` | No | Enable background token refresh (default: `true`) |
+| `postLogoutRedirectUri` | No | URL to redirect to after logout |
+
+### Kubernetes / Container Deployments
+
+For container deployments, enable auth without rebuilding by injecting a ConfigMap:
+
+```javascript
+// Mount as runtime-config.js and include via script tag, or
+// inject into runtime-config.json via ConfigMap mount
+window.__ADK_CONFIG__ = {
+  auth: {
+    enabled: true,
+    authority: "https://keycloak.example.com/realms/kagenti",
+    clientId: "adk-web-ui"
+  }
+};
+```
+
+`window.__ADK_CONFIG__` takes priority over `runtime-config.json`.
+
+### Integration with Kagenti + SPIFFE/SPIRE
+
+When agents are managed by [Kagenti](https://github.com/kagenti) with SPIFFE/SPIRE zero-trust security, OIDC authentication provides the browser-to-agent security layer:
+
+```
+Browser  --OIDC-->  Identity Provider  --JWT-->  Browser
+   |
+   |  Authorization: Bearer <JWT>
+   v
+Envoy AuthBridge (Kagenti sidecar)  --validates JWT-->  ADK Agent
+   |
+   |  SPIFFE/SPIRE mTLS (automatic via ztunnel)
+   v
+Backend Services (SonataFlow, MCP servers, etc.)
+```
+
+The UI handles the first hop (Browser to Envoy). Kagenti infrastructure handles the second hop (Agent to Services) via SPIFFE/SPIRE mTLS -- no application code changes needed.
+
+### Security Model
+
+- **PKCE** (Proof Key for Code Exchange) is enforced for all authorization flows
+- **Fail-closed**: if auth is enabled but a token cannot be obtained, requests are blocked rather than sent without credentials
+- **Automatic refresh**: tokens are silently refreshed before expiry
+- **Provider-agnostic**: uses standard `oidc-client-ts`, not provider-specific adapters
+
+### Behavior When Auth Is Enabled
+
+When authentication is active, the "User ID" text field in the toolbar is replaced by an authenticated user menu showing the user's name, email, and roles from the OIDC token.
+
+### OpenShift / Kubernetes Deployment
+
+A container image can be built using the standard Angular build and any static file server (nginx, Caddy, etc.). Auth is configured at runtime via `runtime-config.json` mounted as a ConfigMap -- no image rebuild needed when switching OIDC providers or disabling auth.
+
+### Keycloak Client Setup
+
+If using Keycloak as your OIDC provider, create a public client:
+
+1. Login to the Keycloak admin console
+2. Select your realm (e.g. `kagenti`)
+3. Go to **Clients** > **Create client**
+4. Set:
+   - **Client ID**: `adk-web-ui`
+   - **Client type**: OpenID Connect
+   - **Client authentication**: OFF (public client)
+   - **Standard flow**: ON
+   - **Direct access grants**: ON (optional, for testing)
+5. Under **Access settings**, set:
+   - **Root URL**: `https://<your-adk-web-route>`
+   - **Valid redirect URIs**: `https://<your-adk-web-route>/*`
+   - **Web origins**: `+` (allows all origins from redirect URIs)
+6. Save the client
+
+### Demo Test Prompts
+
+After deploying the agents and the UI, use these prompts to verify the system works:
+
+**Use Case 1 -- F5 VIP Provisioning** (select the `f5_provisioning` agent):
+
+```
+I need to provision a new F5 VIP. The hostname is myapp.prod.internal.bank.com,
+IP 10.120.100.50, port 443, pool members 10.120.100.10:8443 and 10.120.100.11:8443,
+partition production, VLAN 120. Validate the DNS naming, check for conflicts,
+and trigger the provisioning workflow.
+```
+
+Expected: The agent validates DNS naming conventions, checks subnet/VLAN compliance,
+reviews historical assignments, and either proceeds with the workflow or flags issues.
+
+**Use Case 2 -- Branch Network Monitoring** (select the `branch_monitor` agent):
+
+```
+Proactively check all Charlotte branches for network risks. Get branch inventory,
+weather alerts for Mecklenburg county NC, power outage and ISP status, equipment
+health, and correlate threats. Flag any branches at risk.
+```
+
+Expected: The agent calls 15+ tools (inventory, weather, power, ISP, equipment, correlation),
+produces a threat assessment per branch (HIGH/LOW with scores), and triggers response
+workflows for HIGH-threat branches.
+
 ## 🤝 Contributing
 
 We welcome contributions from the community! Whether it's bug reports, feature requests, documentation improvements, or code contributions, please see our

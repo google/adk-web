@@ -84,6 +84,8 @@ import { SidePanelComponent } from '../side-panel/side-panel.component';
 import { ViewImageDialogComponent } from '../view-image-dialog/view-image-dialog.component';
 import { InlineEditComponent } from '../inline-edit/inline-edit.component';
 import { FormatMetricNamePipe } from '../eval-tab/format-metric-name.pipe';
+import { AuthUserMenuComponent } from '../user-menu/user-menu.component';
+import { AuthService } from '../../core/auth/auth.service';
 
 import { ChatMessagesInjectionToken } from './chat.component.i18n';
 import { SidePanelMessagesInjectionToken } from '../side-panel/side-panel.component.i18n';
@@ -174,6 +176,7 @@ const BIDI_STREAMING_RESTART_WARNING =
     SessionTabComponent,
     InlineEditComponent,
     FormatMetricNamePipe,
+    AuthUserMenuComponent,
   ],
 })
 export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -207,6 +210,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly uiStateService = inject(UI_STATE_SERVICE);
   protected readonly agentBuilderService = inject(AGENT_BUILDER_SERVICE);
   protected readonly themeService = inject(THEME_SERVICE, {optional: true});
+  protected readonly authService = inject(AuthService);
   protected readonly logoComponent: Type<Component> | null = inject(LOGO_COMPONENT, {
     optional: true,
   });

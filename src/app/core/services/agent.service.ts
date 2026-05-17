@@ -19,6 +19,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { URLUtil } from '../../../utils/url-util';
+import { AuthService } from '../auth/auth.service';
 import { AgentRunRequest } from '../models/AgentRunRequest';
 import { LlmResponse } from '../models/types';
 import { AgentService as AgentServiceInterface } from './interfaces/agent';
@@ -35,6 +36,7 @@ export class AgentService implements AgentServiceInterface {
   constructor(
     private http: HttpClient,
     private zone: NgZone,
+    private authService: AuthService,
   ) { }
 
   getApp(): Observable<string> {
@@ -54,14 +56,31 @@ export class AgentService implements AgentServiceInterface {
     this.isLoading.next(true);
     return new Observable<LlmResponse>((observer) => {
       const self = this;
-      fetch(url, {
-        method: 'POST',
-        headers: {
+      const buildHeaders = async () => {
+        const headers: Record<string, string> = {
           'Content-Type': 'application/json',
           'Accept': 'text/event-stream',
-        },
+        };
+        const token = await this.authService.getToken();
+        if (this.authService.isEnabled && !token) {
+          throw new Error('Auth is enabled but no token is available');
+        }
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        return headers;
+      };
+      buildHeaders().then((headers) => fetch(url, {
+        method: 'POST',
+        headers,
         body: JSON.stringify(req),
-      })
+      }))
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`SSE request failed: ${response.status}`);
+          }
+          return response;
+        })
         .then((response) => {
           const reader = response.body?.getReader();
           const decoder = new TextDecoder('utf-8');
