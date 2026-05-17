@@ -176,47 +176,9 @@ The UI handles the first hop (Browser to Envoy). Kagenti infrastructure handles 
 
 When authentication is active, the "User ID" text field in the toolbar is replaced by an authenticated user menu showing the user's name, email, and roles from the OIDC token.
 
-### OpenShift Deployment
+### OpenShift / Kubernetes Deployment
 
-A pre-built container image is available at `quay.io/rbrhssa/adk-web:latest`.
-
-**Step 1: Create a pull secret (if the image is private)**
-
-```bash
-oc create secret docker-registry quay-pull-secret \
-  --docker-server=quay.io \
-  --docker-username=<your-quay-user> \
-  --docker-password=<your-quay-password> \
-  -n <namespace>
-```
-
-**Step 2: Update the ConfigMap in `deploy/openshift.yaml`**
-
-Edit the `adk-web-config` ConfigMap with your OIDC provider's authority URL:
-
-```yaml
-# For Keycloak:
-"authority": "https://keycloak.example.com/realms/my-realm"
-# For Okta:
-"authority": "https://dev-12345.okta.com"
-```
-
-To disable auth entirely, set `"enabled": false` or remove the `auth` section.
-
-**Step 3: Deploy**
-
-```bash
-oc apply -f deploy/openshift.yaml -n <namespace>
-```
-
-**Step 4: Verify**
-
-```bash
-oc get pods -l app=adk-web        # Should be 1/1 Running
-oc get route adk-web -o jsonpath='{.spec.host}'  # Your URL
-```
-
-**Step 5: Access the UI** -- open the Route URL in your browser.
+A container image can be built using the standard Angular build and any static file server (nginx, Caddy, etc.). Auth is configured at runtime via `runtime-config.json` mounted as a ConfigMap -- no image rebuild needed when switching OIDC providers or disabling auth.
 
 ### Keycloak Client Setup
 
