@@ -1333,7 +1333,11 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
         if (existingIndex >= 0) {
           const existingEvent = events[existingIndex];
-          
+
+          if (uiEvent.thought && existingEvent.thought) {
+            uiEvent.text = (existingEvent.text || '') + (uiEvent.text || '');
+          }
+
           // Preserve functionResponses and functionCalls if not present in new event
           if (!uiEvent.functionResponses || uiEvent.functionResponses.length === 0) {
             uiEvent.functionResponses = existingEvent.functionResponses;
