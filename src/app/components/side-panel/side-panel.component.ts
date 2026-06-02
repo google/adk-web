@@ -291,9 +291,10 @@ export class SidePanelComponent implements AfterViewInit, OnInit {
     this.isEvalEnabledObs.pipe(first()).subscribe((isEvalEnabled) => {
       if (isEvalEnabled) {
         const container = this.evalTabContainer();
-        if (!container) return;
-        container.clear();
-
+        if (!container) {
+          return;
+        }
+        
         const evalTabComponent = container.createComponent(
             this.evalTabComponentClass ?? EvalTabComponent, {
               environmentInjector: this.environmentInjector,
