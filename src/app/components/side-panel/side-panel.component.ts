@@ -265,7 +265,22 @@ export class SidePanelComponent implements AfterViewInit, OnInit {
     return this.selectedEvent() as Event | undefined;
   });
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() {
+    // The eval tab container doesn't exist until appName is set and the template renders.
+    // Watch for when appName becomes available to initialize the eval tab.
+    if (this.appName()) {
+      setTimeout(() => this.initEvalTab(), 500);
+    }
+    
+    // Watch for appName changes to init when it becomes available
+    runInInjectionContext(this.environmentInjector, () => {
+      effect(() => {
+        if (this.appName()) {
+          setTimeout(() => this.initEvalTab(), 100);
+        }
+      }, { allowSignalWrites: true });
+    });
+  }
 
   /**
    * Dynamically create the eval tab. We must do this programmatically until
