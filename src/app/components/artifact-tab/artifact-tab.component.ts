@@ -158,7 +158,11 @@ export class ArtifactTabComponent implements OnChanges {
     if (commaIndex === -1) return '';
     const base64 = dataUrl.substring(commaIndex + 1);
     try {
-      return atob(base64);
+      // Use decodeURIComponent(escape(...)) to correctly reconstruct Unicode
+      // strings from UTF-8 byte sequences produced by renderArtifact()'s
+      // btoa(unescape(encodeURIComponent(text))) encoding.
+      // Plain atob() returns a Latin-1 string, causing garbled non-ASCII text.
+      return decodeURIComponent(escape(atob(base64)));
     } catch (e) {
       return 'Failed to decode text content';
     }
