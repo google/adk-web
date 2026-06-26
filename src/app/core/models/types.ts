@@ -136,6 +136,11 @@ export declare interface Event extends LlmResponse {
   systemInstructionChanged?: boolean;
   precedingSystemInstruction?: string;
   currentSystemInstruction?: string;
+  liveSessionResumptionUpdate?: {
+    newHandle?: string;
+    resumable?: boolean;
+    lastConsumedClientMessageIndex?: number;
+  };
 }
 
 export interface ComputerUsePayload {

@@ -1210,7 +1210,60 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Whether an event carries only bookkeeping metadata and has nothing to
+   * render. Live sessions emit such events continuously: session resumption
+   * handle updates, and usage-metadata-only events sent just before
+   * turnComplete. Only skips events that carry one of those metadata markers
+   * AND have nothing else renderable.
+   */
+  private isEmptyMetadataEvent(apiEvent: any): boolean {
+    if (!apiEvent) {
+      return false;
+    }
+
+    const hasMetadataMarker =
+      apiEvent.liveSessionResumptionUpdate !== undefined ||
+      apiEvent.usageMetadata !== undefined;
+    if (!hasMetadataMarker) {
+      return false;
+    }
+
+    return apiEvent.content === undefined
+      && apiEvent.output === undefined
+      && apiEvent.inputTranscription === undefined
+      && apiEvent.outputTranscription === undefined
+      && !apiEvent.errorMessage
+      && !apiEvent.errorCode
+      && !apiEvent.systemInstructionChanged
+      && !apiEvent.turnComplete
+      && !apiEvent.interrupted
+      && !(apiEvent.longRunningToolIds?.length)
+      && this.actionsAreEmpty(apiEvent.actions);
+  }
+
+  /**
+   * Whether an event's actions carry no real content. Events often arrive with
+   * empty action sub-objects (e.g. { stateDelta: {}, artifactDelta: {},
+   * requestedAuthConfigs: {} }), so a key-count check is insufficient.
+   */
+  private actionsAreEmpty(actions: any): boolean {
+    if (!actions) {
+      return true;
+    }
+    return Object.values(actions).every((v) =>
+      v == null ||
+      v === false ||
+      (Array.isArray(v) && v.length === 0) ||
+      (typeof v === 'object' && Object.keys(v).length === 0)
+    );
+  }
+
   private appendEventRow(apiEvent: any, reverseOrder: boolean = false) {
+    if (this.isEmptyMetadataEvent(apiEvent)) {
+      return;
+    }
+
     if (apiEvent.inputTranscription !== undefined) {
       apiEvent.author = 'user';
     } else if (apiEvent.outputTranscription !== undefined) {
