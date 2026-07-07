@@ -1260,7 +1260,15 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private appendEventRow(apiEvent: any, reverseOrder: boolean = false) {
+    // Metadata-only events have no chat row, but usage events still feed the
+    // Usage tab's Session Usage Summary.
     if (this.isEmptyMetadataEvent(apiEvent)) {
+      if (apiEvent.usageMetadata !== undefined && apiEvent.id &&
+          !this.eventData.has(apiEvent.id)) {
+        this.eventData.set(apiEvent.id, apiEvent);
+        this.eventData = new Map(this.eventData);
+        this.traceService.setEventData(this.eventData);
+      }
       return;
     }
 

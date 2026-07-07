@@ -1794,6 +1794,16 @@ describe('ChatComponent', () => {
         expect(component.uiEvents().length).toBe(0);
       });
 
+      it('does not record a resumption-only event into eventData', () => {
+        (component as any).appendEventRow({
+          id: 'resumption-1',
+          author: 'agent',
+          liveSessionResumptionUpdate: {newHandle: 'abc', resumable: true},
+          actions: {...EMPTY_ACTIONS},
+        });
+        expect((component as any).eventData.has('resumption-1')).toBeFalse();
+      });
+
       it('does not render a usage-metadata-only event', () => {
         (component as any).appendEventRow({
           id: 'usage-1',
@@ -1803,6 +1813,20 @@ describe('ChatComponent', () => {
         });
         expect(component.uiEvents().length).toBe(0);
       });
+
+      it('records a usage-metadata-only event into eventData for the Usage tab',
+         () => {
+           (component as any).appendEventRow({
+             id: 'usage-1',
+             author: 'agent',
+             usageMetadata: {totalTokenCount: 858},
+             actions: {...EMPTY_ACTIONS},
+           });
+           expect((component as any).eventData.has('usage-1')).toBeTrue();
+           expect((component as any).eventData.get('usage-1').usageMetadata
+                      .totalTokenCount)
+               .toBe(858);
+         });
 
       it('renders a normal text event (non-live path unaffected)', () => {
         (component as any).appendEventRow({
