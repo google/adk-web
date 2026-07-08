@@ -49,10 +49,6 @@ export const CHAT_PANEL_MESSAGES = {
   turnOffCamTooltip: 'Turn off camera',
   useCamTooltip: 'Use camera',
   updatedSessionStateChipLabel: 'Updated session state',
-  proactiveAudioTooltip: 'Enable the model to speak spontaneously without waiting for user input',
-  affectiveDialogTooltip: 'Enable the model to respond with emotional expression',
-  sessionResumptionTooltip: 'Allow the session to resume from a previous state',
-  saveLiveBlobTooltip: 'Save the recorded live stream data',
 };
 
 

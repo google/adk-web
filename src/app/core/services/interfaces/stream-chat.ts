@@ -24,19 +24,11 @@ export const STREAM_CHAT_SERVICE =
 /**
  * Service for supporting live streaming with audio/video.
  */
-export interface LiveFlags {
-  proactiveAudio?: boolean;
-  enableAffectiveDialog?: boolean;
-  enableSessionResumption?: boolean;
-  saveLiveBlob?: boolean;
-}
-
 export declare abstract class StreamChatService {
   abstract startAudioChat(options: {
     appName: string;
     userId: string;
     sessionId: string;
-    flags?: LiveFlags;
   }): Promise<void>;
   abstract stopAudioChat(): void;
   abstract startVideoChat(options: {
@@ -44,7 +36,6 @@ export declare abstract class StreamChatService {
     userId: string;
     sessionId: string;
     videoContainer: ElementRef;
-    flags?: LiveFlags;
   }): Promise<void>;
   abstract stopVideoChat(videoContainer: ElementRef): void;
   abstract startVideoStreaming(videoContainer: ElementRef): Promise<void>;
