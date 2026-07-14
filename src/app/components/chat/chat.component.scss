@@ -901,7 +901,7 @@ app-canvas {
   transition: background-color 0.15s ease;
 
   &:hover {
-    background-color: var(--mat-sys-surface-variant, rgba(0, 0, 0, 0.04));
+    background-color: var(--mat-sys-primary-container);
   }
 
   &.selected {

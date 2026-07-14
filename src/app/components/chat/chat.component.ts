@@ -89,6 +89,13 @@ import { ChatMessagesInjectionToken } from './chat.component.i18n';
 import { SidePanelMessagesInjectionToken } from '../side-panel/side-panel.component.i18n';
 import { Span, OPERATION_GENERATE_CONTENT, SpanIo, extractSystemInstruction } from '../../core/models/Trace';
 
+export interface ListAppsResult {
+  apps?: string[];
+  folders?: string[];
+}
+
+export const NESTED_APP_SEPARATOR = '.';
+
 const ROOT_AGENT = 'root_agent';
 /** Query parameter for pre-filling user input. */
 export const INITIAL_USER_INPUT_QUERY_PARAM = 'q';
@@ -605,20 +612,94 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     shareReplay(),
   );
 
-  protected readonly filteredDrawerApps$: Observable<string[] | undefined> = this.apps$.pipe(
-    switchMap(apps =>
-      combineLatest([
-        of(apps),
-        this.appDrawerSearchControl.valueChanges.pipe(startWith('')),
-      ])
-    ),
-    map(([apps, searchTerm]) => {
-      if (!apps) return apps;
-      if (!searchTerm || searchTerm.trim() === '') return apps;
-      const lower = searchTerm.toLowerCase().trim();
-      return apps.filter(app => app.toLowerCase().includes(lower));
-    }),
+  // Dynamic explorer state for nested apps and folders in DevServer
+  allApps = signal<string[]>([]);
+  explorerCurrentPath = signal<string>('./');
+
+  // Search term signal
+  protected readonly appSearchSignal = toSignal(
+    this.appDrawerSearchControl.valueChanges.pipe(startWith('')),
+    { initialValue: '' }
   );
+
+  // Helper to group flat apps recursively into folders and apps at any path level
+  getExplorerItemsForPath(currentPath: string, allApps: string[]): { apps: string[], folders: string[] } {
+    const normalizedCurrent = currentPath.replace(/^\.\/?/, '');
+    const cleanCurrent = normalizedCurrent.endsWith(NESTED_APP_SEPARATOR)
+      ? normalizedCurrent.slice(0, -NESTED_APP_SEPARATOR.length)
+      : normalizedCurrent;
+
+    const apps = new Set<string>();
+    const folders = new Set<string>();
+
+    for (const app of allApps) {
+      const cleanApp = app.endsWith(NESTED_APP_SEPARATOR)
+        ? app.slice(0, -NESTED_APP_SEPARATOR.length)
+        : app;
+
+      if (cleanCurrent === "") {
+        // We are at Root
+        if (!cleanApp.includes(NESTED_APP_SEPARATOR)) {
+          apps.add(app);
+        } else {
+          const firstPart = cleanApp.split(NESTED_APP_SEPARATOR)[0];
+          folders.add(firstPart);
+        }
+      } else {
+        // We are inside a nested folder
+        if (cleanApp.startsWith(cleanCurrent + NESTED_APP_SEPARATOR)) {
+          const relativeToCurrent = cleanApp.substring(cleanCurrent.length + 1);
+          const parts = relativeToCurrent.split(NESTED_APP_SEPARATOR);
+          if (parts.length === 1) {
+            apps.add(app);
+          } else {
+            folders.add(cleanCurrent + NESTED_APP_SEPARATOR + parts[0]);
+          }
+        }
+      }
+    }
+
+    return {
+      apps: Array.from(apps).sort(),
+      folders: Array.from(folders).sort()
+    };
+  }
+
+  // Filtered explorer apps and folders
+  protected readonly filteredExplorerApps = computed<{apps: string[], folders: string[]}>(() => {
+    const all = this.allApps();
+    const path = this.explorerCurrentPath();
+    const searchTerm = this.appSearchSignal().toLowerCase().trim();
+
+    const items = this.getExplorerItemsForPath(path, all);
+
+    const apps = items.apps.filter(app => this.getBasename(app).toLowerCase().includes(searchTerm));
+    const folders = items.folders.filter(folder => this.getBasename(folder).toLowerCase().includes(searchTerm));
+
+    return { apps, folders };
+  });
+
+  navigateToExplorerFolder(folderPath: string) {
+    this.explorerCurrentPath.set(folderPath);
+  }
+
+  getExplorerBreadcrumbs() {
+    const path = this.explorerCurrentPath();
+    const parts = path.replace(/^\.\/?/, '').split(NESTED_APP_SEPARATOR).filter(p => p);
+    const breadcrumbs = [{ name: 'Root', path: './' }];
+    let accumulated = './';
+    for (const part of parts) {
+      accumulated = accumulated === './' ? part : `${accumulated}${NESTED_APP_SEPARATOR}${part}`;
+      breadcrumbs.push({ name: part, path: accumulated });
+    }
+    return breadcrumbs;
+  }
+
+  getBasename(path: string): string {
+    if (!path) return '';
+    const parts = path.split(NESTED_APP_SEPARATOR);
+    return parts[parts.length - 1];
+  }
 
   // Feature flag references for use in template.
   readonly importSessionEnabledObs: Observable<boolean> =
@@ -667,6 +748,12 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       this.showSidePanel = window.localStorage.getItem('adk-side-panel-visible') !== 'false';
     }
+
+    this.apps$.subscribe((apps) => {
+      if (apps) {
+        this.allApps.set(apps);
+      }
+    });
     this.syncSelectedAppFromUrl();
     this.updateSelectedAppUrl();
     this.hideSidePanelIfNeeded();
@@ -2069,6 +2156,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showAppSelectorDrawer = !this.showAppSelectorDrawer;
     if (this.showAppSelectorDrawer) {
       this.appDrawerSearchControl.setValue('');
+      this.explorerCurrentPath.set('./');
     }
   }
 

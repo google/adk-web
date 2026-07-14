@@ -234,20 +234,43 @@
         <input matInput #appSearchInput placeholder="Search apps..." [formControl]="appDrawerSearchControl" (keydown)="handleAppSearchKeydown($event)" />
       </mat-form-field>
     </div>
+    <div class="explorer-breadcrumb" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 16px; background: var(--mat-sys-surface-container); border-bottom: 1px solid var(--mat-sys-outline-variant); align-items: center; font-size: 13px;">
+      @for (crumb of getExplorerBreadcrumbs(); track crumb.path; let last = $last) {
+        <button mat-button style="min-width: auto; padding: 4px 8px; height: 28px; font-size: 13px; color: var(--mat-sys-primary);" 
+                [disabled]="last" (click)="navigateToExplorerFolder(crumb.path)">
+          {{ crumb.name }}
+        </button>
+        @if (!last) {
+          <span style="color: var(--mat-sys-outline); font-size: 12px;">/</span>
+        }
+      }
+    </div>
     <div class="app-selector-list" (keydown)="handleAppListKeydown($event)">
       @if (isLoadingApps()) {
         <div class="app-selector-loading"><mat-progress-spinner mode="indeterminate" diameter="32"></mat-progress-spinner></div>
-      } @else if (filteredDrawerApps$ | async; as apps) {
-        @for (app of apps; track app) {
-          <button class="app-selector-item" [class.selected]="app === appName" (click)="selectAppFromDrawer(app)">
-            <mat-icon fontSet="material-symbols-outlined" class="app-selector-item-icon">robot_2</mat-icon>
-            <span class="app-selector-item-name">{{ app }}</span>
+      } @else {
+        <!-- Folders First -->
+        @for (folder of filteredExplorerApps().folders; track folder) {
+          <button class="app-selector-item folder-item" (click)="navigateToExplorerFolder(folder)" style="display: flex; align-items: center; width: 100%; border: none; padding: 10px 16px; text-align: left; cursor: pointer;">
+            <mat-icon fontSet="material-symbols-outlined" class="app-selector-item-icon" style="color: #ffb300; margin-right: 12px;">folder</mat-icon>
+            <span class="app-selector-item-name" style="flex-grow: 1; font-weight: 500; color: var(--mat-sys-on-surface);">{{ getBasename(folder) }}</span>
+            <mat-icon fontSet="material-symbols-outlined" style="color: var(--mat-sys-outline); font-size: 18px;">chevron_right</mat-icon>
+          </button>
+        }
+
+        <!-- Apps Second -->
+        @for (app of filteredExplorerApps().apps; track app) {
+          <button class="app-selector-item" [class.selected]="app === appName" (click)="selectAppFromDrawer(app)" style="display: flex; align-items: center; width: 100%; border: none; padding: 10px 16px; text-align: left; cursor: pointer;">
+            <mat-icon fontSet="material-symbols-outlined" class="app-selector-item-icon" style="margin-right: 12px; color: var(--mat-sys-primary);">robot_2</mat-icon>
+            <span class="app-selector-item-name" style="flex-grow: 1; color: var(--mat-sys-on-surface);">{{ getBasename(app) }}</span>
             @if (app === appName) {
-              <mat-icon class="app-selector-check">check</mat-icon>
+              <mat-icon class="app-selector-check" style="color: var(--mat-sys-primary);">check</mat-icon>
             }
           </button>
-        } @empty {
-          <div class="app-selector-empty">No apps found</div>
+        }
+
+        @if (filteredExplorerApps().apps.length === 0 && filteredExplorerApps().folders.length === 0) {
+          <div class="app-selector-empty" style="padding: 32px; text-align: center; color: var(--mat-sys-outline);">No folders or apps found</div>
         }
       }
     </div>
