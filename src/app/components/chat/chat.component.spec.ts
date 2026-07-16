@@ -1678,4 +1678,186 @@ describe('ChatComponent', () => {
       expect(mockSnackBar.open).toHaveBeenCalledWith('Failed to refresh sessions.', 'OK');
     }));
   });
+
+  describe('empty metadata events', () => {
+    // Actions as serialized by the ADK server on live events: keys present but
+    // every sub-object empty.
+    const EMPTY_ACTIONS = {
+      stateDelta: {},
+      artifactDelta: {},
+      requestedAuthConfigs: {},
+      requestedToolConfirmations: {},
+    };
+
+    beforeEach(() => {
+      component.uiEvents.set([]);
+      component.eventData = new Map();
+    });
+
+    describe('isEmptyMetadataEvent', () => {
+      it('returns true for a session resumption update with empty actions', () => {
+        const event = {
+          id: 'resumption-1',
+          author: 'agent',
+          liveSessionResumptionUpdate: {newHandle: 'abc', resumable: true},
+          actions: {...EMPTY_ACTIONS},
+        };
+        expect((component as any).isEmptyMetadataEvent(event)).toBeTrue();
+      });
+
+      it('returns true for a usage-metadata-only event with empty actions', () => {
+        const event = {
+          id: 'usage-1',
+          author: 'agent',
+          usageMetadata: {totalTokenCount: 858},
+          actions: {...EMPTY_ACTIONS},
+        };
+        expect((component as any).isEmptyMetadataEvent(event)).toBeTrue();
+      });
+
+      it('returns false when no metadata marker is present', () => {
+        const event = {
+          id: 'plain-1',
+          author: 'bot',
+          content: {parts: [{text: 'hello'}]},
+          actions: {...EMPTY_ACTIONS},
+        };
+        expect((component as any).isEmptyMetadataEvent(event)).toBeFalse();
+      });
+
+      it('returns false when a marker event also carries content', () => {
+        const event = {
+          id: 'final-1',
+          author: 'bot',
+          usageMetadata: {totalTokenCount: 858},
+          content: {parts: [{text: 'final answer'}]},
+          actions: {...EMPTY_ACTIONS},
+        };
+        expect((component as any).isEmptyMetadataEvent(event)).toBeFalse();
+      });
+
+      it('returns false when a marker event carries a real stateDelta', () => {
+        const event = {
+          id: 'state-1',
+          author: 'agent',
+          usageMetadata: {totalTokenCount: 1},
+          actions: {...EMPTY_ACTIONS, stateDelta: {key: 'value'}},
+        };
+        expect((component as any).isEmptyMetadataEvent(event)).toBeFalse();
+      });
+
+      it('returns false when a marker event signals turnComplete', () => {
+        const event = {
+          id: 'turn-1',
+          author: 'agent',
+          usageMetadata: {totalTokenCount: 1},
+          turnComplete: true,
+          actions: {...EMPTY_ACTIONS},
+        };
+        expect((component as any).isEmptyMetadataEvent(event)).toBeFalse();
+      });
+    });
+
+    describe('actionsAreEmpty', () => {
+      it('treats null/undefined actions as empty', () => {
+        expect((component as any).actionsAreEmpty(undefined)).toBeTrue();
+        expect((component as any).actionsAreEmpty(null)).toBeTrue();
+      });
+
+      it('treats an object of empty sub-objects as empty', () => {
+        expect((component as any).actionsAreEmpty({...EMPTY_ACTIONS})).toBeTrue();
+      });
+
+      it('treats a populated stateDelta as non-empty', () => {
+        expect((component as any).actionsAreEmpty({stateDelta: {k: 1}})).toBeFalse();
+      });
+
+      it('treats transferToAgent as non-empty', () => {
+        expect((component as any).actionsAreEmpty({transferToAgent: 'other_agent'}))
+            .toBeFalse();
+      });
+
+      it('treats endOfAgent === true as non-empty', () => {
+        expect((component as any).actionsAreEmpty({endOfAgent: true})).toBeFalse();
+        expect((component as any).actionsAreEmpty({endOfAgent: false})).toBeTrue();
+      });
+    });
+
+    describe('appendEventRow integration', () => {
+      it('does not render a session resumption update', () => {
+        (component as any).appendEventRow({
+          id: 'resumption-1',
+          author: 'agent',
+          liveSessionResumptionUpdate: {newHandle: 'abc', resumable: true},
+          actions: {...EMPTY_ACTIONS},
+        });
+        expect(component.uiEvents().length).toBe(0);
+      });
+
+      it('does not record a resumption-only event into eventData', () => {
+        (component as any).appendEventRow({
+          id: 'resumption-1',
+          author: 'agent',
+          liveSessionResumptionUpdate: {newHandle: 'abc', resumable: true},
+          actions: {...EMPTY_ACTIONS},
+        });
+        expect((component as any).eventData.has('resumption-1')).toBeFalse();
+      });
+
+      it('does not render a usage-metadata-only event', () => {
+        (component as any).appendEventRow({
+          id: 'usage-1',
+          author: 'agent',
+          usageMetadata: {totalTokenCount: 858},
+          actions: {...EMPTY_ACTIONS},
+        });
+        expect(component.uiEvents().length).toBe(0);
+      });
+
+      it('records a usage-metadata-only event into eventData for the Usage tab',
+         () => {
+           (component as any).appendEventRow({
+             id: 'usage-1',
+             author: 'agent',
+             usageMetadata: {totalTokenCount: 858},
+             actions: {...EMPTY_ACTIONS},
+           });
+           expect((component as any).eventData.has('usage-1')).toBeTrue();
+           expect((component as any).eventData.get('usage-1').usageMetadata
+                      .totalTokenCount)
+               .toBe(858);
+         });
+
+      it('renders a normal text event (non-live path unaffected)', () => {
+        (component as any).appendEventRow({
+          id: 'text-1',
+          author: 'bot',
+          content: {parts: [{text: 'hello world'}]},
+        });
+        expect(component.uiEvents().length).toBe(1);
+        expect(component.uiEvents()[0].text).toBe('hello world');
+      });
+
+      it('renders an event whose only signal is a real stateDelta', () => {
+        (component as any).appendEventRow({
+          id: 'state-1',
+          author: 'agent',
+          actions: {...EMPTY_ACTIONS, stateDelta: {key: 'value'}},
+        });
+        expect(component.uiEvents().length).toBe(1);
+      });
+
+      it('renders a marker event that also carries content', () => {
+        (component as any).appendEventRow({
+          id: 'final-1',
+          author: 'bot',
+          usageMetadata: {totalTokenCount: 858},
+          content: {parts: [{text: 'final answer'}]},
+          actions: {...EMPTY_ACTIONS},
+        });
+        expect(component.uiEvents().length).toBe(1);
+        expect(component.uiEvents()[0].text).toBe('final answer');
+      });
+    });
+  });
 });
