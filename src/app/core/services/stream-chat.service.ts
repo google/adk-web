@@ -21,7 +21,7 @@ import {URLUtil} from '../../../utils/url-util';
 import {LiveRequest} from '../models/LiveRequest';
 
 import {AUDIO_RECORDING_SERVICE} from './interfaces/audio-recording';
-import {LiveFlags, STREAM_CHAT_SERVICE, StreamChatService as StreamChatServiceInterface} from './interfaces/stream-chat';
+import {STREAM_CHAT_SERVICE, StreamChatService as StreamChatServiceInterface} from './interfaces/stream-chat';
 import {VIDEO_SERVICE} from './interfaces/video';
 import {WEBSOCKET_SERVICE} from './interfaces/websocket';
 import {VideoService} from './video.service';
@@ -42,33 +42,17 @@ export class StreamChatService implements StreamChatServiceInterface {
 
   constructor() {}
 
-  private getWsUrl(appName: string, userId: string, sessionId: string, flags?: LiveFlags): string {
+  private getWsUrl(appName: string, userId: string, sessionId: string): string {
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    let url = `${protocol}://${URLUtil.getWSServerUrl()}/run_live?app_name=${appName}&user_id=${userId}&session_id=${sessionId}`;
-    if (flags) {
-      if (flags.proactiveAudio) {
-        url += `&proactive_audio=true`;
-      }
-      if (flags.enableAffectiveDialog) {
-        url += `&enable_affective_dialog=true`;
-      }
-      if (flags.enableSessionResumption) {
-        url += `&enable_session_resumption=true`;
-      }
-      if (flags.saveLiveBlob) {
-        url += `&save_live_blob=true`;
-      }
-    }
-    return url;
+    return `${protocol}://${URLUtil.getWSServerUrl()}/run_live?app_name=${appName}&user_id=${userId}&session_id=${sessionId}`;
   }
 
   async startAudioChat({
     appName,
     userId,
     sessionId,
-    flags,
-  }: {appName: string; userId: string; sessionId: string; flags?: LiveFlags;}) {
-    this.webSocketService.connect(this.getWsUrl(appName, userId, sessionId, flags));
+  }: {appName: string; userId: string; sessionId: string;}) {
+    this.webSocketService.connect(this.getWsUrl(appName, userId, sessionId));
 
     await this.startAudioStreaming();
   }
@@ -112,13 +96,11 @@ export class StreamChatService implements StreamChatServiceInterface {
     userId,
     sessionId,
     videoContainer,
-    flags,
   }: {
     appName: string; userId: string; sessionId: string;
     videoContainer: ElementRef;
-    flags?: LiveFlags;
   }) {
-    this.webSocketService.connect(this.getWsUrl(appName, userId, sessionId, flags));
+    this.webSocketService.connect(this.getWsUrl(appName, userId, sessionId));
 
     await this.startAudioStreaming();
     await this.startVideoStreaming(videoContainer);

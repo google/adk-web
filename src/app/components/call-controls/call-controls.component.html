@@ -16,7 +16,7 @@
     <div class="bar" [style.height.px]="4 + micVolume * 14"></div>
   </div>
 }
-<div class="call-btn-container" (mouseenter)="showFlags = true" (mouseleave)="showFlags = false">
+<div class="call-btn-container">
   <button
     mat-icon-button
     (click)="onCallClick()"
@@ -26,22 +26,4 @@
   >
     <mat-icon>{{ isAudioRecording ? 'call_end' : 'call' }}</mat-icon>
   </button>
-
-  @if (showFlags && !isAudioRecording && !disabled) {
-    <div class="flags-panel">
-      <div class="flags-title">Live Flags</div>
-      <div class="flag-item">
-        <mat-checkbox [checked]="flags.proactiveAudio" (change)="flags.proactiveAudio = $event.checked" [matTooltip]="i18n.proactiveAudioTooltip" matTooltipPosition="left" [disabled]="disabled">Proactive Audio</mat-checkbox>
-      </div>
-      <div class="flag-item">
-        <mat-checkbox [checked]="flags.enableAffectiveDialog" (change)="flags.enableAffectiveDialog = $event.checked" [matTooltip]="i18n.affectiveDialogTooltip" matTooltipPosition="left" [disabled]="disabled">Affective Dialog</mat-checkbox>
-      </div>
-      <div class="flag-item">
-        <mat-checkbox [checked]="flags.enableSessionResumption" (change)="flags.enableSessionResumption = $event.checked" [matTooltip]="i18n.sessionResumptionTooltip" matTooltipPosition="left" [disabled]="disabled">Session Resumption</mat-checkbox>
-      </div>
-      <div class="flag-item">
-        <mat-checkbox [checked]="flags.saveLiveBlob" (change)="flags.saveLiveBlob = $event.checked" [matTooltip]="i18n.saveLiveBlobTooltip" matTooltipPosition="left" [disabled]="disabled">Save Live Blob</mat-checkbox>
-      </div>
-    </div>
-  }
 </div>

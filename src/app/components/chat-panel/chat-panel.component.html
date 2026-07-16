@@ -203,7 +203,7 @@
         <app-call-controls [isAudioRecording]="isAudioRecording" [isVideoRecording]="isVideoRecording"
           [micVolume]="micVolume" [isBidiStreamingEnabled]="(isBidiStreamingEnabledObs | async) ?? false"
           [disabled]="isLoadingAgentResponse() ?? false"
-          (toggleAudioRecording)="toggleAudioRecording.emit($event)"
+          (toggleAudioRecording)="toggleAudioRecording.emit()"
           (toggleVideoRecording)="toggleVideoRecording.emit()"></app-call-controls>
         @if (isLoadingAgentResponse()) {
           <button mat-icon-button (click)="stopMessage.emit($event)" class="stop-message-btn"
