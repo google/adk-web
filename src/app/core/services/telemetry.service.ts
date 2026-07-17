@@ -47,6 +47,14 @@ export class TelemetryService {
     if (runtimeConfig && runtimeConfig.telemetry !== undefined) {
       this.telemetryStatus.set(runtimeConfig.telemetry);
     }
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          this.fetchTelemetryStatus();
+        }
+      });
+    }
   }
 
   async fetchTelemetryStatus(): Promise<boolean|null> {
