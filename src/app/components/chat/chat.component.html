@@ -200,6 +200,19 @@
           (save)="saveUserId($event)"
         ></app-inline-edit>
       </div>
+      <div class="user-menu-telemetry-row">
+        <span class="telemetry-label">Usage Metrics</span>
+        <mat-icon
+          class="info-icon"
+          matTooltip="Usage patterns, performance metrics, and environment details (OS, versions). No personal information, code, or agent data is collected.">
+          info_outline
+        </mat-icon>
+        <span style="flex: 1"></span>
+        <mat-slide-toggle
+          [checked]="telemetryService.telemetryEnabled()"
+          (change)="onTelemetryToggle($event.checked)">
+        </mat-slide-toggle>
+      </div>
     </div>
   </mat-menu>
 </mat-toolbar>

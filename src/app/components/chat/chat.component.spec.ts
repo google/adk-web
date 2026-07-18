@@ -76,6 +76,9 @@ import {MockMarkdownComponent} from '../markdown/testing/mock-markdown.component
 import {SidePanelComponent} from '../side-panel/side-panel.component';
 import {THEME_SERVICE} from '../../core/services/interfaces/theme';
 import {MockThemeService} from '../../core/services/testing/mock-theme.service';
+import {TelemetryService} from '../../core/services/telemetry.service';
+import {TelemetryConsentDialogComponent} from '../telemetry-consent-dialog/telemetry-consent-dialog.component';
+import {computed, signal} from '@angular/core';
 
 import {ChatComponent, HIDE_SIDE_PANEL_QUERY_PARAM, INITIAL_USER_INPUT_QUERY_PARAM} from './chat.component';
 
@@ -128,9 +131,21 @@ const A2A_DATA_PART_TAG_START = '<a2a_datapart_json>';
 const A2A_DATA_PART_TAG_END = '</a2a_datapart_json>';
 const A2UI_MIME_TYPE = 'application/json+a2ui';
 
+class MockTelemetryService {
+  readonly telemetryStatus = signal<boolean|null|undefined>(undefined);
+  readonly telemetryEnabled = computed(() => this.telemetryStatus() === true);
+  fetchTelemetryStatus = jasmine.createSpy('fetchTelemetryStatus').and.callFake(async () => {
+    return this.telemetryStatus();
+  });
+  setTelemetry = jasmine.createSpy('setTelemetry').and.callFake(async (enabled: boolean) => {
+    this.telemetryStatus.set(enabled);
+  });
+}
+
 describe('ChatComponent', () => {
   let component: ChatComponent;
   let fixture: ComponentFixture<ChatComponent>;
+  let mockTelemetryService: MockTelemetryService;
   let mockSessionService: MockSessionService;
   let mockArtifactService: MockArtifactService;
   let mockWebSocketService: MockWebSocketService;
@@ -156,6 +171,7 @@ describe('ChatComponent', () => {
   let mockAgentBuilderService: jasmine.SpyObj<any>;
 
   beforeEach(async () => {
+    mockTelemetryService = new MockTelemetryService();
     mockSessionService = new MockSessionService();
     mockArtifactService = new MockArtifactService();
     mockWebSocketService = new MockWebSocketService();
@@ -278,6 +294,7 @@ describe('ChatComponent', () => {
             {provide: UI_STATE_SERVICE, useValue: mockUiStateService},
             {provide: ErrorHandler, useValue: mockErrorHandler},
             {provide: AGENT_BUILDER_SERVICE, useValue: mockAgentBuilderService},
+            {provide: TelemetryService, useValue: mockTelemetryService},
             {provide: THEME_SERVICE, useClass: MockThemeService},
           ],
         })
@@ -1857,6 +1874,52 @@ describe('ChatComponent', () => {
         });
         expect(component.uiEvents().length).toBe(1);
         expect(component.uiEvents()[0].text).toBe('final answer');
+      });
+    });
+
+    describe('Telemetry Integration', () => {
+      it('should open telemetry consent dialog when telemetryStatus is null on init', fakeAsync(() => {
+        mockTelemetryService.telemetryStatus.set(null);
+        
+        component.ngOnInit();
+        tick();
+
+        expect(mockDialog.open).toHaveBeenCalledWith(
+          TelemetryConsentDialogComponent,
+          jasmine.objectContaining({ disableClose: true })
+        );
+      }));
+
+      it('should not open telemetry consent dialog when telemetryStatus is true on init', fakeAsync(() => {
+        mockTelemetryService.telemetryStatus.set(true);
+
+        component.ngOnInit();
+        tick();
+
+        expect(mockDialog.open).not.toHaveBeenCalledWith(
+          TelemetryConsentDialogComponent,
+          jasmine.any(Object)
+        );
+      }));
+
+      it('should not open telemetry consent dialog when telemetryStatus is false on init', fakeAsync(() => {
+        mockTelemetryService.telemetryStatus.set(false);
+
+        component.ngOnInit();
+        tick();
+
+        expect(mockDialog.open).not.toHaveBeenCalledWith(
+          TelemetryConsentDialogComponent,
+          jasmine.any(Object)
+        );
+      }));
+
+      it('should call setTelemetry when onTelemetryToggle is called', async () => {
+        await component.onTelemetryToggle(true);
+        expect(mockTelemetryService.setTelemetry).toHaveBeenCalledWith(true);
+
+        await component.onTelemetryToggle(false);
+        expect(mockTelemetryService.setTelemetry).toHaveBeenCalledWith(false);
       });
     });
   });

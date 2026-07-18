@@ -558,6 +558,27 @@
   gap: 4px;
 }
 
+.user-menu-telemetry-row {
+  display: flex;
+  align-items: center;
+  margin-top: 16px;
+  gap: 6px;
+
+  .telemetry-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--chat-toolbar-session-text-color);
+  }
+
+  .info-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--chat-toolbar-icon-color);
+    cursor: help;
+  }
+}
+
 .user-menu-id {
   font-family: 'Google Sans Mono', monospace;
   font-size: 14px;

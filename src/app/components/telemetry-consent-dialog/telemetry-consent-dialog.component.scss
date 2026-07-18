@@ -1,0 +1,52 @@
+.dialog-title {
+  font-family: 'Google Sans', 'Google Sans Logo', sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--mdc-dialog-title-text-color, inherit);
+}
+
+.dialog-content {
+  font-family: Roboto, sans-serif;
+  font-size: 14px;
+  color: var(--mdc-dialog-supporting-text-color, inherit);
+  line-height: 1.5;
+
+  p {
+    margin-bottom: 12px;
+    color: var(--mdc-dialog-supporting-text-color, inherit);
+  }
+
+  .info-section {
+    background-color: var(--builder-form-field-background-color, rgba(138, 180, 248, 0.08));
+    border: 1px solid var(--builder-border-color, rgba(138, 180, 248, 0.2));
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    color: var(--mdc-dialog-supporting-text-color, inherit);
+
+    strong {
+      color: var(--builder-text-link-color, #8ab4f8);
+      font-weight: 500;
+    }
+  }
+}
+
+.dialog-actions {
+  padding: 16px 24px;
+  gap: 8px;
+
+  button {
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 500;
+  }
+
+  button[color="primary"] {
+    background-color: var(--builder-text-link-color, #1a73e8) !important;
+    color: var(--mat-sys-background, #ffffff) !important;
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+}

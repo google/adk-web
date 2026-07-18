@@ -1,0 +1,20 @@
+<h2 mat-dialog-title class="dialog-title">Help Improve ADK!</h2>
+<mat-dialog-content class="dialog-content">
+  <p>To help us make ADK better, please consider allowing Google to collect pseudonymized usage data from your interactions with both ADK Web UI and CLI. This data helps us understand how features are used, identify areas for improvement, and prioritize development.</p>
+  
+  <div class="info-section">
+    <strong>What we collect:</strong> Usage patterns, performance metrics, and environment details (OS, versions). We do not collect any personal information, code, or agent data.
+  </div>
+
+  <div class="info-section">
+    <strong>Your Choice:</strong> This is OFF by default. Your participation is optional.
+  </div>
+
+  <div class="info-section">
+    <strong>Control:</strong> You can change this setting at any time via the toggle in the Web UI User Settings or by using the CLI command (<code>adk telemetry disable</code>).
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-button (click)="onNoThanks()">No Thanks</button>
+  <button mat-flat-button color="primary" (click)="onEnable()">Enable</button>
+</mat-dialog-actions>
