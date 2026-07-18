@@ -69,6 +69,7 @@ import { ListResponse } from '../../core/services/interfaces/types';
 import { UI_STATE_SERVICE } from '../../core/services/interfaces/ui-state';
 import { LOCATION_SERVICE } from '../../core/services/location.service';
 import { TestsService } from '../../core/services/tests.service';
+import { AnalyticsService } from '../../core/services/analytics.service';
 import { ResizableDrawerDirective } from '../../directives/resizable-drawer.directive';
 import { AddItemDialogComponent } from '../add-item-dialog/add-item-dialog.component';
 import { AgentStructureGraphDialogComponent } from '../agent-structure-graph-dialog/agent-structure-graph-dialog';
@@ -220,6 +221,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly agentBuilderService = inject(AGENT_BUILDER_SERVICE);
   protected readonly themeService = inject(THEME_SERVICE, { optional: true });
   protected readonly telemetryService = inject(TelemetryService);
+  protected readonly analyticsService = inject(AnalyticsService);
   protected readonly logoComponent: Type<Component> | null = inject(LOGO_COMPONENT, {
     optional: true,
   });
@@ -767,6 +769,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.agentService.getVersion().subscribe((res) => {
       this.adkVersion.set(res.version || '');
       this.versionInfo.set(res);
+      this.analyticsService.setUserProperties({
+        adk_version: res?.version || '',
+        adk_language: res?.language || '',
+      });
     });
 
     combineLatest([
@@ -1105,6 +1111,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           this.sessionId = res.id ?? '';
           this.sessionTab?.refreshSession();
           this.sessionTab?.reloadSession(this.sessionId);
+          this.analyticsService.sendEvent('chat_session_create');
 
           this.isSessionUrlEnabledObs.subscribe((enabled) => {
             if (enabled) {
@@ -3106,6 +3113,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       .toString();
     this.location.replaceState(url);
     this.isBuilderMode.set(true);
+    this.analyticsService.sendEvent('builder_enter_click');
 
     // Load existing agent configuration if app is selected
     if (this.appName) {
@@ -3167,6 +3175,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   openAgentStructureGraphDialog(mode: 'session' | 'event' = 'session'): void {
     this.agentStructureOverlayMode = mode;
     this.showAgentStructureOverlay = true;
+    this.analyticsService.sendEvent('graph_view_click');
   }
 
   saveAgentBuilder() {
