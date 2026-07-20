@@ -185,3 +185,9 @@ markdown code {
     border-radius: 0 !important;
   }
 }
+
+.telemetry-consent-dialog-panel {
+  .mdc-dialog__surface {
+    background-color: var(--mat-sys-surface-container, #1e1e1e) !important;
+  }
+}

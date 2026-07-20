@@ -40,6 +40,7 @@ import {TraceTabComponent} from '../trace-tab/trace-tab.component';
 import {EventTabComponent} from '../event-tab/event-tab.component';
 
 import {TRACE_SERVICE} from '../../core/services/interfaces/trace';
+import {AnalyticsService} from '../../core/services/analytics.service';
 import {SidePanelMessagesInjectionToken} from './side-panel.component.i18n';
 
 /**
@@ -119,6 +120,7 @@ export class SidePanelComponent implements AfterViewInit, OnInit {
       viewChild('evalTabContainer', {read: ViewContainerRef});
   readonly tabGroup = viewChild(MatTabGroup);
 
+  protected readonly analyticsService = inject(AnalyticsService);
   readonly logoComponent: Type<Component>|null = inject(LOGO_COMPONENT, {
     optional: true,
   });
@@ -199,6 +201,12 @@ export class SidePanelComponent implements AfterViewInit, OnInit {
   onTabChange(event: MatTabChangeEvent) {
     this.tabChange.emit(event);
     this.selectedIndex = event.index;
+    const label = event.tab?.textLabel?.toLowerCase() || '';
+    if (label.includes('trace')) {
+      this.analyticsService.sendEvent('trace_view_toggle');
+    } else if (label.includes('event')) {
+      this.analyticsService.sendEvent('event_view_toggle');
+    }
   }
 
   switchToEvalTab() {

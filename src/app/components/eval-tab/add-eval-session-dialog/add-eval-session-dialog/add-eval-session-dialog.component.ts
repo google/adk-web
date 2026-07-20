@@ -19,6 +19,7 @@ import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
 import {uuidv4} from 'uuidv7';
 import {EVAL_SERVICE} from '../../../../core/services/interfaces/eval';
+import {AnalyticsService} from '../../../../core/services/analytics.service';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatFormField } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
@@ -55,6 +56,7 @@ export class AddEvalSessionDialogComponent {
     existingCases?: string[];
   } = inject(MAT_DIALOG_DATA);
   readonly dialogRef = inject(MatDialogRef<AddEvalSessionDialogComponent>);
+  private readonly analyticsService = inject(AnalyticsService);
 
   newCaseId: string = this.data.defaultName || ('case_' + uuidv4().slice(0, 6));
   loading = false;
@@ -81,6 +83,7 @@ export class AddEvalSessionDialogComponent {
               )
           .subscribe({
             next: (res) => {
+              this.analyticsService.sendEvent('eval_create_click');
               this.dialogRef.close(true);
             },
             error: (err) => {
