@@ -25,6 +25,7 @@ import { MatIcon } from '@angular/material/icon';
 
 import { AgentRunRequest } from '../../core/models/AgentRunRequest';
 import { MarkdownComponent } from '../markdown/markdown.component';
+import {isImeComposing} from '../../utils/keyboard-event.utils';
 
 
 
@@ -198,7 +199,11 @@ export class LongRunningResponseComponent implements OnChanges {
     }
   }
 
-  onSend() {
+  onSend(event?: Event) {
+    if (isImeComposing(event)) {
+      return;
+    }
+
     if (this.isConfirmationRequest) {
       let payloadObj: any = {};
       try {

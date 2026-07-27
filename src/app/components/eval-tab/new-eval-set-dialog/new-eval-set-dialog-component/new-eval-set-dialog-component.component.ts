@@ -26,6 +26,7 @@ import { MatInput } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
+import {isImeComposing} from '../../../../utils/keyboard-event.utils';
 
 @Component({
     changeDetection: ChangeDetectionStrategy.Default,
@@ -61,7 +62,11 @@ export class NewEvalSetDialogComponentComponent {
     });
   }
 
-  createNewEvalSet() {
+  createNewEvalSet(event?: Event) {
+    if (isImeComposing(event)) {
+      return;
+    }
+
     if (!this.newSetId || this.newSetId == '') {
       alert('Cannot create eval set with empty id!');
     } else {
