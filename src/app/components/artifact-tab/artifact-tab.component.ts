@@ -158,7 +158,8 @@ export class ArtifactTabComponent implements OnChanges {
     if (commaIndex === -1) return '';
     const base64 = dataUrl.substring(commaIndex + 1);
     try {
-      return atob(base64);
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      return new TextDecoder('utf-8').decode(bytes);
     } catch (e) {
       return 'Failed to decode text content';
     }
