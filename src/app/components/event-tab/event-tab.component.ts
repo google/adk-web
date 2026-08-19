@@ -190,6 +190,8 @@ export class EventTabComponent {
     const allEvents = Array.from(this.eventDataMap().values());
     let totalPromptTokens = 0;
     let totalCandidatesTokens = 0;
+    let totalCachedContentTokens = 0;
+    let totalThoughtsTokens = 0;
     let totalTokens = 0;
 
     allEvents.forEach(ev => {
@@ -197,10 +199,14 @@ export class EventTabComponent {
       if (metadata) {
         const prompt = metadata.promptTokenCount ?? metadata.promptTokens ?? 0;
         const candidates = metadata.candidatesTokenCount ?? metadata.candidatesTokens ?? 0;
+        const cachedContent = metadata.cachedContentTokenCount ?? metadata.cachedContentTokens ?? 0;
+        const thoughts = metadata.thoughtsTokenCount ?? metadata.thoughtsTokens ?? 0;
         const total = metadata.totalTokenCount ?? metadata.totalTokens ?? 0;
 
         totalPromptTokens += Number(prompt);
         totalCandidatesTokens += Number(candidates);
+        totalCachedContentTokens += Number(cachedContent);
+        totalThoughtsTokens += Number(thoughts);
         totalTokens += Number(total);
       }
     });
@@ -208,6 +214,8 @@ export class EventTabComponent {
     return {
       'Prompt Tokens': totalPromptTokens,
       'Candidates Tokens': totalCandidatesTokens,
+      'Cached Content Tokens': totalCachedContentTokens,
+      'Thoughts Tokens': totalThoughtsTokens,
       'Total Tokens': totalTokens
     };
   });
