@@ -192,6 +192,7 @@ export class EventTabComponent {
     let totalCandidatesTokens = 0;
     let totalCachedContentTokens = 0;
     let totalThoughtsTokens = 0;
+    let totalCacheCreationTokens = 0;
     let totalTokens = 0;
 
     allEvents.forEach(ev => {
@@ -209,12 +210,19 @@ export class EventTabComponent {
         totalThoughtsTokens += Number(thoughts);
         totalTokens += Number(total);
       }
+      // Cache-write (creation) tokens live on the event itself, not in
+      // usageMetadata: google.genai's usage type forbids extra fields, so ADK
+      // surfaces them on the serializable event (alongside cacheMetadata)
+      // instead. Read/reasoning above are genuine usageMetadata fields.
+      const cacheCreation = ev.cacheCreationTokenCount ?? ev.cacheCreationTokens ?? 0;
+      totalCacheCreationTokens += Number(cacheCreation);
     });
 
     return {
       'Prompt Tokens': totalPromptTokens,
       'Candidates Tokens': totalCandidatesTokens,
       'Cached Content Tokens': totalCachedContentTokens,
+      'Cache Creation Tokens': totalCacheCreationTokens,
       'Thoughts Tokens': totalThoughtsTokens,
       'Total Tokens': totalTokens
     };

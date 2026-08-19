@@ -229,6 +229,16 @@
             </td>
           </tr>
           }
+          @if (selectedEvent()?.cacheCreationTokenCount) {
+          <tr>
+            <td>cacheCreationTokenCount</td>
+            <td>
+              <span class="value-cell numeric-cell">
+                <span [matTooltip]="(selectedEvent()!.cacheCreationTokenCount | number) || ''">{{ selectedEvent()!.cacheCreationTokenCount | number }}</span>
+              </span>
+            </td>
+          </tr>
+          }
         </table>
         } @else {
         <table app-info-table title="Usage Summary for Event">
@@ -249,6 +259,12 @@
           <tr>
             <td>Total Cached Content Tokens</td>
             <td class="numeric-cell">{{ sessionUsageMetadata()['Cached Content Tokens'] | number }}</td>
+          </tr>
+          }
+          @if (sessionUsageMetadata()['Cache Creation Tokens'] > 0) {
+          <tr>
+            <td>Total Cache Creation Tokens</td>
+            <td class="numeric-cell">{{ sessionUsageMetadata()['Cache Creation Tokens'] | number }}</td>
           </tr>
           }
           <tr>
