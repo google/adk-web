@@ -147,3 +147,11 @@ export interface ComputerUsePayload {
   image?: {data: string; mimetype?: string;};
   url?: string;
 }
+
+export enum MediaType {
+  IMAGE = 'image',
+  AUDIO = 'audio',
+  VIDEO = 'video',
+  TEXT = 'text',
+  UNSPECIFIED = 'unspecified',
+}

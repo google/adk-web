@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
+import {initTestBed} from '../../testing/utils';
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { AnalyticsService, DEFAULT_GA_MEASUREMENT_ID } from './analytics.service';
@@ -31,6 +33,7 @@ describe('AnalyticsService', () => {
       telemetryEnabled: signal(false),
     };
 
+    initTestBed();  // required for 1p compat
     TestBed.configureTestingModule({
       providers: [
         AnalyticsService,

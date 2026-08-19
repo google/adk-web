@@ -52,12 +52,12 @@ sudo npm install
 npm run serve --backend=http://localhost:8000
 ```
 
-### Run adk api server
+### Run adk api web server
 
 In another terminal run:
 
 ```bash
-adk api_server --allow_origins=http://localhost:4200 --host=0.0.0.0
+adk web --allow_origins=http://localhost:4200 --host=0.0.0.0
 ```
 
 If you see `adk command not found`, then be sure to install `google-adk` (or remember to activate your virtual environment if you are using one)
@@ -115,3 +115,4 @@ This feature is subject to the "Pre-GA Offerings Terms" in the General Service T
 ---
 
 *Happy Agent Building!*
+

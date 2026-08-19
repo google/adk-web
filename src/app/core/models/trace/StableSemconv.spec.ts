@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
+import {initTestBed} from '../../../testing/utils';
 import {
   GEN_AI_CHOICE_EVENT,
   GEN_AI_SYSTEM_MESSAGE_EVENT,

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+// 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
+import {initTestBed} from '../../testing/utils';
 import {base64ToArrayBuffer, pcmChunksToWavBase64} from './audio';
 
 /** Decodes base64 -> Uint8Array for assertions. */
