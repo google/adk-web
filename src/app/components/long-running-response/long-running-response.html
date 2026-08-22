@@ -110,7 +110,7 @@
             }
           </div>
         } @else {
-          <input class="response-input" [(ngModel)]="functionCall.userResponse" (keydown.enter)="onSend()"
+          <input class="response-input" [(ngModel)]="functionCall.userResponse" (keydown.enter)="onSend($event)"
             placeholder="Enter your response..." />
           <button mat-icon-button (click)="onSend()" [disabled]="!functionCall.userResponse" class="send-button">
             <mat-icon>send</mat-icon>
@@ -207,7 +207,7 @@
           }
         </div>
       } @else {
-        <input class="response-input" [(ngModel)]="functionCall.userResponse" (keydown.enter)="onSend()"
+        <input class="response-input" [(ngModel)]="functionCall.userResponse" (keydown.enter)="onSend($event)"
           placeholder="Enter your response..." />
         <button mat-icon-button (click)="onSend()" [disabled]="!functionCall.userResponse" class="send-button">
           <mat-icon>send</mat-icon>

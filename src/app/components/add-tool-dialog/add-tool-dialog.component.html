@@ -49,7 +49,7 @@
       [(ngModel)]="toolName"
       matInput
       placeholder="Enter full function name"
-      (keydown.enter)="addTool()">
+      (keydown.enter)="addTool($event)">
   </mat-form-field>
   }
 
