@@ -1,14 +1,19 @@
+<!--
+  The camera button starts a video call when idle, and turns the local camera
+  on and off once one is running. It is inert during an audio-only call, which
+  has no camera to toggle.
+-->
+<button
+  mat-icon-button
+  (click)="toggleVideoRecording.emit()"
+  class="video-rec-btn"
+  [class.recording]="isVideoCall && isVideoRecording"
+  [matTooltip]="videoButtonTooltip"
+  [disabled]="disabled || !isBidiStreamingEnabled || (isAudioRecording && !isVideoCall)"
+>
+  <mat-icon>{{ isVideoCall && !isVideoRecording ? 'videocam_off' : 'videocam' }}</mat-icon>
+</button>
 @if (isAudioRecording) {
-  <button
-    mat-icon-button
-    (click)="toggleVideoRecording.emit()"
-    class="video-rec-btn"
-    [class.recording]="isVideoRecording"
-    [matTooltip]="isVideoRecording ? i18n.turnOffCamTooltip : i18n.useCamTooltip"
-    [disabled]="disabled || !isBidiStreamingEnabled"
-  >
-    <mat-icon>videocam</mat-icon>
-  </button>
   <div class="mic-visualizer">
     <div class="bar" [style.height.px]="4 + micVolume * 16"></div>
     <div class="bar" [style.height.px]="4 + micVolume * 24"></div>
@@ -22,6 +27,7 @@
     (click)="onCallClick()"
     class="audio-rec-btn"
     [class.recording]="isAudioRecording"
+    [matTooltip]="isAudioRecording ? i18n.turnOffMicTooltip : i18n.useMicTooltip"
     [disabled]="disabled || !isBidiStreamingEnabled"
   >
     <mat-icon>{{ isAudioRecording ? 'call_end' : 'call' }}</mat-icon>

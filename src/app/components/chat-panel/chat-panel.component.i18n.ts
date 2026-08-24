@@ -48,6 +48,7 @@ export const CHAT_PANEL_MESSAGES = {
   useMicTooltip: 'Call',
   turnOffCamTooltip: 'Turn off camera',
   useCamTooltip: 'Use camera',
+  videoCallTooltip: 'Video call',
   updatedSessionStateChipLabel: 'Updated session state',
 };
 

@@ -22,20 +22,25 @@ import {initTestBed} from '../../testing/utils';
 
 import {AUDIO_PLAYING_SERVICE} from './interfaces/audio-playing';
 import {MockAudioPlayingService} from './testing/mock-audio-playing.service';
+import {MockVideoPlayingService} from './testing/mock-video-playing.service';
+import {VIDEO_PLAYING_SERVICE} from './interfaces/video-playing';
 import {WebSocketService} from './websocket.service';
 
 describe('WebSocketService', () => {
   let service: WebSocketService;
   let mockAudioPlayingService: MockAudioPlayingService;
+  let mockVideoPlayingService: MockVideoPlayingService;
 
   beforeEach(() => {
     initTestBed();  // required for 1p compat
     mockAudioPlayingService = new MockAudioPlayingService();
+    mockVideoPlayingService = new MockVideoPlayingService();
 
     TestBed.configureTestingModule({
       providers: [
         WebSocketService,
-        {provide: AUDIO_PLAYING_SERVICE, useValue: mockAudioPlayingService}
+        {provide: AUDIO_PLAYING_SERVICE, useValue: mockAudioPlayingService},
+        {provide: VIDEO_PLAYING_SERVICE, useValue: mockVideoPlayingService}
       ],
     });
     service = TestBed.inject(WebSocketService);

@@ -609,6 +609,53 @@ describe('ChatPanelComponent', () => {
       expect(button!.nativeElement.disabled).toBeTrue();
     });
 
+    const callButtons = () =>
+        fixture.debugElement.queryAll(By.css('button[mat-icon-button]'))
+            .map(b => ({
+                   icon: b.nativeElement.querySelector('mat-icon')
+                             ?.textContent?.trim(),
+                   disabled: b.nativeElement.disabled,
+                 }));
+
+    it('offers the videocam button beside the call button while not in a call',
+       () => {
+         mockFeatureFlagService.isBidiStreamingEnabledResponse.next(true);
+         component.isAudioRecording = false;
+         fixture.detectChanges();
+
+         const icons = callButtons();
+         const videocam = icons.find(b => b.icon === 'videocam');
+         const call = icons.find(b => b.icon === 'call');
+
+         expect(videocam).toBeDefined();
+         expect(videocam!.disabled).toBeFalse();
+         expect(call).toBeDefined();
+         expect(call!.disabled).toBeFalse();
+       });
+
+    it('disables the videocam button during an audio-only call, which has no camera',
+       () => {
+         mockFeatureFlagService.isBidiStreamingEnabledResponse.next(true);
+         component.isAudioRecording = true;
+         component.isVideoCall = false;
+         fixture.detectChanges();
+
+         expect(callButtons().find(b => b.icon === 'videocam')!.disabled)
+             .toBeTrue();
+       });
+
+    it('keeps the videocam button active during a video call so the camera can be turned off',
+       () => {
+         mockFeatureFlagService.isBidiStreamingEnabledResponse.next(true);
+         component.isAudioRecording = true;
+         component.isVideoCall = true;
+         component.isVideoRecording = true;
+         fixture.detectChanges();
+
+         expect(callButtons().find(b => b.icon === 'videocam')!.disabled)
+             .toBeFalse();
+       });
+
     describe('when canEditSession is false', () => {
       beforeEach(() => {
         fixture.componentRef.instance.canEditSession.set(false);

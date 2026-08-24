@@ -35,9 +35,15 @@ export declare abstract class StreamChatService {
     appName: string;
     userId: string;
     sessionId: string;
+    /** Where the agent's avatar stream is rendered. */
+    avatarContainer: ElementRef;
+    /** Where the local camera preview is rendered. */
     videoContainer: ElementRef;
   }): Promise<void>;
-  abstract stopVideoChat(videoContainer: ElementRef): void;
+  abstract stopVideoChat(
+    avatarContainer?: ElementRef,
+    videoContainer?: ElementRef,
+  ): void;
   abstract startVideoStreaming(videoContainer: ElementRef): Promise<void>;
   abstract stopVideoStreaming(videoContainer: ElementRef): void;
   abstract onStreamClose(): Observable<string>;

@@ -23,6 +23,7 @@ import {LiveRequest} from '../models/LiveRequest';
 import {Event} from '../models/types';
 
 import {AUDIO_PLAYING_SERVICE} from './interfaces/audio-playing';
+import {VIDEO_PLAYING_SERVICE} from './interfaces/video-playing';
 import {WebSocketService as WebSocketServiceInterface} from './interfaces/websocket';
 
 @Injectable({
@@ -30,10 +31,12 @@ import {WebSocketService as WebSocketServiceInterface} from './interfaces/websoc
 })
 export class WebSocketService implements WebSocketServiceInterface {
   private readonly audioPlayingService = inject(AUDIO_PLAYING_SERVICE);
+  private readonly videoPlayingService = inject(VIDEO_PLAYING_SERVICE);
 
   private socket$!: WebSocketSubject<any>;
   private messages$: BehaviorSubject<string> = new BehaviorSubject<string>('');
   private audioBuffer: Uint8Array[] = [];
+  private videoBuffer: Uint8Array[] = [];
   private audioIntervalId: any = null;
   private closeReasonSubject = new Subject<string>();
 
@@ -41,6 +44,7 @@ export class WebSocketService implements WebSocketServiceInterface {
     // Reset any previous connection/buffer so restarts start clean.
     this.closeConnection();
     this.audioBuffer = [];
+    this.videoBuffer = [];
 
     this.socket$ = new WebSocketSubject({
       url: serverUrl,
@@ -61,12 +65,14 @@ export class WebSocketService implements WebSocketServiceInterface {
           console.error('WebSocket error:', error);
         },
     );
-    this.audioIntervalId = setInterval(() => this.playIncomingAudio(), 250);
+    this.audioIntervalId = setInterval(() => this.playIncomingMedia(), 250);
   }
 
-  private playIncomingAudio() {
+  private playIncomingMedia() {
     this.audioPlayingService.playAudio(this.audioBuffer);
     this.audioBuffer = [];
+    this.videoPlayingService.playVideo(this.videoBuffer);
+    this.videoBuffer = [];
   }
 
   sendMessage(data: LiveRequest) {
@@ -111,19 +117,23 @@ export class WebSocketService implements WebSocketServiceInterface {
       return;
     }
 
-    // Extract audio from any part; forward the event if it has other content
-    let hasNonAudioContent = false;
+    // Extract audio/video from any part; forward the event if it has other
+    // content. Avatar video arrives as ~70 chunks a second, so letting those
+    // through would swamp the transcript.
+    let hasOtherContent = false;
     for (const part of parts) {
       const inlineData = part?.['inlineData'];
       const mimeType: string|undefined = inlineData?.['mimeType'];
       if (inlineData?.['data'] && mimeType?.startsWith('audio/')) {
         this.audioBuffer.push(this.base64ToUint8Array(inlineData['data']));
+      } else if (inlineData?.['data'] && mimeType?.startsWith('video/')) {
+        this.videoBuffer.push(this.base64ToUint8Array(inlineData['data']));
       } else {
-        hasNonAudioContent = true;
+        hasOtherContent = true;
       }
     }
 
-    if (hasNonAudioContent) {
+    if (hasOtherContent) {
       this.messages$.next(message);
     }
   }

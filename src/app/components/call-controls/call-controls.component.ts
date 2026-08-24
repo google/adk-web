@@ -39,11 +39,21 @@ export class CallControlsComponent {
   @Input() micVolume = 0;
   @Input() isBidiStreamingEnabled: boolean | null = false;
   @Input() disabled = false;
+  /** True when the running call was opened with the VIDEO modality. */
+  @Input() isVideoCall = false;
 
   @Output() readonly toggleAudioRecording = new EventEmitter<void>();
   @Output() readonly toggleVideoRecording = new EventEmitter<void>();
 
   protected readonly i18n = inject(ChatPanelMessagesInjectionToken);
+
+  protected get videoButtonTooltip(): string {
+    if (!this.isVideoCall) {
+      return this.i18n.videoCallTooltip;
+    }
+    return this.isVideoRecording ? this.i18n.turnOffCamTooltip :
+                                   this.i18n.useCamTooltip;
+  }
 
   onCallClick() {
     this.toggleAudioRecording.emit();
