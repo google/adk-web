@@ -211,7 +211,8 @@
 
       <div matSuffix class="input-suffix-container">
         <app-call-controls [isAudioRecording]="isAudioRecording" [isVideoRecording]="isVideoRecording"
-          [micVolume]="micVolume" [isBidiStreamingEnabled]="(isBidiStreamingEnabledObs | async) ?? false"
+          [micVolume]="micVolume" [isVideoCall]="isVideoCall"
+          [isBidiStreamingEnabled]="(isBidiStreamingEnabledObs | async) ?? false"
           [disabled]="isLoadingAgentResponse() ?? false"
           (toggleAudioRecording)="toggleAudioRecording.emit()"
           (toggleVideoRecording)="toggleVideoRecording.emit()"></app-call-controls>
@@ -228,6 +229,8 @@
         }
       </div>
     </mat-form-field>
+    <!-- The agent's avatar stream; the local camera sits beside it. -->
+    <div #avatarContainer class="avatar-container" [class.visible]="isVideoCall"></div>
     <div #videoContainer class="video-container" [class.visible]="isVideoRecording"></div>
   </div>
 </div>

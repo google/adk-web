@@ -182,6 +182,33 @@
   }
 }
 
+/* The agent's avatar stream. Portrait, since the Live API renders it 9:16. */
+.avatar-container {
+  display: none;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--mat-sys-surface-variant);
+  border: 1px solid var(--mat-sys-outline-variant);
+  width: 160px;
+
+  &.visible {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Style the video element inserted by VideoPlayingService */
+  ::ng-deep video {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 280px;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+}
+
 .video-container {
   display: none;
   border-radius: 12px;

@@ -66,6 +66,7 @@ import {STRING_TO_COLOR_SERVICE} from './app/core/services/interfaces/string-to-
 import {THEME_SERVICE} from './app/core/services/interfaces/theme';
 import {TRACE_SERVICE} from './app/core/services/interfaces/trace';
 import {UI_STATE_SERVICE} from './app/core/services/interfaces/ui-state';
+import {VIDEO_PLAYING_SERVICE} from './app/core/services/interfaces/video-playing';
 import {VIDEO_SERVICE} from './app/core/services/interfaces/video';
 import {WEBSOCKET_SERVICE} from './app/core/services/interfaces/websocket';
 import {LocalFileServiceImpl} from './app/core/services/local-file.service';
@@ -78,6 +79,7 @@ import {StringToColorServiceImpl} from './app/core/services/string-to-color.serv
 import {ThemeService} from './app/core/services/theme.service';
 import {TraceService} from './app/core/services/trace.service';
 import {UiStateService} from './app/core/services/ui-state.service';
+import {VideoPlayingService} from './app/core/services/video-playing.service';
 import {VideoService} from './app/core/services/video.service';
 import {WebSocketService} from './app/core/services/websocket.service';
 import {LOGO_COMPONENT} from './app/injection_tokens';
@@ -103,6 +105,7 @@ fetch('./assets/config/runtime-config.json')
           {provide: AUDIO_RECORDING_SERVICE, useClass: AudioRecordingService},
           {provide: AUDIO_PLAYING_SERVICE, useClass: AudioPlayingService},
           {provide: VIDEO_SERVICE, useClass: VideoService},
+          {provide: VIDEO_PLAYING_SERVICE, useClass: VideoPlayingService},
           {provide: STREAM_CHAT_SERVICE, useClass: StreamChatService},
           {provide: EVENT_SERVICE, useClass: EventService},
           {provide: EVAL_SERVICE, useClass: EvalService},

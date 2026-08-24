@@ -27,8 +27,10 @@ import {fakeAsync,
 import {AUDIO_RECORDING_SERVICE} from './interfaces/audio-recording';
 import {StreamChatService} from './stream-chat.service';
 import {MockAudioRecordingService} from './testing/mock-audio-recording.service';
+import {MockVideoPlayingService} from './testing/mock-video-playing.service';
 import {MockVideoService} from './testing/mock-video.service';
 import {MockWebSocketService} from './testing/mock-websocket.service';
+import {VIDEO_PLAYING_SERVICE} from './interfaces/video-playing';
 import {VIDEO_SERVICE} from './interfaces/video';
 import {WEBSOCKET_SERVICE} from './interfaces/websocket';
 
@@ -37,7 +39,9 @@ describe('StreamChatService', () => {
   let mockWebSocketService: MockWebSocketService;
   let mockAudioRecordingService: MockAudioRecordingService;
   let mockVideoService: MockVideoService;
+  let mockVideoPlayingService: MockVideoPlayingService;
   let videoContainer: ElementRef;
+  let avatarContainer: ElementRef;
 
 
   beforeEach(() => {
@@ -46,14 +50,17 @@ describe('StreamChatService', () => {
     mockWebSocketService = new MockWebSocketService();
     mockAudioRecordingService = new MockAudioRecordingService();
     mockVideoService = new MockVideoService();
+    mockVideoPlayingService = new MockVideoPlayingService();
     videoContainer = new ElementRef(document.createElement('div'));
+    avatarContainer = new ElementRef(document.createElement('div'));
 
     TestBed.configureTestingModule({
       providers: [
         StreamChatService,
         {provide: WEBSOCKET_SERVICE, useValue: mockWebSocketService},
         {provide: AUDIO_RECORDING_SERVICE, useValue: mockAudioRecordingService},
-        {provide: VIDEO_SERVICE, useValue: mockVideoService}
+        {provide: VIDEO_SERVICE, useValue: mockVideoService},
+        {provide: VIDEO_PLAYING_SERVICE, useValue: mockVideoPlayingService}
       ],
     });
 
@@ -74,7 +81,7 @@ describe('StreamChatService', () => {
 
       expect(mockWebSocketService.connect)
           .toHaveBeenCalledWith(
-              'ws://localhost:9876/run_live?app_name=fake-app-name&user_id=fake-user-id&session_id=fake-session-id');
+              'ws://localhost:9876/run_live?app_name=fake-app-name&user_id=fake-user-id&session_id=fake-session-id&modalities=AUDIO');
     });
 
     it('should start audio recording', async () => {
@@ -142,12 +149,13 @@ describe('StreamChatService', () => {
         appName: 'fake-app-name',
         userId: 'fake-user-id',
         sessionId: 'fake-session-id',
+        avatarContainer,
         videoContainer
       });
 
       expect(mockWebSocketService.connect)
           .toHaveBeenCalledWith(
-              'ws://localhost:9876/run_live?app_name=fake-app-name&user_id=fake-user-id&session_id=fake-session-id');
+              'ws://localhost:9876/run_live?app_name=fake-app-name&user_id=fake-user-id&session_id=fake-session-id&modalities=VIDEO&avatar_name=Kai');
     });
 
     it('should start audio recording', async () => {
@@ -155,6 +163,7 @@ describe('StreamChatService', () => {
         appName: 'fake-app-name',
         userId: 'fake-user-id',
         sessionId: 'fake-session-id',
+        avatarContainer,
         videoContainer
       });
 
@@ -166,6 +175,7 @@ describe('StreamChatService', () => {
         appName: 'fake-app-name',
         userId: 'fake-user-id',
         sessionId: 'fake-session-id',
+        avatarContainer,
         videoContainer
       });
 
@@ -181,6 +191,7 @@ describe('StreamChatService', () => {
            appName: 'fake-app-name',
            userId: 'fake-user-id',
            sessionId: 'fake-session-id',
+           avatarContainer,
            videoContainer
          });
          tick(1000);
@@ -195,6 +206,7 @@ describe('StreamChatService', () => {
            appName: 'fake-app-name',
            userId: 'fake-user-id',
            sessionId: 'fake-session-id',
+           avatarContainer,
            videoContainer
          });
          tick(2000);
@@ -205,19 +217,19 @@ describe('StreamChatService', () => {
 
   describe('stopVideoChat', () => {
     it('should stop audio recording', () => {
-      service.stopVideoChat(videoContainer);
+      service.stopVideoChat(avatarContainer, videoContainer);
 
       expect(mockAudioRecordingService.stopRecording).toHaveBeenCalled();
     });
 
     it('should stop video recording', () => {
-      service.stopVideoChat(videoContainer);
+      service.stopVideoChat(avatarContainer, videoContainer);
 
       expect(mockVideoService.stopRecording).toHaveBeenCalled();
     });
 
     it('should close WebSocket connection', () => {
-      service.stopVideoChat(videoContainer);
+      service.stopVideoChat(avatarContainer, videoContainer);
 
       expect(mockWebSocketService.closeConnection).toHaveBeenCalled();
     });
@@ -230,12 +242,13 @@ describe('StreamChatService', () => {
            appName: 'fake-app-name',
            userId: 'fake-user-id',
            sessionId: 'fake-session-id',
+           avatarContainer,
            videoContainer
          });
          // This should trigger the WebScoket to send messages four times.
          tick(1000);
 
-         service.stopVideoChat(videoContainer);
+         service.stopVideoChat(avatarContainer, videoContainer);
          // This should NOT trigger the WebScoket as the timer has already been
          // cleared.
          tick(1000);
@@ -250,12 +263,13 @@ describe('StreamChatService', () => {
            appName: 'fake-app-name',
            userId: 'fake-user-id',
            sessionId: 'fake-session-id',
+           avatarContainer,
            videoContainer
          });
          // This should trigger the WebScoket to send messages twice.
          tick(2000);
 
-         service.stopVideoChat(videoContainer);
+         service.stopVideoChat(avatarContainer, videoContainer);
          // This should NOT trigger the WebScoket as the timer has already been
          // cleared.
          tick(2000);

@@ -299,9 +299,13 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   adkVersion = signal<string>('');
   versionInfo = signal<any>(null);
   evalSetId = '';
+  /** True for any live call, audio or video. */
   isAudioRecording = false;
   micVolume = this.audioRecordingService.volumeLevel;
+  /** True while the local camera is streaming; only ever set in a video call. */
   isVideoRecording = false;
+  /** True when the live session was opened with the VIDEO modality. */
+  isVideoCall = false;
   longRunningEvents: any[] = [];
   functionCallEventId = '';
   redirectUri = URLUtil.getBaseUrlWithoutPath();
@@ -2240,25 +2244,90 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.changeDetectorRef.detectChanges();
   }
 
+  /** Hangs up, whichever kind of call is running. */
   stopAudioRecording() {
     this.audioPlayingService.stopAudio();
-    this.streamChatService.stopAudioChat();
+    if (this.isVideoCall) {
+      const chatPanel = this.chatPanel();
+      this.streamChatService.stopVideoChat(
+        chatPanel?.avatarContainer, chatPanel?.videoContainer);
+      this.isVideoCall = false;
+      this.isVideoRecording = false;
+    } else {
+      this.streamChatService.stopAudioChat();
+      // The camera has no button of its own outside a video call, but never
+      // leave it running if something else turned it on.
+      if (this.isVideoRecording) {
+        this.stopVideoRecording();
+      }
+    }
     this.isAudioRecording = false;
     this.activeBidiSessions.delete(this.sessionId);
-    if (this.isVideoRecording) {
-      this.stopVideoRecording();
-    }
     this.changeDetectorRef.detectChanges();
   }
 
-  toggleVideoRecording() {
+  /**
+   * The camera button starts a video call when idle, and switches the local
+   * camera on and off once one is running.
+   */
+  async toggleVideoRecording() {
+    if (!this.isAudioRecording) {
+      await this.startVideoCall();
+      return;
+    }
+    if (!this.isVideoCall) {
+      return;
+    }
     this.isVideoRecording ? this.stopVideoRecording() :
       this.startVideoRecording();
   }
 
-  // Video is an add-on to an active call: it streams frames over the existing
-  // connection rather than opening its own, so it doesn't touch the session
-  // lock or the websocket.
+  /**
+   * Opens a live session with the VIDEO modality, so the agent replies as an
+   * avatar video stream instead of speech alone.
+   */
+  async startVideoCall() {
+    if (this.sessionId && this.activeBidiSessions.has(this.sessionId)) {
+      this.openSnackBar(BIDI_STREAMING_IN_PROGRESS_WARNING, 'OK');
+      return;
+    }
+
+    const isSessionActive = await this.ensureSessionActive();
+    if (!isSessionActive) {
+      return;
+    }
+
+    // The containers are only rendered during a call, so flip the flags and
+    // flush before reaching for them.
+    this.isAudioRecording = true;
+    this.isVideoCall = true;
+    this.isVideoRecording = true;
+    this.changeDetectorRef.detectChanges();
+
+    const chatPanel = this.chatPanel();
+    const avatarContainer = chatPanel?.avatarContainer;
+    const videoContainer = chatPanel?.videoContainer;
+    if (!avatarContainer || !videoContainer) {
+      this.isAudioRecording = false;
+      this.isVideoCall = false;
+      this.isVideoRecording = false;
+      this.changeDetectorRef.detectChanges();
+      return;
+    }
+
+    this.activeBidiSessions.add(this.sessionId);
+    void this.streamChatService.startVideoChat({
+      appName: this.appName,
+      userId: this.userId,
+      sessionId: this.sessionId,
+      avatarContainer,
+      videoContainer,
+    });
+    this.changeDetectorRef.detectChanges();
+  }
+
+  // Turning the camera on streams frames over the existing connection rather
+  // than opening its own, so it doesn't touch the session lock or the socket.
   startVideoRecording() {
     const videoContainer = this.chatPanel()?.videoContainer;
     if (!videoContainer) {

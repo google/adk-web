@@ -142,6 +142,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Input() isAudioRecording: boolean = false;
   @Input() micVolume: number = 0;
   @Input() isVideoRecording: boolean = false;
+  @Input() isVideoCall: boolean = false;
   @Input() userId: string = '';
   @Input() sessionId: string = '';
   @Input() viewMode: 'events' | 'traces' = 'events';
@@ -184,6 +185,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   @Output() readonly manualScroll = new EventEmitter<void>();
 
   @ViewChild('videoContainer', { read: ElementRef }) videoContainer!: ElementRef;
+  @ViewChild('avatarContainer', { read: ElementRef }) avatarContainer!: ElementRef;
   @ViewChild('autoScroll') scrollContainer!: ElementRef;
   @ViewChild('messageTextarea') public textarea: ElementRef | undefined;
   scrollInterrupted = false;

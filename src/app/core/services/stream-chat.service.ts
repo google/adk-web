@@ -22,10 +22,20 @@ import {LiveRequest} from '../models/LiveRequest';
 
 import {AUDIO_RECORDING_SERVICE} from './interfaces/audio-recording';
 import {STREAM_CHAT_SERVICE, StreamChatService as StreamChatServiceInterface} from './interfaces/stream-chat';
+import {VIDEO_PLAYING_SERVICE} from './interfaces/video-playing';
 import {VIDEO_SERVICE} from './interfaces/video';
 import {WEBSOCKET_SERVICE} from './interfaces/websocket';
 import {VideoService} from './video.service';
 import {WebSocketService} from './websocket.service';
+
+/** Response modality requested from the /run_live endpoint. */
+export type LiveModality = 'AUDIO'|'VIDEO';
+
+/**
+ * Pre-built avatar the Live API renders in a video call. Avatar mode is
+ * refused outright unless an avatar is named.
+ */
+const DEFAULT_AVATAR_NAME = 'Kai';
 
 /**
  * Service for supporting live streaming with audio/video.
@@ -36,15 +46,27 @@ import {WebSocketService} from './websocket.service';
 export class StreamChatService implements StreamChatServiceInterface {
   private readonly audioRecordingService = inject(AUDIO_RECORDING_SERVICE);
   private readonly videoService = inject(VIDEO_SERVICE);
+  private readonly videoPlayingService = inject(VIDEO_PLAYING_SERVICE);
   private readonly webSocketService = inject(WEBSOCKET_SERVICE);
   private audioIntervalId: number|undefined = undefined;
   private videoIntervalId: number|undefined = undefined;
 
   constructor() {}
 
-  private getWsUrl(appName: string, userId: string, sessionId: string): string {
+  private getWsUrl(
+      appName: string, userId: string, sessionId: string,
+      modality: LiveModality): string {
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    return `${protocol}://${URLUtil.getWSServerUrl()}/run_live?app_name=${appName}&user_id=${userId}&session_id=${sessionId}`;
+    const params = new URLSearchParams({
+      app_name: appName,
+      user_id: userId,
+      session_id: sessionId,
+      modalities: modality,
+    });
+    if (modality === 'VIDEO') {
+      params.set('avatar_name', DEFAULT_AVATAR_NAME);
+    }
+    return `${protocol}://${URLUtil.getWSServerUrl()}/run_live?${params}`;
   }
 
   async startAudioChat({
@@ -52,7 +74,8 @@ export class StreamChatService implements StreamChatServiceInterface {
     userId,
     sessionId,
   }: {appName: string; userId: string; sessionId: string;}) {
-    this.webSocketService.connect(this.getWsUrl(appName, userId, sessionId));
+    this.webSocketService.connect(
+        this.getWsUrl(appName, userId, sessionId, 'AUDIO'));
 
     await this.startAudioStreaming();
   }
@@ -95,20 +118,32 @@ export class StreamChatService implements StreamChatServiceInterface {
     appName,
     userId,
     sessionId,
+    avatarContainer,
     videoContainer,
   }: {
     appName: string; userId: string; sessionId: string;
-    videoContainer: ElementRef;
+    avatarContainer: ElementRef; videoContainer: ElementRef;
   }) {
-    this.webSocketService.connect(this.getWsUrl(appName, userId, sessionId));
+    // The avatar sink has to be ready before the socket opens, otherwise the
+    // first chunks (which carry the MP4 init segment) are dropped.
+    this.videoPlayingService.startPlayback(avatarContainer);
+    this.webSocketService.connect(
+        this.getWsUrl(appName, userId, sessionId, 'VIDEO'));
 
     await this.startAudioStreaming();
     await this.startVideoStreaming(videoContainer);
   }
 
-  stopVideoChat(videoContainer: ElementRef) {
+  // The containers are gone already if the panel was torn down first, but the
+  // socket still has to be closed either way.
+  stopVideoChat(avatarContainer?: ElementRef, videoContainer?: ElementRef) {
     this.stopAudioStreaming();
-    this.stopVideoStreaming(videoContainer);
+    if (videoContainer) {
+      this.stopVideoStreaming(videoContainer);
+    }
+    if (avatarContainer) {
+      this.videoPlayingService.stopVideo(avatarContainer);
+    }
     this.webSocketService.closeConnection();
   }
 
