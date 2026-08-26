@@ -101,6 +101,45 @@ describe('SafeValuesService', () => {
       expect(blob.size).toBeGreaterThan(0);
     });
 
+    it('should not give the blob a scriptable document type', () => {
+      // A blob URL inherits the opener's origin, so a scriptable type here
+      // runs artifact content as the app. Each of these must be downgraded.
+      const scriptableTypes = [
+        'text/html',
+        'text/html; charset=utf-8',
+        'TEXT/HTML',
+        'application/xhtml+xml',
+        'image/svg+xml',
+        'text/xml',
+        'application/xml',
+      ];
+      const openBlobUrlSpy = spyOn(service, 'openBlobUrl').and.returnValue({
+        focus: () => {},
+      } as Window);
+
+      for (const mimeType of scriptableTypes) {
+        openBlobUrlSpy.calls.reset();
+
+        service.openBase64InNewTab(btoa('<script>alert(1)</script>'), mimeType);
+
+        const blob = openBlobUrlSpy.calls.mostRecent().args[0];
+        expect(blob.type)
+            .withContext(mimeType)
+            .toEqual('application/octet-stream');
+      }
+    });
+
+    it('should preserve the type of inert content', () => {
+      const openBlobUrlSpy = spyOn(service, 'openBlobUrl').and.returnValue({
+        focus: () => {},
+      } as Window);
+
+      service.openBase64InNewTab(btoa('plain'), 'text/plain');
+
+      expect(openBlobUrlSpy.calls.mostRecent().args[0].type)
+          .toEqual('text/plain');
+    });
+
     it('should do nothing if dataUrl is empty', () => {
       const openBlobUrlSpy = spyOn(service, 'openBlobUrl');
       service.openBase64InNewTab('', 'image/png');

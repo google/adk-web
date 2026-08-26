@@ -41,6 +41,35 @@ declare interface SafeValuesServiceInterface {
 }
 
 /**
+ * MIME types a browser parses into a scriptable document.
+ *
+ * A blob URL inherits the origin of the page that created it, so opening one
+ * of these in a tab executes the content with the app's origin and a live
+ * `window.opener` handle back into the session. Artifact bytes are untrusted --
+ * an agent, a tool, or an upload produced them -- so these are handed to the
+ * browser as opaque data rather than as a document.
+ */
+const SCRIPTABLE_DOCUMENT_TYPES: ReadonlySet<string> = new Set([
+  'text/html',
+  'application/xhtml+xml',
+  'image/svg+xml',
+  'text/xml',
+  'application/xml',
+]);
+
+const OPAQUE_TYPE = 'application/octet-stream';
+
+/**
+ * The blob type to use for `mimeType`, downgraded to an opaque type when the
+ * browser would otherwise parse it as a scriptable document. Parameters
+ * (`text/html; charset=utf-8`) are stripped before comparing.
+ */
+function blobTypeFor(mimeType: string): string {
+  const essence = mimeType.split(';')[0].trim().toLowerCase();
+  return SCRIPTABLE_DOCUMENT_TYPES.has(essence) ? OPAQUE_TYPE : mimeType;
+}
+
+/**
  * Service to provide safe values for DOM manipulation.
  */
 export abstract class SafeValuesService implements SafeValuesServiceInterface {
@@ -84,7 +113,7 @@ export abstract class SafeValuesService implements SafeValuesServiceInterface {
       }
       const byteArray = new Uint8Array(byteNumbers);
 
-      const blob = new Blob([byteArray], {type: mimeType});
+      const blob = new Blob([byteArray], {type: blobTypeFor(mimeType)});
 
       const newWindow = this.openBlobUrl(blob);
       if (newWindow) {
