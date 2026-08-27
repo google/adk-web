@@ -66,7 +66,14 @@ export class A2uiCanvasComponent implements OnChanges {
     }
 
     if (messages.length > 0) {
-      this.processor.processMessages(messages);
+      try {
+        this.processor.processMessages(messages);
+      } catch (e: unknown) {
+        // The processor schema-validates and throws on a malformed message.
+        // Contain it: an agent sending bad markup should break its own widget,
+        // not change detection for the whole chat view.
+        console.error('Failed to process A2UI v0.8 messages:', e);
+      }
     }
 
     if (detectedSurfaceId) {
