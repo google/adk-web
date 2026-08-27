@@ -94,11 +94,16 @@
         </div>
         }
         @if (uiEvent.a2uiData) {
-        <app-a2ui-canvas
-          [beginRendering]="uiEvent.a2uiData.beginRendering"
-          [surfaceUpdate]="uiEvent.a2uiData.surfaceUpdate"
-          [dataModelUpdate]="uiEvent.a2uiData.dataModelUpdate">
-        </app-a2ui-canvas>
+          @if (uiEvent.a2uiData.version === 'v0.9') {
+          <app-a2ui-canvas-v09 [messages]="uiEvent.a2uiData.messages">
+          </app-a2ui-canvas-v09>
+          } @else {
+          <app-a2ui-canvas
+            [beginRendering]="uiEvent.a2uiData.beginRendering"
+            [surfaceUpdate]="uiEvent.a2uiData.surfaceUpdate"
+            [dataModelUpdate]="uiEvent.a2uiData.dataModelUpdate">
+          </app-a2ui-canvas>
+          }
         }
       </div>
     }

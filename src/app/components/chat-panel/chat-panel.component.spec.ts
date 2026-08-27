@@ -183,6 +183,10 @@ describe('ChatPanelComponent', () => {
       expect(component.removeFile.emit).toHaveBeenCalledWith(0);
     });
 
+    // Left disabled: chat-panel does not own the canvas (the chain is
+    // chat-panel -> event-row -> event-content -> content-bubble ->
+    // a2ui-canvas) and this TestBed provides none of the A2UI DI graph.
+    // `content-bubble.component.spec.ts` covers the dispatch directly.
     xit('should display A2UI canvas', () => {
       component.uiEvents = [
         new UiEvent({
