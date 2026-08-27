@@ -41,6 +41,7 @@ import { combineLatest, firstValueFrom, forkJoin, Observable, of, Subscription }
 import { catchError, distinctUntilChanged, filter, first, map, shareReplay, startWith, switchMap, take, tap } from 'rxjs/operators';
 
 import { URLUtil } from '../../../utils/url-util';
+import { A2UI_V08_KINDS, A2UI_V09_KINDS, A2uiPayload, A2uiSpecVersion } from '../../core/models/A2uiPayload';
 import { AgentRunRequest } from '../../core/models/AgentRunRequest';
 import { EvalCase, EvaluationResult } from '../../core/models/Eval';
 import { Session, SessionState } from '../../core/models/Session';
@@ -1805,18 +1806,112 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     return result;
   }
 
-  private processA2uiPartIntoMessage(part: any): any {
-    const a2uiData: any = {};
-    part.a2ui.forEach((dataPart: any) => {
-      if (dataPart.data.beginRendering) {
-        a2uiData.beginRendering = dataPart.data;
-      } else if (dataPart.data.surfaceUpdate) {
-        a2uiData.surfaceUpdate = dataPart.data;
-      } else if (dataPart.data.dataModelUpdate) {
-        a2uiData.dataModelUpdate = dataPart.data;
+  /**
+   * Identifies which A2UI spec version a message speaks.
+   *
+   * Prefers the explicit `version` discriminator, which the spec places on the
+   * message envelope -- never nested inside the kind object, since v0.9
+   * declares `additionalProperties: false` there. Falls back to matching the
+   * kind key, which is unambiguous because the two versions' kinds are
+   * disjoint.
+   */
+  private detectA2uiVersion(msg: unknown): A2uiSpecVersion|null {
+    if (!msg || typeof msg !== 'object' || Array.isArray(msg)) {
+      return null;
+    }
+    const record = msg as Record<string, unknown>;
+
+    if (record['version'] === 'v0.9') return 'v0.9';
+    if (record['version'] === 'v0.8') return 'v0.8';
+
+    if (A2UI_V09_KINDS.some((kind) => kind in record)) return 'v0.9';
+    if (A2UI_V08_KINDS.some((kind) => kind in record)) return 'v0.8';
+    return null;
+  }
+
+  /** The surfaceId named by a message, whichever kind it is. */
+  private a2uiSurfaceIdOf(msg: unknown): string|undefined {
+    if (!msg || typeof msg !== 'object') return undefined;
+    const record = msg as Record<string, unknown>;
+
+    for (const kind of [...A2UI_V09_KINDS, ...A2UI_V08_KINDS]) {
+      const body = record[kind];
+      if (body && typeof body === 'object') {
+        const surfaceId = (body as Record<string, unknown>)['surfaceId'];
+        if (typeof surfaceId === 'string') return surfaceId;
       }
-    });
-    return a2uiData;
+    }
+    return undefined;
+  }
+
+  /**
+   * Turns a batch of raw A2UI messages into a single version-tagged payload,
+   * dropping empty and unrecognized entries. Returns null when nothing
+   * renderable is left, so callers can leave `a2uiData` unset rather than
+   * binding an empty canvas.
+   */
+  private normalizeA2uiMessages(rawMessages: readonly unknown[]): A2uiPayload
+      |null {
+    const messages: unknown[] = [];
+    let version: A2uiSpecVersion|null = null;
+    let surfaceId: string|undefined;
+
+    for (const raw of rawMessages) {
+      if (!raw || typeof raw !== 'object' ||
+          Object.keys(raw as object).length === 0) {
+        continue;
+      }
+      const detected = this.detectA2uiVersion(raw);
+      if (!detected) continue;
+
+      if (version === null) {
+        version = detected;
+      } else if (detected !== version) {
+        console.warn(`Ignoring an A2UI ${detected} message in a ${
+            version} batch: one event cannot mix spec versions.`);
+        continue;
+      }
+
+      messages.push(raw);
+      surfaceId ??= this.a2uiSurfaceIdOf(raw);
+    }
+
+    if (version === null) return null;
+
+    return {
+      version,
+      messages,
+      ...(surfaceId !== undefined ? {surfaceId} : {}),
+      ...(version === 'v0.8' ? this.a2uiV08Aliases(messages) : {}),
+    };
+  }
+
+  /**
+   * The deprecated per-kind v0.8 aliases, kept so the v0.8 render bindings stay
+   * unchanged. Last message of a given kind wins, matching the prior behavior.
+   */
+  private a2uiV08Aliases(messages: readonly unknown[]): Partial<A2uiPayload> {
+    const aliases: Record<string, unknown> = {};
+    for (const msg of messages) {
+      for (const kind of A2UI_V08_KINDS) {
+        if ((msg as Record<string, unknown>)[kind]) {
+          aliases[kind] = msg;
+          break;
+        }
+      }
+    }
+    return aliases;
+  }
+
+  private processA2uiPartIntoMessage(part: any): A2uiPayload|null {
+    // A2A DataParts arrive enveloped as {kind, metadata, data}; inline JSON
+    // arrives bare. Tolerate both.
+    const rawMessages: unknown[] = (part.a2ui as unknown[] ?? []).map(
+        (dataPart: any) => dataPart && typeof dataPart === 'object' &&
+                'data' in dataPart ?
+            dataPart.data :
+            dataPart);
+    return this.normalizeA2uiMessages(rawMessages);
   }
 
   private extractA2uiJsonFromText(uiEvent: UiEvent) {
@@ -1838,18 +1933,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         parsed = [parsed];
       }
 
-      const a2uiData: any = {};
-      parsed.forEach((msg: any) => {
-        if (msg.beginRendering) {
-          a2uiData.beginRendering = msg;
-        } else if (msg.surfaceUpdate) {
-          a2uiData.surfaceUpdate = msg;
-        } else if (msg.dataModelUpdate) {
-          a2uiData.dataModelUpdate = msg;
-        }
-      });
-
-      uiEvent.a2uiData = a2uiData;
+      const payload = this.normalizeA2uiMessages(parsed);
+      if (payload) {
+        uiEvent.a2uiData = payload;
+      }
 
       // Strip the <a2ui-json> block from uiEvent.text
       const beforeText = uiEvent.text.substring(0, startIndex);
@@ -1993,7 +2080,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     } else if (part.codeExecutionResult) {
       uiEvent.codeExecutionResult = part.codeExecutionResult;
     } else if (part.a2ui) {
-      uiEvent.a2uiData = this.processA2uiPartIntoMessage(part);
+      const payload = this.processA2uiPartIntoMessage(part);
+      if (payload) {
+        uiEvent.a2uiData = payload;
+      }
     }
   }
 
