@@ -17,8 +17,9 @@
 
 import {Location} from '@angular/common';
 import {Catalog} from '@a2ui/angular/v0_8';
+import {BasicCatalog, provideA2Ui} from '@a2ui/angular/v0_9';
 import {HttpErrorResponse} from '@angular/common/http';
-import {ChangeDetectionStrategy, Component, ElementRef, ErrorHandler, Input} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, ErrorHandler, inject, Input} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import { SnackbarService } from '../../core/services/snackbar.service';
@@ -285,6 +286,9 @@ describe('ChatComponent', () => {
           ],
           providers: [
             {provide: Catalog, useValue: MOCK_A2UI_CATALOG},
+            // The real v0.9 renderer, not a stub, so the A2UI tests below
+            // exercise the same graph production uses.
+            provideA2Ui(() => ({catalogs: [inject(BasicCatalog)]})),
             {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
             {provide: SESSION_SERVICE, useValue: mockSessionService},
             {provide: ARTIFACT_SERVICE, useValue: mockArtifactService},
@@ -608,6 +612,10 @@ describe('ChatComponent', () => {
         });
 
         it('should combine v0.9 A2UI data parts in history messages', () => {
+          // The real v0.9 renderer is wired up here, so this also proves the
+          // canonical catalogId below is accepted -- a mismatch is the top
+          // integration gotcha and its only symptom is a silent empty surface.
+          const consoleError = spyOn(console, 'error');
           const createSurface = {
             version: 'v0.9',
             createSurface: {
@@ -653,6 +661,8 @@ describe('ChatComponent', () => {
           ]);
           expect(a2uiData.surfaceId).toBe('surface-9');
           expect(a2uiData.beginRendering).toBeUndefined();
+          // Nothing degraded silently on the way through the real renderer.
+          expect(consoleError).not.toHaveBeenCalled();
         });
       });
     });
