@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import {Catalog, DEFAULT_CATALOG, provideMarkdownRenderer, Theme} from '@a2ui/angular/v0_8';
 import {Location} from '@angular/common';
 import {HttpErrorResponse} from '@angular/common/http';
 import {ChangeDetectionStrategy, Component, ElementRef, ErrorHandler} from '@angular/core';
@@ -27,6 +28,7 @@ import {ActivatedRoute, NavigationEnd, Router, UrlTree} from '@angular/router';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
 import {BehaviorSubject, NEVER, of, ReplaySubject, Subject, throwError} from 'rxjs';
 
+import {A2UI_THEME} from '../../core/constants/a2ui-theme';
 import {EvalCase} from '../../core/models/Eval';
 import {Session} from '../../core/models/Session';
 import {UiEvent} from '../../core/models/UiEvent';
@@ -266,6 +268,12 @@ describe('ChatComponent', () => {
             TestHostComponent,
           ],
           providers: [
+            // Mirrors main.ts. A schema-valid A2UI payload renders a real
+            // surface, and the renderer resolves these during construction --
+            // outside any try/catch the canvas can install.
+            {provide: Catalog, useValue: DEFAULT_CATALOG},
+            {provide: Theme, useValue: A2UI_THEME},
+            provideMarkdownRenderer(),
             {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
             {provide: SESSION_SERVICE, useValue: mockSessionService},
             {provide: ARTIFACT_SERVICE, useValue: mockArtifactService},
@@ -527,6 +535,20 @@ describe('ChatComponent', () => {
             };
           };
 
+          // These must validate against the v0.8 message schema: the renderer
+          // schema-checks every message and throws on a malformed one.
+          const beginRendering = {
+            beginRendering: {surfaceId: 'surface-1', root: 'root'}
+          };
+          const surfaceUpdate = {
+            surfaceUpdate: {
+              surfaceId: 'surface-1',
+              components: [
+                {id: 'root', component: {Text: {text: {literalString: 'hello'}}}}
+              ]
+            }
+          };
+
           const historyEvent = {
             id: 'event-history',
             author: 'bot',
@@ -534,8 +556,8 @@ describe('ChatComponent', () => {
             content: {
               role: 'bot',
               parts: [
-                createA2uiPart({beginRendering: {id: '1'}}),
-                createA2uiPart({surfaceUpdate: {components: []}})
+                createA2uiPart(beginRendering),
+                createA2uiPart(surfaceUpdate)
               ]
             },
           };
@@ -550,8 +572,8 @@ describe('ChatComponent', () => {
           const messages = component.uiEvents();
           expect(component.uiEvents().length).toBe(1);
           expect(component.uiEvents()[0].a2uiData).toEqual({
-            beginRendering: {beginRendering: {id: '1'}},
-            surfaceUpdate: {surfaceUpdate: {components: []}}
+            beginRendering,
+            surfaceUpdate,
           });
         });
       });

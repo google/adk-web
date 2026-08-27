@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
-import { Types, Styles } from '@a2ui/lit/0.8';
+// `Types` must come from @a2ui/angular so that it resolves to the same
+// @a2ui/web_core copy the renderer uses. @a2ui/lit carries its own nested,
+// older web_core, whose structurally-incompatible types are not assignable to
+// the renderer's. Only `Styles` (which @a2ui/angular does not re-export) comes
+// from @a2ui/lit.
+import { Types } from '@a2ui/angular/v0_8';
+import { Styles } from '@a2ui/lit/0.8';
 
 /** Elements */
 

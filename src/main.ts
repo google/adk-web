@@ -16,7 +16,7 @@
  */
 
 
-import {Catalog, DEFAULT_CATALOG, Theme} from '@a2ui/angular';
+import {Catalog, DEFAULT_CATALOG, provideMarkdownRenderer, Theme} from '@a2ui/angular/v0_8';
 import {Location} from '@angular/common';
 import {HttpClientModule} from '@angular/common/http';
 import {importProvidersFrom} from '@angular/core';
@@ -123,6 +123,11 @@ fetch('./assets/config/runtime-config.json')
           {provide: LOCAL_FILE_SERVICE, useClass: LocalFileServiceImpl},
           {provide: Catalog, useValue: DEFAULT_CATALOG},
           {provide: Theme, useValue: A2UI_THEME},
+          // `Text` unconditionally injects `MarkdownRenderer`, whose base class
+          // is `providedIn: 'root'` but has no `render` method -- so without an
+          // explicit provider the injection succeeds and then throws
+          // "render is not a function" on the first Text component.
+          provideMarkdownRenderer(),
           {provide: MARKDOWN_COMPONENT, useValue: MarkdownComponent},
           ...(config.logo ?
                   [{provide: LOGO_COMPONENT, useValue: CustomLogoComponent}] :
