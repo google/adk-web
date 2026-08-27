@@ -13,7 +13,9 @@
   },
   "private": true,
   "dependencies": {
-    "@a2ui/angular": "^0.8.3",
+    "@a2ui/angular": "^0.9.1",
+    "@a2ui/lit": "^0.8.3",
+    "@a2ui/markdown-it": "^0.0.3",
     "@angular/animations": "^21.0.0",
     "@angular/cdk": "^21.0.0",
     "@angular/common": "^21.0.0",
