@@ -17,9 +17,10 @@
 
 
 import {Catalog, DEFAULT_CATALOG, Theme} from '@a2ui/angular/v0_8';
+import {BasicCatalog, provideA2Ui} from '@a2ui/angular/v0_9';
 import {Location} from '@angular/common';
 import {HttpClientModule} from '@angular/common/http';
-import {importProvidersFrom} from '@angular/core';
+import {importProvidersFrom, inject} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -133,6 +134,16 @@ fetch('./assets/config/runtime-config.json')
           {provide: LOCAL_FILE_SERVICE, useClass: LocalFileServiceImpl},
           {provide: Catalog, useValue: DEFAULT_CATALOG},
           {provide: Theme, useValue: A2UI_THEME},
+          // A2UI v0.9. Registered unconditionally alongside v0.8; which
+          // renderer draws a bubble is decided per payload, by its version.
+          // Markdown for both versions goes through provideA2uiMarkdown().
+          provideA2Ui(() => ({
+            catalogs: [inject(BasicCatalog)],
+            // TODO: route client actions back to the agent, mirroring the
+            // v0.8 MessageProcessor.events path.
+            actionHandler: (action: unknown) =>
+                console.debug('A2UI v0.9 client action:', action),
+          })),
           {provide: MARKDOWN_COMPONENT, useValue: MarkdownComponent},
           ...(config.logo ?
                   [{provide: LOGO_COMPONENT, useValue: CustomLogoComponent}] :
