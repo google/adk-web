@@ -31,6 +31,15 @@ describe('MessageFeedbackComponent', () => {
   let fixture: ComponentFixture<MessageFeedbackComponent>;
   let getFeedback$: BehaviorSubject<Feedback|undefined>;
 
+   /** 0 is the thumbs-up button, 1 the thumbs-down one. */
+  const button = (index: number): HTMLElement =>
+      fixture.debugElement.queryAll(
+          By.css('.feedback-buttons button'))[index].nativeElement;
+  const isSelected = (index: number): boolean =>
+      button(index).classList.contains('selected');
+  /** The ligature the button renders; its icon is its only text content. */
+  const iconName = (index: number): string => button(index).textContent!.trim();
+
   beforeEach(async () => {
     mockFeedbackService = new MockFeedbackService();
     getFeedback$ = new BehaviorSubject<Feedback|undefined>(undefined);
@@ -61,11 +70,9 @@ describe('MessageFeedbackComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const upButton =
-        fixture.debugElement.queryAll(By.css('.feedback-buttons button'))[0]
-            .nativeElement;
-    const upIcon = upButton.querySelector('mat-icon')!;
-    expect(upIcon.textContent).toContain('thumb_up_filled');
+    expect(iconName(0)).toBe('thumb_up_filled');
+    expect(isSelected(0)).toBeTrue();
+    expect(isSelected(1)).toBeFalse();
   });
 
   it('should show existing DOWN feedback on load', async () => {
@@ -73,11 +80,9 @@ describe('MessageFeedbackComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const downButton =
-        fixture.debugElement.queryAll(By.css('.feedback-buttons button'))[1]
-            .nativeElement;
-    const downIcon = downButton.querySelector('mat-icon')!;
-    expect(downIcon.textContent).toContain('thumb_down_filled');
+    expect(iconName(1)).toBe('thumb_down_filled');
+    expect(isSelected(1)).toBeTrue();
+    expect(isSelected(0)).toBeFalse();
   });
 
   it('should delete feedback if the same feedback button is clicked',
@@ -89,15 +94,8 @@ describe('MessageFeedbackComponent', () => {
        });
        fixture.detectChanges();
 
-       expect(
-           fixture.debugElement
-               .queryAll(By.css('.feedback-buttons button mat-icon'))[0]
-               .nativeElement.textContent,
-           )
-           .toContain('thumb_up_filled');
-
-       fixture.debugElement.queryAll(By.css('.feedback-buttons button'))[0]
-           .nativeElement.click();
+       expect(isSelected(0)).toBeTrue();
+       button(0).click();
        fixture.detectChanges();
 
        expect(mockFeedbackService.deleteFeedback)
@@ -105,12 +103,7 @@ describe('MessageFeedbackComponent', () => {
                'test-session',
                'test-event',
            );
-       expect(
-           fixture.debugElement
-               .queryAll(By.css('.feedback-buttons button mat-icon'))[0]
-               .nativeElement.textContent,
-           )
-           .toContain('thumb_up');
+       expect(isSelected(0)).toBeFalse();
      });
 
   it('should submit "up" feedback and show detailed panel when "up" button is clicked',
@@ -148,26 +141,16 @@ describe('MessageFeedbackComponent', () => {
      });
 
   it('should toggle between detailed feedback directions', () => {
-    fixture.debugElement.queryAll(By.css('.feedback-buttons button'))[1]
-        .nativeElement.click();  // Open down panel
+    button(1).click();  // Open down panel
     fixture.detectChanges();
-    expect(fixture.debugElement
-               .queryAll(By.css('.feedback-buttons button mat-icon'))[1]
-               .nativeElement.textContent)
-        .toContain('thumb_down_filled');
+    expect(isSelected(1)).toBeTrue();
 
-    fixture.debugElement.queryAll(By.css('.feedback-buttons button'))[0]
-        .nativeElement.click();  // Switch to up
+
+    button(0).click();  // Switch to up
     fixture.detectChanges();
 
-    expect(fixture.debugElement
-               .queryAll(By.css('.feedback-buttons button mat-icon'))[0]
-               .nativeElement.textContent)
-        .toContain('thumb_up_filled');
-    expect(fixture.debugElement
-               .queryAll(By.css('.feedback-buttons button mat-icon'))[1]
-               .nativeElement.textContent)
-        .toContain('thumb_down');
+    expect(isSelected(0)).toBeTrue();
+    expect(isSelected(1)).toBeFalse();
     expect(fixture.debugElement.query(By.css('.feedback-details-container')))
         .toBeTruthy();
     expect(mockFeedbackService.sendFeedback)
@@ -202,10 +185,7 @@ describe('MessageFeedbackComponent', () => {
         });
     expect(fixture.debugElement.query(By.css('.feedback-details-container')))
         .toBeFalsy();
-    expect(fixture.debugElement
-               .queryAll(By.css('.feedback-buttons button mat-icon'))[0]
-               .nativeElement.textContent)
-        .toContain('thumb_up_filled');
+    expect(isSelected(0)).toBeTrue();
   });
 
   it('should allow submitting negative feedback without details', () => {
@@ -252,52 +232,42 @@ describe('MessageFeedbackComponent', () => {
   });
 
   it('should highlight "up" button when clicked', () => {
-    const upButton =
-        fixture.debugElement.queryAll(By.css('.feedback-buttons button'))[0];
-    const upIcon = () => upButton.nativeElement.querySelector('mat-icon')!;
-    expect(upIcon().textContent).toContain('thumb_up');
-    expect(upIcon().textContent).not.toContain('thumb_up_filled');
+    expect(iconName(0)).toBe('thumb_up');
+    expect(isSelected(0)).toBeFalse();
+    expect(button(0).getAttribute('aria-pressed')).toBe('false');
 
-    upButton.nativeElement.click();
+    button(0).click();
     fixture.detectChanges();
 
-    expect(upIcon().textContent).toContain('thumb_up_filled');
+    expect(iconName(0)).toBe('thumb_up_filled');
+    expect(isSelected(0)).toBeTrue();
+    expect(button(0).getAttribute('aria-pressed')).toBe('true');
   });
 
   it('should highlight "down" button when clicked', () => {
-    const downButton =
-        fixture.debugElement.queryAll(By.css('.feedback-buttons button'))[1];
-    const downIcon = () => downButton.nativeElement.querySelector('mat-icon')!;
-    expect(downIcon().textContent).toContain('thumb_down');
-    expect(downIcon().textContent).not.toContain('thumb_down_filled');
+    expect(iconName(1)).toBe('thumb_down');
+    expect(isSelected(1)).toBeFalse();
+    expect(button(1).getAttribute('aria-pressed')).toBe('false');
 
-    downButton.nativeElement.click();
+    button(1).click();
     fixture.detectChanges();
 
-    expect(downIcon().textContent).toContain('thumb_down_filled');
+    expect(iconName(1)).toBe('thumb_down_filled');
+    expect(isSelected(1)).toBeTrue();
+    expect(button(1).getAttribute('aria-pressed')).toBe('true');
   });
 
   it('should remove "down" highlight when cancelled', () => {
-    fixture.debugElement.queryAll(By.css('.feedback-buttons button'))[1]
-        .nativeElement.click();
+    button(1).click();
     fixture.detectChanges();
-    expect(fixture.debugElement
-               .queryAll(By.css('.feedback-buttons button mat-icon'))[1]
-               .nativeElement.textContent)
-        .toContain('thumb_down_filled');
+    expect(isSelected(1)).toBeTrue();
 
     fixture.debugElement.queryAll(By.css('.actions button'))[0]
         .nativeElement.click();  // Cancel button
     fixture.detectChanges();
 
-    expect(fixture.debugElement
-               .queryAll(By.css('.feedback-buttons button mat-icon'))[1]
-               .nativeElement.textContent)
-        .toContain('thumb_down');
-    expect(fixture.debugElement
-               .queryAll(By.css('.feedback-buttons button mat-icon'))[1]
-               .nativeElement.textContent)
-        .not.toContain('thumb_down_filled');
+    expect(isSelected(1)).toBeFalse();
+    expect(button(1).getAttribute('aria-pressed')).toBe('false');
   });
   it('should show correct placeholder text based on feedback direction', () => {
     // Click up
