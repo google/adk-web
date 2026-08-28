@@ -16,7 +16,7 @@
  */
 
 
-import {Catalog, DEFAULT_CATALOG, Theme} from '@a2ui/angular';
+import {Catalog, DEFAULT_CATALOG, Theme} from '@a2ui/angular/v0_8';
 import {Location} from '@angular/common';
 import {HttpClientModule} from '@angular/common/http';
 import {importProvidersFrom} from '@angular/core';

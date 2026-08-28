@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import {MessageProcessor, Surface} from '@a2ui/angular';
-import {Types} from '@a2ui/lit/0.8';
+import {MessageProcessor, Surface} from '@a2ui/angular/v0_8';
+import type { ServerToClientMessage } from "@a2ui/web_core/v0_8";
 import {CommonModule} from '@angular/common';
 import {ChangeDetectionStrategy, Component, computed, inject, Input, OnChanges, signal, SimpleChanges,} from '@angular/core';
 
@@ -37,9 +37,9 @@ import {ChangeDetectionStrategy, Component, computed, inject, Input, OnChanges, 
 export class A2uiCanvasComponent implements OnChanges {
   private readonly processor = inject(MessageProcessor);
 
-  @Input() beginRendering: Types.ServerToClientMessage | null = null;
-  @Input() surfaceUpdate: Types.ServerToClientMessage | null = null;
-  @Input() dataModelUpdate: Types.ServerToClientMessage | null = null;
+  @Input() beginRendering: ServerToClientMessage | null = null;
+  @Input() surfaceUpdate: ServerToClientMessage | null = null;
+  @Input() dataModelUpdate: ServerToClientMessage | null = null;
 
   readonly surfaceId = signal<string | null>(null);
 
@@ -49,7 +49,7 @@ export class A2uiCanvasComponent implements OnChanges {
   constructor() {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    const messages: Types.ServerToClientMessage[] = [];
+    const messages: ServerToClientMessage[] = [];
     let detectedSurfaceId: string | null = null;
 
     if (changes['beginRendering'] && this.beginRendering && Object.keys(this.beginRendering).length > 0) {
