@@ -54,6 +54,10 @@ app-content-bubble + app-content-bubble {
   }
 }
 
+:host(:has(app-message-feedback)) {
+  flex-wrap: wrap;
+}
+
 app-message-feedback {
   width: 100%;
 }
