@@ -32,6 +32,7 @@
     "mermaid": "^11.14.0",
     "ngx-markdown": "^21.0.1",
     "ngx-vflow": "^1.16.4",
+    "prismjs": "^1.30.0",
     "rxjs": "~7.8.0",
     "safevalues": "^1.2.0",
     "string-to-color": "2.2.2",

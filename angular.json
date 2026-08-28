@@ -41,7 +41,8 @@
               "json-source-map",
               "natural-compare-lite",
               "ajv",
-              "jmespath"
+              "jmespath",
+              "prismjs"
             ]
           },
           "configurations": {
