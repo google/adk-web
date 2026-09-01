@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Types, Styles } from '@a2ui/lit/0.8';
+import { merge, type Theme } from '@a2ui/web_core/v0_8';
 
 /** Elements */
 
@@ -160,27 +160,27 @@ const video = {
   'layout-el-cv': true,
 };
 
-const aLight = Styles.merge(a, { 'color-c-p30': true });
-const inputLight = Styles.merge(input, { 'color-c-n5': true });
-const textareaLight = Styles.merge(textarea, { 'color-c-n5': true });
-const buttonLight = Styles.merge(button, { 'color-c-n100': true });
-const h1Light = Styles.merge(h1, { 'color-c-n5': true });
-const h2Light = Styles.merge(h2, { 'color-c-n5': true });
-const h3Light = Styles.merge(h3, { 'color-c-n5': true });
-const bodyLight = Styles.merge(body, { 'color-c-n5': true });
-const pLight = Styles.merge(p, { 'color-c-n60': true });
-const preLight = Styles.merge(pre, { 'color-c-n35': true });
-const orderedListLight = Styles.merge(orderedList, {
+const aLight = merge(a, { 'color-c-p30': true });
+const inputLight = merge(input, { 'color-c-n5': true });
+const textareaLight = merge(textarea, { 'color-c-n5': true });
+const buttonLight = merge(button, { 'color-c-n100': true });
+const h1Light = merge(h1, { 'color-c-n5': true });
+const h2Light = merge(h2, { 'color-c-n5': true });
+const h3Light = merge(h3, { 'color-c-n5': true });
+const bodyLight = merge(body, { 'color-c-n5': true });
+const pLight = merge(p, { 'color-c-n60': true });
+const preLight = merge(pre, { 'color-c-n35': true });
+const orderedListLight = merge(orderedList, {
   'color-c-n35': true,
 });
-const unorderedListLight = Styles.merge(unorderedList, {
+const unorderedListLight = merge(unorderedList, {
   'color-c-n35': true,
 });
-const listItemLight = Styles.merge(listItem, {
+const listItemLight = merge(listItem, {
   'color-c-n35': true,
 });
 
-export const A2UI_THEME: Types.Theme = {
+export const A2UI_THEME: Theme = {
   additionalStyles: {
     Card: {
       // 'min-width': '320px',
