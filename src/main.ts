@@ -30,6 +30,7 @@ import {provideMarkdown} from 'ngx-markdown';
 
 import {AppRoutingModule} from './app/app-routing.module';
 import {AppComponent} from './app/app.component';
+import {provideA2uiMarkdown} from './app/components/a2ui-canvas/a2ui-canvas.markdown';
 import {CustomLogoComponent} from './app/components/custom-logo/custom-logo.component';
 import {EVAL_TAB_COMPONENT, EvalTabComponent} from './app/components/eval-tab/eval-tab.component';
 import {MarkdownComponent} from './app/components/markdown/markdown.component';
@@ -131,6 +132,7 @@ fetch('./assets/config/runtime-config.json')
           {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
           provideAnimations(),
           provideMarkdown(),
+          provideA2uiMarkdown(),
           {provide: LOCATION_SERVICE, useClass: Location},
           {provide: UI_STATE_SERVICE, useClass: UiStateService},
           {provide: THEME_SERVICE, useClass: ThemeService}
