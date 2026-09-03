@@ -25,6 +25,7 @@ import { MatInput } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { MatIcon } from '@angular/material/icon';
 import { TooltipUtil } from '../../../utils/tooltip-util';
+import {isImeComposing} from '../../utils/keyboard-event.utils';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.Default,
@@ -90,7 +91,11 @@ export class AddToolDialogComponent implements OnInit{
     }
   }
 
-  addTool() {
+  addTool(event?: Event) {
+    if (isImeComposing(event)) {
+      return;
+    }
+
     if (this.toolType === 'Function tool' && !this.toolName.trim()) {
       return;
     }
