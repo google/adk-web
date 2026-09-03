@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import {MessageProcessor, Surface} from '@a2ui/angular';
-import {Types} from '@a2ui/lit/0.8';
+import {MessageProcessor, Surface, Types} from '@a2ui/angular/v0_8';
 import {CommonModule} from '@angular/common';
 import {ChangeDetectionStrategy, Component, computed, inject, Input, OnChanges, signal, SimpleChanges,} from '@angular/core';
 
@@ -66,7 +65,14 @@ export class A2uiCanvasComponent implements OnChanges {
     }
 
     if (messages.length > 0) {
-      this.processor.processMessages(messages);
+      try {
+        this.processor.processMessages(messages);
+      } catch (e: unknown) {
+        // The processor schema-validates and throws on a malformed message.
+        // Contain it: an agent sending bad markup should break its own widget,
+        // not change detection for the whole chat view.
+        console.error('Failed to process A2UI v0.8 messages:', e);
+      }
     }
 
     if (detectedSurfaceId) {

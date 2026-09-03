@@ -16,8 +16,7 @@
  */
 
 
-import {MessageProcessor} from '@a2ui/angular';
-import {Types} from '@a2ui/lit/0.8';
+import {MessageProcessor, Types} from '@a2ui/angular/v0_8';
 import {SimpleChanges} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
@@ -177,6 +176,49 @@ describe('A2uiCanvasComponent', () => {
 
     expect(mockMessageProcessor.processMessages).toHaveBeenCalledWith([message]);
     expect(component.surfaceId()).toBe('sales_data_yearly_surface');
+  });
+
+  it('should not log when a message processes cleanly', () => {
+    const consoleError = spyOn(console, 'error');
+    const message = {
+      beginRendering: {surfaceId: 'sales_data_yearly_surface', root: 'root'}
+    } as unknown as Types.ServerToClientMessage;
+    component.beginRendering = message;
+
+    component.ngOnChanges({
+      beginRendering: {
+        currentValue: message,
+        previousValue: null,
+        firstChange: true,
+        isFirstChange: () => true
+      }
+    });
+
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
+  it('should contain a processor failure instead of propagating it', () => {
+    // The processor schema-validates and throws on a malformed message. A bad
+    // payload must break only its own widget, not change detection for the
+    // whole chat view -- and it must still be visible in the console.
+    const consoleError = spyOn(console, 'error');
+    mockMessageProcessor.processMessages.and.throwError('malformed message');
+    const message = {beginRendering: {surfaceId: 'surface-1', root: 'root'}} as
+        unknown as Types.ServerToClientMessage;
+    component.beginRendering = message;
+
+    expect(() => component.ngOnChanges({
+      beginRendering: {
+        currentValue: message,
+        previousValue: null,
+        firstChange: true,
+        isFirstChange: () => true
+      }
+    })).not.toThrow();
+
+    expect(consoleError).toHaveBeenCalled();
+    // The surfaceId is still derived, so a later valid message can recover.
+    expect(component.surfaceId()).toBe('surface-1');
   });
 
   it('should update activeSurface when surfaceId matches', () => {

@@ -16,10 +16,11 @@
  */
 
 
-import {Catalog, DEFAULT_CATALOG, Theme} from '@a2ui/angular';
+import {Catalog, DEFAULT_CATALOG, provideMarkdownRenderer, Theme} from '@a2ui/angular/v0_8';
+import {A2UI_RENDERER_CONFIG, A2uiRendererService, BasicCatalog, provideMarkdownRenderer as provideV09MarkdownRenderer} from '@a2ui/angular/v0_9';
 import {Location} from '@angular/common';
 import {HttpClientModule} from '@angular/common/http';
-import {importProvidersFrom} from '@angular/core';
+import {importProvidersFrom, inject} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -123,6 +124,28 @@ fetch('./assets/config/runtime-config.json')
           {provide: LOCAL_FILE_SERVICE, useClass: LocalFileServiceImpl},
           {provide: Catalog, useValue: DEFAULT_CATALOG},
           {provide: Theme, useValue: A2UI_THEME},
+          // `Text` unconditionally injects `MarkdownRenderer`, whose base class
+          // is `providedIn: 'root'` but has no `render` method -- so without an
+          // explicit provider the injection succeeds and then throws
+          // "render is not a function" on the first Text component.
+          provideMarkdownRenderer(),
+          // A2UI v0.9. Registered unconditionally alongside v0.8; which
+          // renderer draws a bubble is decided per payload, by its version.
+          // v0.9.1 has no provideA2Ui() (that arrives in 0.10), so the config
+          // token is registered by hand, and A2uiRendererService must be listed
+          // explicitly because it is a plain @Injectable() with no providedIn.
+          {
+            provide: A2UI_RENDERER_CONFIG,
+            useFactory: () => ({
+              catalogs: [inject(BasicCatalog)],
+              // TODO: route client actions back to the agent, mirroring the
+              // v0.8 MessageProcessor.events path.
+              actionHandler: (action: unknown) =>
+                  console.debug('A2UI v0.9 client action:', action),
+            })
+          },
+          A2uiRendererService,
+          provideV09MarkdownRenderer(),
           {provide: MARKDOWN_COMPONENT, useValue: MarkdownComponent},
           ...(config.logo ?
                   [{provide: LOGO_COMPONENT, useValue: CustomLogoComponent}] :

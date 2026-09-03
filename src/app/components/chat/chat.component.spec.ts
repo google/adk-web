@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
+import {Catalog, DEFAULT_CATALOG, provideMarkdownRenderer, Theme} from '@a2ui/angular/v0_8';
+import {A2UI_RENDERER_CONFIG, A2uiRendererService, BasicCatalog, provideMarkdownRenderer as provideV09MarkdownRenderer} from '@a2ui/angular/v0_9';
 import {Location} from '@angular/common';
 import {HttpErrorResponse} from '@angular/common/http';
-import {ChangeDetectionStrategy, Component, ElementRef, ErrorHandler} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, ErrorHandler, inject} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import { SnackbarService } from '../../core/services/snackbar.service';
@@ -27,6 +29,7 @@ import {ActivatedRoute, NavigationEnd, Router, UrlTree} from '@angular/router';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
 import {BehaviorSubject, NEVER, of, ReplaySubject, Subject, throwError} from 'rxjs';
 
+import {A2UI_THEME} from '../../core/constants/a2ui-theme';
 import {EvalCase} from '../../core/models/Eval';
 import {Session} from '../../core/models/Session';
 import {UiEvent} from '../../core/models/UiEvent';
@@ -266,6 +269,20 @@ describe('ChatComponent', () => {
             TestHostComponent,
           ],
           providers: [
+            // Mirrors main.ts. A schema-valid A2UI payload renders a real
+            // surface, and the renderer resolves these during construction --
+            // outside any try/catch the canvas can install.
+            {provide: Catalog, useValue: DEFAULT_CATALOG},
+            {provide: Theme, useValue: A2UI_THEME},
+            provideMarkdownRenderer(),
+            // The real v0.9 renderer, not a stub, so the A2UI tests below
+            // exercise the same graph production uses.
+            {
+              provide: A2UI_RENDERER_CONFIG,
+              useFactory: () => ({catalogs: [inject(BasicCatalog)]})
+            },
+            A2uiRendererService,
+            provideV09MarkdownRenderer(),
             {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
             {provide: SESSION_SERVICE, useValue: mockSessionService},
             {provide: ARTIFACT_SERVICE, useValue: mockArtifactService},
@@ -511,20 +528,35 @@ describe('ChatComponent', () => {
           expect(component.eventData.has('event-2')).toBeTrue();
         });
 
+        /** Wraps an A2UI message as the A2A DataPart the history path sees. */
+        const createA2uiPart = (content: any) => {
+          const json = JSON.stringify({
+            kind: 'data',
+            metadata: {mimeType: A2UI_MIME_TYPE},
+            data: content
+          });
+          return {
+            inlineData: {
+              mimeType: 'text/plain',
+              data: btoa(
+                  `${A2A_DATA_PART_TAG_START}${json}${A2A_DATA_PART_TAG_END}`)
+            }
+          };
+        };
+
         it('should combine A2UI data parts in history messages', () => {
-          const createA2uiPart = (content: any) => {
-            const json = JSON.stringify({
-              kind: 'data',
-              metadata: {mimeType: A2UI_MIME_TYPE},
-              data: content
-            });
-            return {
-              inlineData: {
-                mimeType: 'text/plain',
-                data: btoa(`${A2A_DATA_PART_TAG_START}${json}${
-                    A2A_DATA_PART_TAG_END}`)
-              }
-            };
+          // These must validate against the v0.8 message schema: the renderer
+          // schema-checks every message and throws on a malformed one.
+          const beginRendering = {
+            beginRendering: {surfaceId: 'surface-1', root: 'root'}
+          };
+          const surfaceUpdate = {
+            surfaceUpdate: {
+              surfaceId: 'surface-1',
+              components: [
+                {id: 'root', component: {Text: {text: {literalString: 'hello'}}}}
+              ]
+            }
           };
 
           const historyEvent = {
@@ -534,8 +566,8 @@ describe('ChatComponent', () => {
             content: {
               role: 'bot',
               parts: [
-                createA2uiPart({beginRendering: {id: '1'}}),
-                createA2uiPart({surfaceUpdate: {components: []}})
+                createA2uiPart(beginRendering),
+                createA2uiPart(surfaceUpdate)
               ]
             },
           };
@@ -550,9 +582,66 @@ describe('ChatComponent', () => {
           const messages = component.uiEvents();
           expect(component.uiEvents().length).toBe(1);
           expect(component.uiEvents()[0].a2uiData).toEqual({
-            beginRendering: {beginRendering: {id: '1'}},
-            surfaceUpdate: {surfaceUpdate: {components: []}}
+            version: 'v0.8',
+            messages: [beginRendering, surfaceUpdate],
+            surfaceId: 'surface-1',
+            beginRendering,
+            surfaceUpdate,
           });
+        });
+
+        it('should combine v0.9 A2UI data parts in history messages', () => {
+          // The real v0.9 renderer is wired up here, so this also proves the
+          // canonical catalogId below is accepted -- a mismatch is the top
+          // integration gotcha and its only symptom is a silent empty surface.
+          const consoleError = spyOn(console, 'error');
+          const createSurface = {
+            version: 'v0.9',
+            createSurface: {
+              surfaceId: 'surface-9',
+              catalogId: 'https://a2ui.org/specification/v0_9/basic_catalog.json'
+            }
+          };
+          const updateComponents = {
+            version: 'v0.9',
+            updateComponents: {surfaceId: 'surface-9', components: []}
+          };
+          const updateDataModel = {
+            version: 'v0.9',
+            updateDataModel: {surfaceId: 'surface-9', contents: []}
+          };
+
+          mockUiStateService.newMessagesLoadedResponse.next({
+            items: [{
+              id: 'event-history-v09',
+              author: 'bot',
+              customMetadata: {'a2a:response': 'true'},
+              content: {
+                role: 'bot',
+                parts: [
+                  createA2uiPart(createSurface),
+                  createA2uiPart(updateComponents),
+                  createA2uiPart(updateDataModel),
+                ]
+              },
+            }],
+            nextPageToken: '',
+            isBackground: true
+          } as any);
+          fixture.detectChanges();
+
+          expect(component.uiEvents().length).toBe(1);
+          const a2uiData = component.uiEvents()[0].a2uiData;
+          expect(a2uiData.version).toBe('v0.9');
+          // All three survive: v0.9 sends N updates that the old three-slot,
+          // last-wins shape could not represent.
+          expect(a2uiData.messages).toEqual([
+            createSurface, updateComponents, updateDataModel
+          ]);
+          expect(a2uiData.surfaceId).toBe('surface-9');
+          expect(a2uiData.beginRendering).toBeUndefined();
+          // Nothing degraded silently on the way through the real renderer.
+          expect(consoleError).not.toHaveBeenCalled();
         });
       });
     });
@@ -1739,6 +1828,32 @@ describe('ChatComponent', () => {
         });
   });
 
+  describe('detectA2uiVersion', () => {
+    const cases: Array<[string, unknown, string|null]> = [
+      ['envelope discriminator v0.9', {version: 'v0.9', createSurface: {}}, 'v0.9'],
+      ['envelope discriminator v0.8', {version: 'v0.8', beginRendering: {}}, 'v0.8'],
+      ['kind key createSurface', {createSurface: {}}, 'v0.9'],
+      ['kind key updateComponents', {updateComponents: {}}, 'v0.9'],
+      ['kind key updateDataModel', {updateDataModel: {}}, 'v0.9'],
+      ['kind key deleteSurface', {deleteSurface: {}}, 'v0.9'],
+      ['kind key beginRendering', {beginRendering: {}}, 'v0.8'],
+      ['kind key surfaceUpdate', {surfaceUpdate: {}}, 'v0.8'],
+      ['kind key dataModelUpdate', {dataModelUpdate: {}}, 'v0.8'],
+      ['discriminator wins over kind key', {version: 'v0.9', beginRendering: {}}, 'v0.9'],
+      ['empty object', {}, null],
+      ['unknown kind', {somethingElse: {}}, null],
+      ['null', null, null],
+      ['a string', 'beginRendering', null],
+      ['an array', [{beginRendering: {}}], null],
+    ];
+
+    for (const [name, input, expected] of cases) {
+      it(`should detect ${name} as ${expected}`, () => {
+        expect((component as any).detectA2uiVersion(input)).toBe(expected);
+      });
+    }
+  });
+
   describe('extractA2uiJsonFromText', () => {
     it('should do nothing if message has no text', () => {
       const uiEvent = new UiEvent({role: 'bot', event: {} as any});
@@ -1768,10 +1883,93 @@ describe('ChatComponent', () => {
       });
 
       (component as any).extractA2uiJsonFromText(uiEvent);
-      expect(uiEvent.a2uiData).toEqual({beginRendering: {beginRendering: {surfaceId: 'cloud_dash'}}});
+      expect(uiEvent.a2uiData).toEqual({
+        version: 'v0.8',
+        messages: payload,
+        surfaceId: 'cloud_dash',
+        beginRendering: {beginRendering: {surfaceId: 'cloud_dash'}},
+      });
       expect(uiEvent.text).toBe('Here is the UI:\n\nEnjoy!');
       expect(uiEvent.textParts).toEqual([{ text: 'Here is the UI:\n\nEnjoy!', thought: false }]);
     });
+
+    it('should extract a v0.9 payload and populate no v0.8 aliases', () => {
+      const payload = [
+        {
+          version: 'v0.9',
+          createSurface: {
+            surfaceId: 'cloud_dash',
+            catalogId: 'https://a2ui.org/specification/v0_9/basic_catalog.json'
+          }
+        },
+        {
+          version: 'v0.9',
+          updateComponents: {surfaceId: 'cloud_dash', components: []}
+        },
+      ];
+      const text = `<a2ui-json>${JSON.stringify(payload)}</a2ui-json>`;
+      const uiEvent = new UiEvent({role: 'bot', text, event: {} as any});
+
+      (component as any).extractA2uiJsonFromText(uiEvent);
+
+      expect(uiEvent.a2uiData.version).toBe('v0.9');
+      expect(uiEvent.a2uiData.messages).toEqual(payload);
+      expect(uiEvent.a2uiData.surfaceId).toBe('cloud_dash');
+      expect(uiEvent.a2uiData.beginRendering).toBeUndefined();
+      expect(uiEvent.a2uiData.surfaceUpdate).toBeUndefined();
+      expect(uiEvent.a2uiData.dataModelUpdate).toBeUndefined();
+      expect(uiEvent.text).toBe('');
+    });
+
+    it('should detect v0.9 from the kind key when version is absent', () => {
+      const text = `<a2ui-json>${
+          JSON.stringify(
+              {updateDataModel: {surfaceId: 's1', contents: []}})}</a2ui-json>`;
+      const uiEvent = new UiEvent({role: 'bot', text, event: {} as any});
+
+      (component as any).extractA2uiJsonFromText(uiEvent);
+
+      expect(uiEvent.a2uiData.version).toBe('v0.9');
+      expect(uiEvent.a2uiData.surfaceId).toBe('s1');
+    });
+
+    it('should leave a2uiData unset for an empty array but still strip the text',
+       () => {
+         const text = `before <a2ui-json>[]</a2ui-json> after`;
+         const uiEvent = new UiEvent({
+           role: 'bot',
+           text,
+           textParts: [{text, thought: false}],
+           event: {} as any
+         });
+
+         (component as any).extractA2uiJsonFromText(uiEvent);
+
+         // Previously this yielded a truthy `{}`, which rendered an empty
+         // canvas. The markup must still never leak into the bubble.
+         expect(uiEvent.a2uiData).toBeUndefined();
+         expect(uiEvent.text).toBe('before  after');
+         expect(uiEvent.textParts).toEqual([
+           {text: 'before  after', thought: false}
+         ]);
+       });
+
+    it('should warn and keep the first version when a batch mixes versions',
+       () => {
+         const consoleWarn = spyOn(console, 'warn');
+         const payload = [
+           {beginRendering: {surfaceId: 's1', root: 'root'}},
+           {createSurface: {surfaceId: 's1', catalogId: 'c'}},
+         ];
+         const text = `<a2ui-json>${JSON.stringify(payload)}</a2ui-json>`;
+         const uiEvent = new UiEvent({role: 'bot', text, event: {} as any});
+
+         (component as any).extractA2uiJsonFromText(uiEvent);
+
+         expect(consoleWarn).toHaveBeenCalled();
+         expect(uiEvent.a2uiData.version).toBe('v0.8');
+         expect(uiEvent.a2uiData.messages).toEqual([payload[0]]);
+       });
 
     it('should keep tags and log warning if JSON parsing fails', () => {
       const uiEvent = new UiEvent({

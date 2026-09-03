@@ -26,6 +26,7 @@ import {CustomJsonViewerComponent} from '../custom-json-viewer/custom-json-viewe
 import {UiEvent} from '../../core/models/UiEvent';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {JsonTooltipDirective} from '../../directives/html-tooltip.directive';
+import {A2uiCanvasV09Component} from '../a2ui-canvas/a2ui-canvas-v09.component';
 import {A2uiCanvasComponent} from '../a2ui-canvas/a2ui-canvas.component';
 import {MediaType} from '../artifact-tab/artifact-tab.component';
 import {AudioPlayerComponent} from '../audio-player/audio-player.component';
@@ -45,6 +46,7 @@ import { base64ToArrayBuffer, pcmToWavBlob } from '../../core/utils/audio';
     MatTooltipModule,
     CustomJsonViewerComponent,
     A2uiCanvasComponent,
+    A2uiCanvasV09Component,
     AudioPlayerComponent,
     JsonTooltipDirective,
   ],

@@ -1,0 +1,204 @@
+/*
+ Copyright 2026 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
+
+// A2UI v0.9 theming, mapped onto adk-web's Material system tokens.
+//
+// Unlike v0.8 -- which is themed in TypeScript through the `Theme` token
+// (see core/constants/a2ui-theme.ts) -- v0.9 has no theme object at all. It
+// injects no root stylesheet and no `a2ui-light`/`a2ui-dark` classes; every
+// component styles itself with inline `var(--a2ui-X, <fallback>)`, and all but
+// a handful of those fallbacks are hardcoded light-mode values (#fff, #333,
+// #ccc). Without this block, v0.9 surfaces are unreadable in adk-web's default
+// dark theme, so it is not cosmetic.
+//
+// Everything here is pure indirection: `var()` resolves at use time, so a
+// theme flip repaints `--mat-sys-*`, which repaints `--a2ui-*`, with no
+// JavaScript and no second definition site. ThemeService and styles.scss stay
+// untouched.
+//
+// Scoped to `:host` rather than a global stylesheet so `--a2ui-*` does not
+// leak into the global namespace of an app that embeds this component. Safe
+// for v0.9's Modal, which is a plain `position: fixed` element inside its own
+// template -- no CDK overlay, no body portal -- so it stays in this subtree
+// and inherits.
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+
+  // --- Color -----------------------------------------------------------
+  // A surface is drawn inside a chat bubble that is already
+  // `--mat-sys-surface-container`, so cards step one level away from it
+  // rather than sitting flat on top.
+  --a2ui-color-surface: var(--mat-sys-surface-container-low);
+  --a2ui-color-on-background: var(--mat-sys-on-surface);
+  --a2ui-color-border: var(--mat-sys-outline-variant);
+  --a2ui-color-primary: var(--mat-sys-primary);
+  --a2ui-color-on-primary: var(--mat-sys-on-primary);
+  // Only used as the *border* colour of the primary button. Matching it to the
+  // fill keeps that button borderless, as it is under the v0.8 theme.
+  --a2ui-color-primary-hover: var(--mat-sys-primary);
+  // Slider track only.
+  --a2ui-color-secondary: var(--mat-sys-secondary-container);
+  // Not a typo, and not `--mat-sys-on-secondary-container`: upstream uses this
+  // as the foreground of the *default* button, whose background is
+  // `--a2ui-color-surface`. The intuitive mapping gives low-contrast text.
+  --a2ui-color-on-secondary: var(--mat-sys-on-surface);
+  --a2ui-color-input: var(--mat-sys-surface-container-high);
+  --a2ui-color-on-input: var(--mat-sys-on-surface);
+  --a2ui-color-error: var(--mat-sys-error);
+
+  // --- Text ------------------------------------------------------------
+  --a2ui-text-color-text: var(--mat-sys-on-surface);
+  --a2ui-text-color: var(--mat-sys-on-surface);
+  --a2ui-text-caption-color: var(--mat-sys-on-surface-variant);
+  --a2ui-text-a-color: var(--mat-sys-primary);
+  --a2ui-text-a-font-weight: 500;
+  --a2ui-text-margin: 0 0 8px;
+  --a2ui-icon-color: var(--mat-sys-on-surface-variant);
+
+  // --- Typography ------------------------------------------------------
+  // The six font sizes are mandatory, not optional: upstream reads them as
+  // bare `var(--a2ui-font-size-l)` with no fallback, and an undefined custom
+  // property invalidates the whole declaration -- every heading would fall
+  // back to the browser default. Mapped onto the Material scale so the ramp
+  // stays monotone; each carries a literal fallback as a second line of
+  // defence.
+  --a2ui-font-family-title: var(--mat-sys-title-large-font, 'Google Sans', Roboto, sans-serif);
+  --a2ui-font-size-2xl: var(--mat-sys-headline-small-size, 24px);
+  --a2ui-font-size-xl: var(--mat-sys-title-large-size, 22px);
+  --a2ui-font-size-l: var(--mat-sys-title-medium-size, 16px);
+  --a2ui-font-size-m: var(--mat-sys-body-medium-size, 14px);
+  --a2ui-font-size-s: var(--mat-sys-body-small-size, 12px);
+  --a2ui-font-size-xs: var(--mat-sys-label-small-size, 11px);
+  --a2ui-label-font-size: var(--mat-sys-body-medium-size, 14px);
+  --a2ui-line-height-body: var(--mat-sys-body-medium-line-height, 1.5);
+  // Unitless on purpose: this applies to h1 through h6, which are six
+  // different sizes, so an absolute Material line-height token would be wrong
+  // for five of them.
+  --a2ui-line-height-headings: 1.2;
+
+  // --- Spacing (8px system) --------------------------------------------
+  --a2ui-spacing-xs: 4px;
+  --a2ui-spacing-s: 8px;
+  --a2ui-spacing-m: 16px;
+  --a2ui-spacing-l: 24px;
+  --a2ui-spacing-xl: 32px;
+  --a2ui-row-gap: 16px;
+  --a2ui-column-gap: 16px;
+  --a2ui-list-gap: 8px;
+  --a2ui-list-padding: 24px;
+  --a2ui-divider-spacing: 16px;
+
+  // --- Shape -----------------------------------------------------------
+  --a2ui-border-radius: var(--mat-sys-corner-medium, 12px);
+  --a2ui-border-width: 1px;
+
+  // --- Card ------------------------------------------------------------
+  // No shadow and no margin: the surface already sits inside an elevated chat
+  // bubble, so upstream's drop shadow reads as a double border and its 16px
+  // margin double-pads the bubble.
+  --a2ui-card-background: var(--mat-sys-surface-container);
+  --a2ui-card-border: 1px solid var(--mat-sys-outline-variant);
+  --a2ui-card-border-radius: var(--mat-sys-corner-medium, 12px);
+  --a2ui-card-box-shadow: none;
+  --a2ui-card-margin: 0;
+  --a2ui-card-padding: 16px;
+
+  // --- Button ----------------------------------------------------------
+  // Mirrors the v0.8 theme's button: pill radius, no shadow, medium weight.
+  --a2ui-button-background: var(--mat-sys-surface-container-high);
+  --a2ui-button-border: 1px solid var(--mat-sys-outline-variant);
+  --a2ui-button-border-radius: var(--mat-sys-corner-large, 16px);
+  --a2ui-button-box-shadow: none;
+  --a2ui-button-font-weight: 500;
+  --a2ui-button-margin: 0 8px 8px 0;
+  --a2ui-button-padding: 8px 20px;
+
+  // --- TextField / DateTimeInput ---------------------------------------
+  --a2ui-textfield-border: 1px solid var(--mat-sys-outline-variant);
+  --a2ui-textfield-border-radius: var(--mat-sys-corner-small, 8px);
+  --a2ui-textfield-padding: 8px 12px;
+  --a2ui-textfield-color-border-focus: var(--mat-sys-primary);
+  --a2ui-textfield-color-error: var(--mat-sys-error);
+  --a2ui-textfield-label-font-weight: 500;
+  --a2ui-datetimeinput-background: var(--mat-sys-surface-container-high);
+  --a2ui-datetimeinput-border: 1px solid var(--mat-sys-outline-variant);
+  --a2ui-datetimeinput-border-radius: var(--mat-sys-corner-small, 8px);
+  --a2ui-datetimeinput-color: var(--mat-sys-on-surface);
+  --a2ui-datetimeinput-padding: 8px 12px;
+  --a2ui-datetimeinput-label-font-weight: 500;
+
+  // --- CheckBox / ChoicePicker -----------------------------------------
+  --a2ui-checkbox-border-radius: var(--mat-sys-corner-extra-small, 4px);
+  --a2ui-checkbox-color-error: var(--mat-sys-error);
+  --a2ui-checkbox-gap: 8px;
+  --a2ui-checkbox-label-font-weight: 500;
+  --a2ui-checkbox-margin: 0 0 8px;
+  --a2ui-choicepicker-chip-background: var(--mat-sys-surface-container-high);
+  --a2ui-choicepicker-chip-background-selected: var(--mat-sys-primary);
+  --a2ui-choicepicker-chip-border: 1px solid var(--mat-sys-outline-variant);
+  --a2ui-choicepicker-gap: 8px;
+
+  // --- Tabs ------------------------------------------------------------
+  --a2ui-tabs-border: 1px solid var(--mat-sys-outline-variant);
+  --a2ui-tabs-header-color: var(--mat-sys-on-surface-variant);
+  --a2ui-tabs-header-color-active: var(--mat-sys-primary);
+
+  // --- Slider ----------------------------------------------------------
+  --a2ui-slider-label-font-weight: 500;
+  --a2ui-slider-margin: 0 0 16px;
+  --a2ui-slider-thumb-color: var(--mat-sys-primary);
+  --a2ui-slider-track-color: var(--mat-sys-secondary-container);
+
+  // --- Modal -----------------------------------------------------------
+  --a2ui-modal-background: var(--mat-sys-surface-container-high);
+  --a2ui-modal-border-radius: var(--mat-sys-corner-large, 16px);
+  --a2ui-modal-box-shadow: var(--mat-sys-level3);
+  --a2ui-modal-padding: 24px;
+  // Left theme-independent: a scrim darkens whatever is behind it in both
+  // light and dark mode, and `--mat-sys-scrim` is an opaque hex that would
+  // need color-mix() to become one.
+  --a2ui-modal-backdrop-bg: rgba(0, 0, 0, 0.5);
+
+  // --- Image -----------------------------------------------------------
+  // Only the large feature size is overridden; 400px overflows a chat bubble.
+  --a2ui-image-border-radius: var(--mat-sys-corner-medium, 12px);
+  --a2ui-image-large-feature-size: 320px;
+  --a2ui-video-border-radius: var(--mat-sys-corner-medium, 12px);
+}
+
+:host ::ng-deep * {
+  box-sizing: border-box;
+}
+
+// Upstream hardcodes the disabled button's colours with no custom property to
+// hook, so they can only be reached from outside. Remove once v0.9 tokenizes
+// them.
+:host ::ng-deep .a2ui-button:disabled {
+  background-color: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface-variant);
+  border-color: var(--mat-sys-outline-variant);
+}
+
+// The v0.9 CheckBox is a bare `<input type="checkbox">` without
+// `appearance: none`, so its `--a2ui-checkbox-background`/`-border` variables
+// are inert and the control renders in the browser's own light-mode chrome.
+// `accent-color` is the one property a native checkbox honours.
+:host ::ng-deep .a2ui-check-box-input {
+  accent-color: var(--mat-sys-primary);
+}
