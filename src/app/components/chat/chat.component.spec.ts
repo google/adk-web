@@ -28,6 +28,7 @@ import {ActivatedRoute, NavigationEnd, Router, UrlTree} from '@angular/router';
 import {BehaviorSubject, NEVER, of, ReplaySubject, Subject, throwError} from 'rxjs';
 
 import {EvalCase} from '../../core/models/Eval';
+import {OPERATION_GENERATE_CONTENT} from '../../core/models/Trace';
 import {Session} from '../../core/models/Session';
 import {UiEvent} from '../../core/models/UiEvent';
 import {AGENT_SERVICE, AgentService} from '../../core/services/interfaces/agent';
@@ -2148,5 +2149,77 @@ describe('ChatComponent', () => {
         expect(mockTelemetryService.setTelemetry).toHaveBeenCalledWith(false);
       });
     });
+  });
+
+  describe('updateSystemInstructionFlags', () => {
+    function llmSpan(
+      eventId: string, startTime: number, systemInstruction: string): any {
+      return {
+        attrEventId: eventId,
+        attrOperationName: OPERATION_GENERATE_CONTENT,
+        start_time: startTime,
+        io: {inputs: {system_instruction: systemInstruction}},
+      };
+    }
+
+    it('should not flag a system instruction change across an agent boundary',
+       () => {
+         component.eventData.set(
+             'event-root-1', {id: 'event-root-1', author: 'root_agent'});
+         component.eventData.set(
+             'event-sub-1', {id: 'event-sub-1', author: 'sub_agent'});
+         component.eventData.set(
+             'event-root-2', {id: 'event-root-2', author: 'root_agent'});
+         component.traceData = [
+           llmSpan('event-root-1', 1, 'root instruction'),
+           llmSpan('event-sub-1', 2, 'sub instruction'),
+           llmSpan('event-root-2', 3, 'root instruction'),
+         ];
+
+         component['updateSystemInstructionFlags']();
+
+         expect(component.eventData.get('event-sub-1').systemInstructionChanged)
+             .toBeFalsy();
+         expect(component.eventData.get('event-root-2').systemInstructionChanged)
+             .toBeFalsy();
+       });
+
+    it('should still flag a real system instruction change within the same agent',
+       () => {
+         component.eventData.set(
+             'event-root-1', {id: 'event-root-1', author: 'root_agent'});
+         component.eventData.set(
+             'event-root-2', {id: 'event-root-2', author: 'root_agent'});
+         component.traceData = [
+           llmSpan('event-root-1', 1, 'instruction v1'),
+           llmSpan('event-root-2', 2, 'instruction v2'),
+         ];
+
+         component['updateSystemInstructionFlags']();
+
+         const event = component.eventData.get('event-root-2');
+         expect(event.systemInstructionChanged).toBeTrue();
+         expect(event.precedingSystemInstruction).toBe('instruction v1');
+         expect(event.currentSystemInstruction).toBe('instruction v2');
+       });
+
+    it('should fall back to the span\'s own attrAgentName when the event has no author',
+       () => {
+         component.eventData.set('event-root-1', {id: 'event-root-1'});
+         component.eventData.set('event-sub-1', {id: 'event-sub-1'});
+         component.eventData.set('event-root-2', {id: 'event-root-2'});
+         component.traceData = [
+           {...llmSpan('event-root-1', 1, 'root instruction'), attrAgentName: 'root_agent'},
+           {...llmSpan('event-sub-1', 2, 'sub instruction'), attrAgentName: 'sub_agent'},
+           {...llmSpan('event-root-2', 3, 'root instruction'), attrAgentName: 'root_agent'},
+         ];
+
+         component['updateSystemInstructionFlags']();
+
+         expect(component.eventData.get('event-sub-1').systemInstructionChanged)
+             .toBeFalsy();
+         expect(component.eventData.get('event-root-2').systemInstructionChanged)
+             .toBeFalsy();
+       });
   });
 });
