@@ -1739,6 +1739,21 @@ describe('ChatComponent', () => {
         });
   });
 
+  describe('buildUiEventFromEvent', () => {
+    it('should not throw for an A2A response event without content', () => {
+      const event = {
+        id: 'event-a2a-no-content',
+        author: 'remote_agent',
+        customMetadata: {'a2a:response': 'true'},
+      };
+
+      const uiEvent = (component as any).buildUiEventFromEvent(event);
+
+      expect(uiEvent.role).toBe('bot');
+      expect(uiEvent.text).toBeUndefined();
+    });
+  });
+
   describe('extractA2uiJsonFromText', () => {
     it('should do nothing if message has no text', () => {
       const uiEvent = new UiEvent({role: 'bot', event: {} as any});
