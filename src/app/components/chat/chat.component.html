@@ -724,17 +724,19 @@
                   <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                     @for (metric of result.overallEvalMetricResults; track metric.metricName) {
                       <div class="metric-block"
-                        [style.border]="metric.evalStatus == 1 ? '1px solid #2e7d32' : '1px solid var(--mat-sys-error)'"
+                        [style.border]="'1px solid ' + getMetricColor(metric)"
                         style="position: relative; display: flex; flex-direction: column; gap: 2px; background: var(--mat-sys-surface-container-high); padding: 6px 12px; border-radius: 6px; flex-shrink: 0; cursor: pointer;">
                         <span style="color: var(--mat-sys-on-surface-variant); font-size: 11px; font-weight: 500;">{{ metric.metricName | formatMetricName }}</span>
                         <div style="display: flex; align-items: baseline; gap: 4px;">
-                          <span [style.color]="metric.evalStatus == 1 ? '#2e7d32' : 'var(--mat-sys-error)'"
+                          <span [style.color]="getMetricColor(metric)"
                             style="font-size: 16px; font-weight: 600;">
                             {{ metric.score != null ? (metric.score | number:'1.2-2') : '?' }}
                           </span>
-                          <span style="color: var(--mat-sys-on-surface-variant); font-size: 14px; font-weight: 500;">
-                            / {{ metric.threshold | number:'1.2-2' }}
-                          </span>
+                          @if (metric.threshold != null) {
+                            <span style="color: var(--mat-sys-on-surface-variant); font-size: 14px; font-weight: 500;">
+                              / {{ metric.threshold | number:'1.2-2' }}
+                            </span>
+                          }
                         </div>
                         
                         <!-- Tooltip -->
@@ -743,14 +745,16 @@
                           <div class="tooltip-subtitle" style="font-size: 10px; color: var(--mat-sys-on-surface-variant); margin-bottom: 4px;">{{ metric.metricName }}</div>
                           <div class="tooltip-grid">
                             <div class="tooltip-item"><span class="tooltip-label">Actual:</span> <span class="tooltip-value"
-                                [style.color]="metric.evalStatus == 1 ? '#2e7d32' : 'var(--mat-sys-error)'">{{ metric.score != null ?
+                                [style.color]="getMetricColor(metric)">{{ metric.score != null ?
                                 (metric.score | number:'1.2-2') : '?' }}</span></div>
-                            <div class="tooltip-item"><span class="tooltip-label">Threshold:</span> <span class="tooltip-value">{{
-                                metric.threshold | number:'1.2-2' }}</span></div>
-                            <div class="tooltip-item"><span class="tooltip-label">Min:</span> <span class="tooltip-value">{{
-                                getMetricMin(metric.metricName) }}</span></div>
-                            <div class="tooltip-item"><span class="tooltip-label">Max:</span> <span class="tooltip-value">{{
-                                getMetricMax(metric.metricName) }}</span></div>
+                            @if (metricHasVerdict(metric)) {
+                              <div class="tooltip-item"><span class="tooltip-label">Threshold:</span> <span class="tooltip-value">{{
+                                  metric.threshold | number:'1.2-2' }}</span></div>
+                              <div class="tooltip-item"><span class="tooltip-label">Min:</span> <span class="tooltip-value">{{
+                                  getMetricMin(metric.metricName) }}</span></div>
+                              <div class="tooltip-item"><span class="tooltip-label">Max:</span> <span class="tooltip-value">{{
+                                  getMetricMax(metric.metricName) }}</span></div>
+                            }
                           </div>
                           @let desc = getMetricDescription(metric.metricName);
                           @if (desc) {

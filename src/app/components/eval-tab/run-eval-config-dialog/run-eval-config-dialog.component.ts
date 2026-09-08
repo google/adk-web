@@ -112,7 +112,15 @@ export class RunEvalConfigDialogComponent {
       private fb: FormBuilder,
       @Inject(MAT_DIALOG_DATA) public data: EvalConfigData) {
     this.evalMetrics = this.data.evalMetrics || [];
-    this.metricsInfo = this.data.metricsInfo || [];
+    // This dialog asks the user to select metrics and set a threshold for
+    // each, with the slider bounded by the metric's value interval. A metric
+    // that needs no threshold has nothing to configure here, and carries no
+    // interval to bound a slider by, so it is not offered. Those metrics are
+    // always on and are reported without the user selecting them.
+    this.metricsInfo = (this.data.metricsInfo || [])
+                           .filter(
+                               (metric) => metric.requiresThreshold !== false &&
+                                   !!metric.metricValueInfo?.interval);
 
     this.runForm = this.fb.group({
       runMode: [DEFAULT_RUN_MODE],
@@ -133,11 +141,13 @@ export class RunEvalConfigDialogComponent {
       this.evalForm.addControl(`${metric.metricName}_selected`, this.fb.control(isSelected));
       
       const interval = metric.metricValueInfo.interval;
-      this.evalForm.addControl(`${metric.metricName}_threshold`, this.fb.control(threshold, [
-        Validators.required,
-        Validators.min(interval.minValue),
-        Validators.max(interval.maxValue)
-      ]));
+      const validators = [Validators.required];
+      if (interval) {
+        validators.push(
+            Validators.min(interval.minValue), Validators.max(interval.maxValue));
+      }
+      this.evalForm.addControl(
+          `${metric.metricName}_threshold`, this.fb.control(threshold, validators));
     });
 
     // Fallback if metricsInfo is empty, add the hardcoded ones to avoid empty UI if backend fails
@@ -169,7 +179,10 @@ export class RunEvalConfigDialogComponent {
   private getDefaultThreshold(metric: MetricsInfo): number {
     if (metric.metricName === 'tool_trajectory_avg_score') return 1.0;
     if (metric.metricName === 'response_match_score') return 0.7;
-    return metric.metricValueInfo.interval.maxValue;
+    // Default to the top of the metric's range, which for a score metric means
+    // "must be perfect". Metrics without a range are not offered by this
+    // dialog, so the fallback only guards against a malformed MetricInfo.
+    return metric.metricValueInfo.interval?.maxValue ?? 1.0;
   }
 
   onReset(): void {

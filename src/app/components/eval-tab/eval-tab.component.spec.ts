@@ -331,4 +331,55 @@ describe('EvalTabComponent', () => {
       expect(evalService.getEvalSet).toHaveBeenCalledWith('my-app', 'my-set');
     });
   });
+
+  describe('getMetricsScore', () => {
+    // EvalStatus: 1 PASSED, 2 FAILED, 3 NOT_EVALUATED, 4 INFORMATIONAL.
+    it('counts only metrics that reach a verdict', () => {
+      const evalRes = {
+        evalMetricResults: [
+          {metricName: 'tool_trajectory_avg_score', evalStatus: 1},
+          {metricName: 'response_match_score', evalStatus: 2},
+          {metricName: 'safety_v1', evalStatus: 3},
+        ],
+      };
+
+      expect((component as any).getMetricsScore(evalRes)).toBe('1/2');
+    });
+
+    it('excludes informational metrics from the ratio', () => {
+      // The efficiency metrics are reported on every run and never pass or
+      // fail. Counting them would show a fully passing case as 1/4.
+      const evalRes = {
+        evalMetricResults: [
+          {metricName: 'tool_trajectory_avg_score', evalStatus: 1},
+          {metricName: 'tool_call_count_v1', evalStatus: 4},
+          {metricName: 'inference_call_count_v1', evalStatus: 4},
+          {metricName: 'token_usage_v1', evalStatus: 4},
+        ],
+      };
+
+      expect((component as any).getMetricsScore(evalRes)).toBe('1/1');
+    });
+
+    it('excludes informational metrics tallied per invocation', () => {
+      const evalRes = {
+        evalMetricResultPerInvocation: [
+          {
+            evalMetricResults: [
+              {metricName: 'tool_trajectory_avg_score', evalStatus: 1},
+              {metricName: 'token_usage_v1', evalStatus: 4},
+            ],
+          },
+          {
+            evalMetricResults: [
+              {metricName: 'tool_trajectory_avg_score', evalStatus: 2},
+              {metricName: 'token_usage_v1', evalStatus: 4},
+            ],
+          },
+        ],
+      };
+
+      expect((component as any).getMetricsScore(evalRes)).toBe('1/2');
+    });
+  });
 });

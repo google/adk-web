@@ -176,6 +176,61 @@ describe('RunEvalConfigDialogComponent', () => {
        });
   });
 
+  describe('with metrics that need no threshold', () => {
+    // An informational metric reports a value and never passes or fails, so
+    // the backend sends it with requiresThreshold false and no value interval.
+    const INFORMATIONAL_METRIC = {
+      metricName: 'token_usage_v1',
+      description: 'Tokens consumed',
+      metricValueInfo: {},
+      requiresThreshold: false,
+    };
+
+    it('does not offer them for selection', async () => {
+      const {component} = await createComponent({
+        evalMetrics: [],
+        metricsInfo: [...METRICS_INFO, INFORMATIONAL_METRIC],
+      });
+
+      expect(component.metricsInfo.map((m) => m.metricName)).toEqual([
+        'tool_trajectory_avg_score',
+        'response_match_score',
+      ]);
+      expect(component.evalForm.get('token_usage_v1_selected')).toBeNull();
+      expect(component.evalForm.get('token_usage_v1_threshold')).toBeNull();
+    });
+
+    it('never emits them, so the backend is not sent a threshold it rejects',
+       async () => {
+         const {component, dialogRef} = await createComponent({
+           evalMetrics: [],
+           metricsInfo: [...METRICS_INFO, INFORMATIONAL_METRIC],
+         });
+         component.evalForm.get('tool_trajectory_avg_score_selected')
+             ?.setValue(true);
+
+         component.onStart();
+
+         const arg = dialogRef.close.calls.mostRecent().args[0] as any;
+         expect(arg.metrics.map((m: any) => m.metricName)).toEqual([
+           'tool_trajectory_avg_score',
+         ]);
+       });
+
+    it('renders the form rather than failing on the missing interval',
+       async () => {
+         // Regression test: the threshold slider used to read
+         // `metricValueInfo.interval.minValue` unconditionally, so a metric
+         // without an interval took the whole dialog down.
+         const {fixture} = await createComponent({
+           evalMetrics: [],
+           metricsInfo: [INFORMATIONAL_METRIC],
+         });
+
+         expect(() => fixture.detectChanges()).not.toThrow();
+       });
+  });
+
   describe('without metricsInfo (fallback)', () => {
     let component: RunEvalConfigDialogComponent;
     let dialogRef: jasmine.SpyObj<MatDialogRef<RunEvalConfigDialogComponent>>;

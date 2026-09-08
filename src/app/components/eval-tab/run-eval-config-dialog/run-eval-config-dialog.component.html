@@ -97,7 +97,7 @@
               <div style="display: flex; flex-direction: column; align-items: flex-start;">
                 <span class="slider-label" style="margin-right: 0; font-size: 11px; color: var(--mat-sys-on-surface-variant);">Threshold</span>
                 <div style="display: flex; align-items: center;">
-                  <mat-slider [min]="metric.metricValueInfo.interval.minValue" [max]="metric.metricValueInfo.interval.maxValue" step="0.1" thumbLabel class="threshold-slider">
+                  <mat-slider [min]="metric.metricValueInfo.interval?.minValue" [max]="metric.metricValueInfo.interval?.maxValue" step="0.1" thumbLabel class="threshold-slider">
                     <input matSliderThumb [formControlName]="metric.metricName + '_threshold'" />
                   </mat-slider>
                   <span class="threshold-value">
