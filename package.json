@@ -13,7 +13,8 @@
   },
   "private": true,
   "dependencies": {
-    "@a2ui/angular": "^0.8.3",
+    "@a2ui/angular": "^0.10.0",
+    "@a2ui/web_core": "^0.10.0",
     "@angular/animations": "^21.0.0",
     "@angular/cdk": "^21.0.0",
     "@angular/common": "^21.0.0",
@@ -31,6 +32,7 @@
     "mermaid": "^11.14.0",
     "ngx-markdown": "^21.0.1",
     "ngx-vflow": "^1.16.4",
+    "prismjs": "^1.30.0",
     "rxjs": "~7.8.0",
     "safevalues": "^1.2.0",
     "string-to-color": "2.2.2",

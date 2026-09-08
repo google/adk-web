@@ -16,8 +16,9 @@
  */
 
 import {Location} from '@angular/common';
+import {Catalog} from '@a2ui/angular/v0_8';
 import {HttpErrorResponse} from '@angular/common/http';
-import {ChangeDetectionStrategy, Component, ElementRef, ErrorHandler} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, ErrorHandler, Input} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import { SnackbarService } from '../../core/services/snackbar.service';
@@ -111,6 +112,22 @@ class MockEvalTabComponent {
 })
 class TestHostComponent {
 }
+
+@Component({
+  changeDetection: ChangeDetectionStrategy.Default,
+  selector: 'testing-component',
+  template: '',
+  standalone: true,
+})
+class TestingComponent {
+  @Input() surfaceId?: string;
+  @Input() component?: any;
+  @Input() weight?: number;
+}
+
+const MOCK_A2UI_CATALOG: Catalog = {
+  TestingComponent: () => TestingComponent as any,
+};
 
 const SESSION_1_ID = 'session-1';
 const SESSION_2_ID = 'session-2';
@@ -266,6 +283,7 @@ describe('ChatComponent', () => {
             TestHostComponent,
           ],
           providers: [
+            {provide: Catalog, useValue: MOCK_A2UI_CATALOG},
             {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
             {provide: SESSION_SERVICE, useValue: mockSessionService},
             {provide: ARTIFACT_SERVICE, useValue: mockArtifactService},
@@ -534,8 +552,16 @@ describe('ChatComponent', () => {
             content: {
               role: 'bot',
               parts: [
-                createA2uiPart({beginRendering: {id: '1'}}),
-                createA2uiPart({surfaceUpdate: {components: []}})
+                createA2uiPart({beginRendering: {surfaceId: 'surface-1', root: 'root-1'}}),
+                createA2uiPart({
+                  surfaceUpdate: {
+                    surfaceId: 'surface-1',
+                    components: [{
+                      id: 'root-1',
+                      component: {TestingComponent: {}}
+                    }]
+                  }
+                })
               ]
             },
           };
@@ -550,8 +576,16 @@ describe('ChatComponent', () => {
           const messages = component.uiEvents();
           expect(component.uiEvents().length).toBe(1);
           expect(component.uiEvents()[0].a2uiData).toEqual({
-            beginRendering: {beginRendering: {id: '1'}},
-            surfaceUpdate: {surfaceUpdate: {components: []}}
+            beginRendering: {beginRendering: {surfaceId: 'surface-1', root: 'root-1'}},
+            surfaceUpdate: {
+              surfaceUpdate: {
+                surfaceId: 'surface-1',
+                components: [{
+                  id: 'root-1',
+                  component: {TestingComponent: {}}
+                }]
+              }
+            }
           });
         });
       });
