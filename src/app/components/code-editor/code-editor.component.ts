@@ -27,12 +27,12 @@ import {
   ViewChild,
 } from '@angular/core';
 import {HighlightStyle, syntaxHighlighting, syntaxTree} from '@codemirror/language';
-import {python} from '@codemirror/lang-python';
+import {python} from '@codemirror/lang_python';
 import {tags} from '@lezer/highlight';
 import {Diagnostic, linter, lintGutter} from '@codemirror/lint';
 import {EditorState} from '@codemirror/state';
 import {EditorView} from '@codemirror/view';
-import {basicSetup} from 'codemirror';
+import {basicSetup} from '@codemirror/setup-bundles';
 
 /** A dark theme for the Python syntax highlighting. */
 const pythonDarkHighlightStyle = HighlightStyle.define([
