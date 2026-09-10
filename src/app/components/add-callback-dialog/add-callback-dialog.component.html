@@ -58,7 +58,7 @@
       #callbackNameInput="ngModel"
       (ngModelChange)="validate()"
       [errorStateMatcher]="matcher"
-      (keydown.enter)="addCallback()"
+      (keydown.enter)="addCallback($event)"
       matInput>
     <mat-error *ngIf="callbackNameInput.hasError('duplicateName')">Same callback name has been used</mat-error>
     <mat-error *ngIf="callbackNameInput.hasError('hasSpaces')">Cannot have callback consist of two words</mat-error>

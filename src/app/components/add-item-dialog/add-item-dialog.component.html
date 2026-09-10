@@ -20,7 +20,7 @@
     <input
       [(ngModel)]="newAppName"
       matInput
-      (keydown.enter)="createNewApp()">
+      (keydown.enter)="createNewApp($event)">
       @if (!isNameValid()) {
         <mat-hint class="validation-hint">
         Start with a letter or underscore, and contain only letters, digits, and underscores.

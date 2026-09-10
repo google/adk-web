@@ -16,6 +16,7 @@
  */
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
@@ -97,6 +98,20 @@ describe('AddCallbackDialogComponent', () => {
     component.callbackName = '';
 
     component.addCallback();
+
+    expect(mockDialogRef.close).not.toHaveBeenCalled();
+  });
+
+  it('should not submit while an IME composition is active', () => {
+    component.callbackName = 'テスト';
+    component.callbackType = 'before_agent';
+    fixture.detectChanges();
+
+    const input = fixture.debugElement.query(By.css('input'));
+    input.triggerEventHandler(
+      'keydown.enter',
+      new KeyboardEvent('keydown', {key: 'Enter', isComposing: true}),
+    );
 
     expect(mockDialogRef.close).not.toHaveBeenCalled();
   });
