@@ -2719,7 +2719,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private buildUiEventFromEvent(event: any, reverseOrder: boolean = false): UiEvent {
     const isA2aResponse = this.isEventA2aResponse(event);
     const rawParts = isA2aResponse ?
-      this.combineA2uiDataParts(event.content?.parts) :
+      this.combineA2uiDataParts(event.content?.parts || []) :
       event.content?.parts || [];
     const parts = this.combineTextParts(rawParts);
     const partsToProcess = reverseOrder ? [...parts].reverse() : parts;
