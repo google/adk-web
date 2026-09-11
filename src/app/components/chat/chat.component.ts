@@ -2694,22 +2694,42 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       event.currentSystemInstruction = undefined;
     }
 
-    // Compare consecutive LLM turns
-    for (let i = 1; i < llmSpans.length; i++) {
-      const currentSpan = llmSpans[i];
-      const precedingSpan = llmSpans[i - 1];
+    // A system instruction is only meaningful *within* a single agent's own
+    // sequence of calls: distinct agents never shared a cache context to
+    // begin with, so crossing an agent boundary is not a real "change".
+    // Group the (already time-sorted) spans by agent before comparing
+    // consecutive turns, instead of comparing across the whole session.
+    const spansByAgent = new Map<string, Span[]>();
+    for (const span of llmSpans) {
+      const eventId = span.attrEventId;
+      const event = eventId ? this.eventData.get(eventId) : undefined;
+      const agentKey = event?.author || span.attrAgentName || '';
+      const bucket = spansByAgent.get(agentKey);
+      if (bucket) {
+        bucket.push(span);
+      } else {
+        spansByAgent.set(agentKey, [span]);
+      }
+    }
 
-      const currentSys = extractSystemInstruction(currentSpan.io?.inputs);
-      const precedingSys = extractSystemInstruction(precedingSpan.io?.inputs);
+    // Compare consecutive LLM turns within each agent's own sequence.
+    for (const agentSpans of spansByAgent.values()) {
+      for (let i = 1; i < agentSpans.length; i++) {
+        const currentSpan = agentSpans[i];
+        const precedingSpan = agentSpans[i - 1];
 
-      if (currentSys && precedingSys && currentSys !== precedingSys) {
-        const eventId = currentSpan.attrEventId;
-        if (eventId) {
-          const event = this.eventData.get(eventId);
-          if (event) {
-            event.systemInstructionChanged = true;
-            event.precedingSystemInstruction = precedingSys;
-            event.currentSystemInstruction = currentSys;
+        const currentSys = extractSystemInstruction(currentSpan.io?.inputs);
+        const precedingSys = extractSystemInstruction(precedingSpan.io?.inputs);
+
+        if (currentSys && precedingSys && currentSys !== precedingSys) {
+          const eventId = currentSpan.attrEventId;
+          if (eventId) {
+            const event = this.eventData.get(eventId);
+            if (event) {
+              event.systemInstructionChanged = true;
+              event.precedingSystemInstruction = precedingSys;
+              event.currentSystemInstruction = currentSys;
+            }
           }
         }
       }
