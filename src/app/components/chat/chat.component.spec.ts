@@ -342,6 +342,23 @@ describe('ChatComponent', () => {
       expect(component.rubricPassed({})).toBe(false);
     });
 
+    // EvalStatus: 1 PASSED, 2 FAILED, 3 NOT_EVALUATED, 4 INFORMATIONAL.
+    it('metricHasVerdict is false only for an informational metric', () => {
+      expect(component.metricHasVerdict({evalStatus: 1})).toBe(true);
+      expect(component.metricHasVerdict({evalStatus: 2})).toBe(true);
+      // NOT_EVALUATED keeps the failure styling it carried before this change.
+      expect(component.metricHasVerdict({evalStatus: 3})).toBe(true);
+      expect(component.metricHasVerdict({evalStatus: 4})).toBe(false);
+    });
+
+    it('getMetricColor is neutral when the metric reached no verdict', () => {
+      expect(component.getMetricColor({evalStatus: 1})).toBe('#2e7d32');
+      expect(component.getMetricColor({evalStatus: 2}))
+          .toBe('var(--mat-sys-error)');
+      expect(component.getMetricColor({evalStatus: 4}))
+          .toBe('var(--mat-sys-on-surface-variant)');
+    });
+
     it(
         'should pre-fill user input from "q" query param only when app is selected',
         fakeAsync(() => {

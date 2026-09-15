@@ -216,18 +216,55 @@ describe('RunEvalConfigDialogComponent', () => {
            'tool_trajectory_avg_score',
          ]);
        });
+  });
 
-    it('renders the form rather than failing on the missing interval',
+  describe('with a metric whose interval the backend omitted', () => {
+    // `interval` is optional on the wire. A metric can still require a
+    // threshold without carrying one, and the dialog has to offer it.
+    const UNBOUNDED_METRIC = {
+      metricName: 'custom_unbounded_v1',
+      description: 'Requires a threshold but carries no value interval',
+      metricValueInfo: {},
+      requiresThreshold: true,
+    };
+
+    it('still offers it, and renders the threshold slider', async () => {
+      // Regression test: the slider read `metricValueInfo.interval.minValue`
+      // unconditionally, so this metric took the whole dialog down. The
+      // assertions below only hold if the metric survives the filter, which is
+      // what puts the slider on the page in the first place.
+      const {fixture, component} = await createComponent({
+        evalMetrics: [],
+        metricsInfo: [UNBOUNDED_METRIC],
+      });
+
+      expect(component.metricsInfo.map((m) => m.metricName)).toEqual([
+        'custom_unbounded_v1',
+      ]);
+      expect(fixture.nativeElement.querySelector('mat-slider')).not.toBeNull();
+    });
+
+    it('bounds the slider at 0..1 and validates only that a value is set',
        async () => {
-         // Regression test: the threshold slider used to read
-         // `metricValueInfo.interval.minValue` unconditionally, so a metric
-         // without an interval took the whole dialog down.
-         const {fixture} = await createComponent({
+         const {component} = await createComponent({
            evalMetrics: [],
-           metricsInfo: [INFORMATIONAL_METRIC],
+           metricsInfo: [UNBOUNDED_METRIC],
          });
 
-         expect(() => fixture.detectChanges()).not.toThrow();
+         const threshold =
+             component.evalForm.get('custom_unbounded_v1_threshold');
+         expect(threshold).not.toBeNull();
+         // getDefaultThreshold falls back to the slider's upper bound.
+         expect(threshold!.value).toBe(1.0);
+         expect(threshold!.valid).toBeTrue();
+
+         // No interval means no bounds to enforce, so a value outside 0..1 is
+         // still accepted by the form; only `required` applies.
+         threshold!.setValue(5);
+         expect(threshold!.valid).toBeTrue();
+
+         threshold!.setValue(null);
+         expect(threshold!.valid).toBeFalse();
        });
   });
 
