@@ -42,7 +42,7 @@ import { catchError, distinctUntilChanged, filter, first, map, shareReplay, star
 
 import { URLUtil } from '../../../utils/url-util';
 import { AgentRunRequest } from '../../core/models/AgentRunRequest';
-import { EvalCase, EvaluationResult } from '../../core/models/Eval';
+import { EvalCase, EvaluationResult, EvalStatus } from '../../core/models/Eval';
 import { Session, SessionState } from '../../core/models/Session';
 import { Event as AdkEvent, Part } from '../../core/models/types';
 import { UiEvent } from '../../core/models/UiEvent';
@@ -510,6 +510,24 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   getMetricDescription(metricName: string): string {
     const info = this.metricsInfo().find((m: any) => m.metricName === metricName);
     return info?.description || '';
+  }
+
+  /**
+   * Whether a metric reached a pass/fail verdict. An informational metric
+   * reports a value and never does, so it must not be styled as a failure
+   * merely for not having passed.
+   */
+  metricHasVerdict(metric: any): boolean {
+    return metric?.evalStatus !== EvalStatus.INFORMATIONAL;
+  }
+
+  /** Green when passed, red when failed, neutral when there is no verdict. */
+  getMetricColor(metric: any): string {
+    if (!this.metricHasVerdict(metric)) {
+      return 'var(--mat-sys-on-surface-variant)';
+    }
+    return metric?.evalStatus === EvalStatus.PASSED ? '#2e7d32' :
+                                                      'var(--mat-sys-error)';
   }
 
   /** Whether a single rubric result passed, per the backend verdict/score. */
