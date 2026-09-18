@@ -51,4 +51,27 @@ describe('ArtifactTabComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  describe('getTextContent', () => {
+    const toDataUrl = (text: string) => {
+      const base64 = btoa(
+        String.fromCharCode(...new TextEncoder().encode(text)),
+      );
+      return `data:text/plain;base64,${base64}`;
+    };
+
+    it('should decode multibyte UTF-8 content without garbling it', () => {
+      const text = 'こんにちは 🌙 مرحبا';
+      expect(component['getTextContent'](toDataUrl(text))).toBe(text);
+    });
+
+    it('should still decode ASCII content', () => {
+      const text = 'Hello, world!';
+      expect(component['getTextContent'](toDataUrl(text))).toBe(text);
+    });
+
+    it('should return an empty string for an empty data URL', () => {
+      expect(component['getTextContent']('')).toBe('');
+    });
+  });
 });
