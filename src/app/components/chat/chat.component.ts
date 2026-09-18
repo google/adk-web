@@ -1034,7 +1034,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       if (evalResultUrl) {
         this.chatType.set('eval-result');
         const parts = evalResultUrl.split('/');
-        console.log('loadSessionByUrlOrReset evalResultUrl parts:', parts);
         if (parts.length === 3) {
           const evalSetId = parts[0];
           const evalId = parts[1];
@@ -1042,7 +1041,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           this.evalSetId = evalSetId;
 
           const runId = `${this.appName}_${evalSetId}_${timestamp}`;
-          console.log('loadSessionByUrlOrReset runId:', runId);
 
           // Warm the metrics-info cache so metric tooltips render on direct load.
           this.evalService.getMetricsInfo(this.appName)
@@ -1053,10 +1051,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
               .subscribe();
 
           this.evalService.getEvalResult(this.appName, runId).subscribe((runResult) => {
-            console.log('loadSessionByUrlOrReset runResult:', runResult);
             if (runResult) {
               const evalCaseResult = runResult.evalCaseResults?.find((r: any) => r.evalId === evalId);
-              console.log('loadSessionByUrlOrReset evalCaseResult:', evalCaseResult);
               if (evalCaseResult) {
                 const sessionId = evalCaseResult.sessionId;
 
