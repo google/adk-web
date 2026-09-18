@@ -245,10 +245,22 @@
             <td>Total Prompt Tokens</td>
             <td class="numeric-cell">{{ sessionUsageMetadata()['Prompt Tokens'] | number }}</td>
           </tr>
+          @if (sessionUsageMetadata()['Cached Content Tokens'] > 0) {
+          <tr>
+            <td>Total Cached Content Tokens</td>
+            <td class="numeric-cell">{{ sessionUsageMetadata()['Cached Content Tokens'] | number }}</td>
+          </tr>
+          }
           <tr>
             <td>Total Candidates Tokens</td>
             <td class="numeric-cell">{{ sessionUsageMetadata()['Candidates Tokens'] | number }}</td>
           </tr>
+          @if (sessionUsageMetadata()['Thoughts Tokens'] > 0) {
+          <tr>
+            <td>Total Thoughts Tokens</td>
+            <td class="numeric-cell">{{ sessionUsageMetadata()['Thoughts Tokens'] | number }}</td>
+          </tr>
+          }
           <tr>
             <td>Total Tokens</td>
             <td class="numeric-cell">{{ sessionUsageMetadata()['Total Tokens'] | number }}</td>
