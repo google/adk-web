@@ -4593,7 +4593,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           next: async (res) => {
             try {
               if (res) {
-                console.log('Light mode graph response:', res);
                 // Render each path's graph (supports both v1 and v2 responses)
                 this.sessionGraphSvgLight = {};
                 this.dynamicGraphDot = {};
@@ -4607,8 +4606,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.sessionGraphSvgLight[normalizedPath] = await this.graphService.render((graph as any).dotSrc);
                   }
                 }
-                console.log('sessionGraphSvgLight after rendering:', Object.keys(this.sessionGraphSvgLight));
-                console.log('graphsAvailable:', this.graphsAvailable());
                 if (this.selectedEvent && this.selectedEventIndex !== undefined) {
                   void this.updateRenderedGraph();
                 }
