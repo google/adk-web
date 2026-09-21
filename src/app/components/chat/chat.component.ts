@@ -4887,7 +4887,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   protected exportSession() {
     this.sessionService.getSession(this.userId, this.appName, this.sessionId)
       .subscribe((res) => {
-        console.log(res);
         const meta = (res.state as any)?.['__session_metadata__'] || (this.currentSessionState as any)?.['__session_metadata__'];
         const displayName = meta?.displayName;
         const filename = (displayName && displayName.trim())
