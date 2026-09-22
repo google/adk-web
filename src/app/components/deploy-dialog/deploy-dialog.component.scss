@@ -1,0 +1,148 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.deploy-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.deploy-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 560px;
+  max-width: 720px;
+}
+
+.deploy-hint {
+  color: var(--mat-sys-outline);
+  font-size: 13px;
+  margin: 4px 0 12px;
+}
+
+.deploy-field {
+  width: 100%;
+}
+
+.deploy-targets {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 4px;
+}
+
+.deploy-target {
+  align-items: flex-start;
+  background: transparent;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font: inherit;
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+
+  &:hover {
+    background: var(--mat-sys-surface-container-high);
+  }
+
+  &.selected {
+    background: var(--mat-sys-secondary-container);
+    border-color: var(--mat-sys-primary);
+  }
+}
+
+.deploy-target-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.deploy-target-blurb {
+  color: var(--mat-sys-outline);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.deploy-checkbox {
+  margin-bottom: 4px;
+}
+
+.deploy-loading {
+  align-items: center;
+  color: var(--mat-sys-outline);
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+  padding-bottom: 12px;
+}
+
+.deploy-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 12px 0;
+  font-size: 13px;
+}
+
+.deploy-banner-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.deploy-banner-success {
+  background: var(--mat-sys-surface-container-high);
+  mat-icon {
+    color: #34a853;
+  }
+}
+
+.deploy-banner-error {
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.deploy-banner-warn {
+  background: var(--mat-sys-surface-container-high);
+}
+
+.deploy-resource,
+.deploy-log-path {
+  font-family: monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.deploy-log {
+  background: var(--mat-sys-surface-container-highest);
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 8px 0 0;
+  max-height: 320px;
+  min-height: 160px;
+  overflow: auto;
+  padding: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

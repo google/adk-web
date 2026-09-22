@@ -79,6 +79,7 @@ import { pcmChunksToWavBase64 } from '../../core/utils/audio';
 import { BuilderTabsComponent } from '../builder-tabs/builder-tabs.component';
 import { CanvasComponent } from '../canvas/canvas.component';
 import { ChatPanelComponent } from '../chat-panel/chat-panel.component';
+import { DeployDialogComponent } from '../deploy-dialog/deploy-dialog.component';
 import { EditJsonDialogComponent } from '../edit-json-dialog/edit-json-dialog.component';
 import { EvalTabComponent } from '../eval-tab/eval-tab.component';
 import { DeleteSessionDialogComponent, DeleteSessionDialogData, } from '../session-tab/delete-session-dialog/delete-session-dialog.component';
@@ -3679,6 +3680,16 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.agentStructureOverlayMode = mode;
     this.showAgentStructureOverlay = true;
     this.analyticsService.sendEvent('graph_view_click');
+  }
+
+  openDeployDialog(): void {
+    if (!this.appName) {
+      return;
+    }
+    this.dialog.open(DeployDialogComponent, {
+      maxWidth: '90vw',
+      data: { appName: this.appName },
+    });
   }
 
   saveAgentBuilder() {
