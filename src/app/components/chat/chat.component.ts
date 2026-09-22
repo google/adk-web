@@ -2392,7 +2392,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           resolve(authResponseUrl);
           window.removeEventListener('message', listener);
         } else {
-          console.log('OAuth failed', event);
+          console.error('OAuth popup returned no authResponseUrl.');
         }
       };
 
@@ -2662,7 +2662,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.sessionId) return;
     this.uiStateService.setIsEventRequestResponseLoading(true);
     this.eventService.getTrace(this.appName, this.sessionId)
-      .pipe(first(), catchError((err) => { console.error('[DEBUG] getTrace error:', err); return of([] as Span[]); }))
+      .pipe(first(), catchError((err) => { console.error('Error fetching trace:', err); return of([] as Span[]); }))
       .subscribe(res => {
         this.traceData = res;
         this.updateSystemInstructionFlags();
