@@ -1,0 +1,238 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<h2 mat-dialog-title class="deploy-title">
+  <mat-icon fontSet="material-symbols-outlined">rocket_launch</mat-icon>
+  Deploy {{ appName }}
+</h2>
+
+<mat-dialog-content class="deploy-content">
+  @if (phase() === 'configuring') {
+    <div class="deploy-targets" role="radiogroup" aria-label="Deploy target">
+      @for (option of targets; track option.id) {
+        <button
+          type="button"
+          role="radio"
+          class="deploy-target"
+          [class.selected]="target() === option.id"
+          [attr.aria-checked]="target() === option.id"
+          (click)="selectTarget(option.id)">
+          <mat-icon fontSet="material-symbols-outlined">{{ option.icon }}</mat-icon>
+          <span class="deploy-target-label">{{ option.label }}</span>
+          <span class="deploy-target-blurb">{{ option.blurb }}</span>
+        </button>
+      }
+    </div>
+
+    <p class="deploy-hint">
+      Builds this agent and deploys it with your local gcloud credentials.
+      This creates billable resources in your Google Cloud project.
+    </p>
+
+    @if (loadingDefaults()) {
+      <div class="deploy-loading">
+        <mat-spinner diameter="16"></mat-spinner>
+        <span>Reading .env and gcloud config&hellip;</span>
+      </div>
+    }
+
+    <mat-form-field appearance="outline" class="deploy-field">
+      <mat-label>Region</mat-label>
+      <input matInput required [(ngModel)]="region" placeholder="us-central1" />
+      <mat-hint>
+        @if (sourceHint('region')) {
+          {{ sourceHint('region') }}
+        } @else {
+          Required for every target.
+        }
+      </mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="deploy-field">
+      <mat-label>Project</mat-label>
+      <input matInput [(ngModel)]="project" placeholder="Leave empty to use gcloud config" />
+      @if (sourceHint('project')) {
+        <mat-hint>{{ sourceHint('project') }}</mat-hint>
+      }
+    </mat-form-field>
+
+    @if (isAgentRuntime) {
+      <mat-form-field appearance="outline" class="deploy-field">
+        <mat-label>Display name</mat-label>
+        <input matInput [(ngModel)]="displayName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="deploy-field">
+        <mat-label>Description</mat-label>
+        <input matInput [(ngModel)]="description" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="deploy-field">
+        <mat-label>Agent Runtime ID</mat-label>
+        <input matInput [(ngModel)]="agentEngineId" placeholder="e.g. 8123456789" />
+        <mat-hint>
+          Leave empty to create a new runtime. Provide an ID to update that
+          existing runtime in place.
+        </mat-hint>
+      </mat-form-field>
+    }
+
+    @if (isContainerTarget) {
+      <mat-form-field appearance="outline" class="deploy-field">
+        <mat-label>Service name</mat-label>
+        <input matInput required [(ngModel)]="serviceName" placeholder="my-agent" />
+        <mat-hint>
+          Lower-case letters, digits and hyphens. Redeploying the same name
+          replaces that service.
+        </mat-hint>
+      </mat-form-field>
+
+      @if (isGke) {
+        <mat-form-field appearance="outline" class="deploy-field">
+          <mat-label>Cluster name</mat-label>
+          <input matInput required [(ngModel)]="clusterName" placeholder="my-cluster" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="deploy-field">
+          <mat-label>Service type</mat-label>
+          <mat-select [(ngModel)]="serviceType">
+            <mat-option value="ClusterIP">ClusterIP &mdash; cluster-internal</mat-option>
+            <mat-option value="LoadBalancer">LoadBalancer &mdash; public IP</mat-option>
+          </mat-select>
+        </mat-form-field>
+      }
+
+      <mat-form-field appearance="outline" class="deploy-field">
+        <mat-label>Port</mat-label>
+        <input matInput type="number" [(ngModel)]="port" />
+      </mat-form-field>
+
+      @if (isCloudRun) {
+        <mat-checkbox [(ngModel)]="allowUnauthenticated" class="deploy-checkbox">
+          Allow unauthenticated access
+        </mat-checkbox>
+        @if (allowUnauthenticated) {
+          <div class="deploy-banner deploy-banner-warn">
+            <mat-icon fontSet="material-symbols-outlined">public</mat-icon>
+            <span>
+              Anyone with the URL will be able to call this agent, billed to
+              your project.
+            </span>
+          </div>
+        }
+      }
+
+      <mat-checkbox [(ngModel)]="withUi" class="deploy-checkbox">
+        Include the dev UI
+      </mat-checkbox>
+      @if (withUi) {
+        <div class="deploy-banner deploy-banner-warn">
+          <mat-icon>warning</mat-icon>
+          <span>
+            The dev UI is unauthenticated and can read all data in the deployed
+            service. Its Builder, Tests and Trace tabs will not work there,
+            because dev endpoints are stripped from the image.
+          </span>
+        </div>
+      }
+    }
+  }
+
+  @if (phase() !== 'configuring') {
+    @if (phase() === 'running') {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      <p class="deploy-hint">
+        Deploying to {{ targetLabel }}. This usually takes a few minutes;
+        closing this dialog stops the log, not the deploy.
+      </p>
+    }
+
+    @if (errorMessage()) {
+      <div class="deploy-banner deploy-banner-error">
+        <mat-icon>error</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    @if (result(); as deployResult) {
+      @if (deployResult.status === 'succeeded') {
+        <div class="deploy-banner deploy-banner-success">
+          <mat-icon>check_circle</mat-icon>
+          <div class="deploy-banner-body">
+            <div>Deployed to {{ targetLabel }}.</div>
+            @if (deployResult.serviceUrl) {
+              <code class="deploy-resource">{{ deployResult.serviceUrl }}</code>
+            } @else if (deployResult.resourceName) {
+              <code class="deploy-resource">{{ deployResult.resourceName }}</code>
+            }
+            @if (deployResult.message) {
+              <div class="deploy-log-path">{{ deployResult.message }}</div>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="deploy-banner deploy-banner-error">
+          <mat-icon>error</mat-icon>
+          <div class="deploy-banner-body">
+            <div>{{ deployResult.message || 'Deploy failed.' }}</div>
+            @if (deployResult.logPath) {
+              <div class="deploy-log-path">Full log: {{ deployResult.logPath }}</div>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    @if (outcomeUnknown() && !errorMessage()) {
+      <div class="deploy-banner deploy-banner-warn">
+        <mat-icon>help</mat-icon>
+        <span>
+          The log stream ended before reporting an outcome. The deploy may
+          still be running &mdash; check the Cloud console before retrying.
+        </span>
+      </div>
+    }
+
+    <pre #logPane class="deploy-log">{{ log() }}</pre>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (phase() === 'configuring') {
+    <button mat-button (click)="close()">Cancel</button>
+    <button mat-flat-button color="primary" [disabled]="!canDeploy" (click)="deploy()">
+      {{ isUpdate ? 'Update' : 'Deploy' }}
+    </button>
+  } @else if (phase() === 'running') {
+    <button mat-button (click)="close()">Close</button>
+  } @else {
+    @if (result()?.status === 'succeeded') {
+      @if (result()?.serviceUrl || result()?.resourceName) {
+        <button mat-button (click)="copyResult()">
+          <mat-icon>content_copy</mat-icon> Copy
+        </button>
+      }
+      @if (result()?.consoleUrl) {
+        <button mat-button (click)="openConsole()">
+          <mat-icon>open_in_new</mat-icon> Open in console
+        </button>
+      }
+    } @else {
+      <button mat-button (click)="backToForm()">Back</button>
+    }
+    <button mat-flat-button color="primary" (click)="close()">Done</button>
+  }
+</mat-dialog-actions>
