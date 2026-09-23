@@ -868,7 +868,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
 
-    // OAuth HACK: Opens oauth poup in a new window. If the oauth callback
+    // OAuth HACK: Opens oauth popup in a new window. If the oauth callback
     // is successful, the new window acquires the auth token, state and
     // optionally the scope. Send this back to the main window.
     const location = new URL(window.location.href);
