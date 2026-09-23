@@ -1,0 +1,117 @@
+/**
+ * @license
+ * Copyright 2026 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 4px 0;
+
+  --shell-command-color: #e5e1a6;
+  --shell-arg-color: #ee9b8e;
+  --shell-flag-color: #8ab4f8;
+  --shell-operator-color: #c58af9;
+  --shell-stderr-color: #f6ae6c;
+}
+
+:host-context(html.light-theme) {
+  --shell-command-color: #795e26;
+  --shell-arg-color: #a31515;
+  --shell-flag-color: #0b57d0;
+  --shell-operator-color: #8430ce;
+  --shell-stderr-color: #b45309;
+}
+
+// Sized to the content, wrapping once it reaches the full row width.
+.shell-block {
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: 100%;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  background-color: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.shell-command {
+  padding: 8px 12px;
+}
+
+.shell-command-line {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.shell-prompt {
+  color: var(--mat-sys-on-surface-variant);
+  user-select: none;
+}
+
+.shell-token-command {
+  color: var(--shell-command-color);
+}
+
+.shell-token-arg {
+  color: var(--shell-arg-color);
+}
+
+.shell-token-flag {
+  color: var(--shell-flag-color);
+}
+
+.shell-token-operator {
+  color: var(--shell-operator-color);
+}
+
+.shell-output {
+  max-height: 360px;
+  overflow: auto;
+  padding: 8px 12px;
+}
+
+.shell-stream {
+  margin: 0;
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.shell-stream + .shell-stream {
+  margin-top: 4px;
+}
+
+.shell-stderr {
+  color: var(--shell-stderr-color);
+}
+
+.shell-error {
+  color: var(--mat-sys-error);
+}
+
+.shell-empty {
+  color: var(--mat-sys-on-surface-variant);
+  font-style: italic;
+}
+
+.shell-status {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--mat-sys-error);
+}

@@ -21,6 +21,7 @@ import {By} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
 
+import type {Event as AdkEvent} from '../../core/models/types';
 import {UiEvent} from '../../core/models/UiEvent';
 import {initTestBed} from '../../testing/utils';
 import {ChatPanelMessagesInjectionToken, CHAT_PANEL_MESSAGES} from '../chat-panel/chat-panel.component.i18n';
@@ -110,6 +111,51 @@ describe('EventContentComponent', () => {
       const buttons = fixture.debugElement.queryAll(By.css('app-hover-info-button'));
       const startBtn = buttons.find(b => b.componentInstance.text === 'Voice Activity Start');
       expect(startBtn?.componentInstance.tooltipContent).toBe('Started');
+    });
+  });
+
+  describe('Shell commands', () => {
+    it('renders a shell command call under its function call chip', () => {
+      component.uiEvent = new UiEvent({
+        role: 'bot',
+        event: {id: 'call-1'} as AdkEvent,
+        functionCalls: [
+          {id: 'fc-1', name: 'Execute', args: {command: 'echo hi'}},
+          {id: 'fc-2', name: 'get_weather', args: {city: 'Paris'}},
+        ],
+      });
+      component.index = 0;
+      fixture.detectChanges();
+
+      const shellCommands = fixture.debugElement.queryAll(By.css('app-shell-command'));
+      expect(shellCommands.length).toBe(1);
+      expect(shellCommands[0].nativeElement.textContent).toContain('$ echo hi');
+
+      const chipTexts = fixture.debugElement.queryAll(By.css('app-hover-info-button'))
+                            .map(b => b.componentInstance.text);
+      expect(chipTexts).toEqual(['Execute("echo hi")', 'get_weather("Paris")']);
+    });
+
+    it('renders a shell command response as output under its chip', () => {
+      component.uiEvent = new UiEvent({
+        role: 'bot',
+        event: {id: 'response-1'} as AdkEvent,
+        functionResponses: [
+          {id: 'fc-1', name: 'Execute', response: {status: 'ok', stdout: 'hi\n'}},
+        ],
+      });
+      component.index = 1;
+      fixture.detectChanges();
+
+      const chip = fixture.debugElement.query(By.css('.function-response-chip-container'));
+      expect(chip.query(By.css('app-hover-info-button')).componentInstance.text)
+          .toBe('Execute');
+      expect(chip.query(By.css('.menu-trigger-btn'))).toBeTruthy();
+
+      const output = fixture.debugElement.query(By.css('app-shell-command'));
+      expect(output.nativeElement.textContent).toContain('hi');
+      // The output comes right after the chip, so it renders underneath it.
+      expect(chip.nativeElement.nextElementSibling).toBe(output.nativeElement);
     });
   });
 });

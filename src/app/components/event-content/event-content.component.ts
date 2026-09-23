@@ -28,6 +28,7 @@ import { EditJsonDialogComponent } from '../edit-json-dialog/edit-json-dialog.co
 import { AgentRunRequest } from '../../core/models/AgentRunRequest';
 import { isComputerUseResponse, isVisibleComputerUseClick } from '../../core/models/ComputerUse';
 import type { EvalCase } from '../../core/models/Eval';
+import { isShellCommandCall, isShellCommandResponse } from '../../core/models/ShellCommand';
 import { UiEvent } from '../../core/models/UiEvent';
 import { WorkflowGraphTooltipDirective } from '../../directives/workflow-graph-tooltip.directive';
 import { JsonTooltipDirective } from '../../directives/html-tooltip.directive';
@@ -36,6 +37,7 @@ import { HoverInfoButtonComponent } from '../hover-info-button/hover-info-button
 import { LongRunningResponseComponent } from '../long-running-response/long-running-response';
 import { ChatPanelMessagesInjectionToken } from '../chat-panel/chat-panel.component.i18n';
 import { ContentBubbleComponent } from '../content-bubble/content-bubble.component';
+import { ShellCommandComponent } from '../shell-command/shell-command.component';
 import { SystemInstructionDiffDialogComponent } from '../system-instruction-diff-dialog/system-instruction-diff-dialog.component';
 
 @Component({
@@ -56,6 +58,7 @@ import { SystemInstructionDiffDialogComponent } from '../system-instruction-diff
     ContentBubbleComponent,
     MatMenuModule,
     JsonTooltipDirective,
+    ShellCommandComponent,
   ],
 })
 export class EventContentComponent {
@@ -170,6 +173,14 @@ export class EventContentComponent {
 
   isComputerUseResponse(input: any): boolean {
     return isComputerUseResponse(input);
+  }
+
+  isShellCommandCall(functionCall: FunctionCall): boolean {
+    return isShellCommandCall(functionCall);
+  }
+
+  isShellCommandResponse(functionResponse: FunctionResponse): boolean {
+    return isShellCommandResponse(functionResponse);
   }
 
   getFilteredStateKeys(stateDelta: any): string[] {
