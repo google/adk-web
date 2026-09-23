@@ -1474,13 +1474,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       apiEvent.author = 'bot';
     }
 
-    if (apiEvent.errorMessage) {
-      if (apiEvent.id && !this.eventData.has(apiEvent.id)) {
-        this.eventData.set(apiEvent.id, apiEvent);
-        this.eventData = new Map(this.eventData);
-      }
-    }
-
     if (apiEvent.id && !this.eventData.has(apiEvent.id)) {
       this.eventData.set(apiEvent.id, apiEvent);
       this.eventData = new Map(this.eventData);
