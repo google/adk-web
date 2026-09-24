@@ -137,6 +137,10 @@ export declare interface Event extends LlmResponse {
   inputTranscription?: { text: string; };
   outputTranscription?: { text: string; };
   usageMetadata?: any;
+  // Prompt-cache write (creation) tokens. Serialized on the event itself
+  // rather than inside usageMetadata because google.genai's usage type
+  // forbids extra fields.
+  cacheCreationTokenCount?: number;
   interrupted?: boolean;
   turnComplete?: boolean;
   systemInstructionChanged?: boolean;
