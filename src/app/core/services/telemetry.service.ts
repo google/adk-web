@@ -46,6 +46,10 @@ export class TelemetryService {
     const runtimeConfig = RuntimeConfigUtil.getRuntimeConfig();
     if (runtimeConfig && runtimeConfig.telemetry !== undefined) {
       this.telemetryStatus.set(runtimeConfig.telemetry);
+    } else {
+      // No consent in the runtime config (dev server, or a backend that does
+      // not inject it) -- ask the API instead.
+      void this.fetchTelemetryStatus();
     }
 
     if (typeof document !== 'undefined') {

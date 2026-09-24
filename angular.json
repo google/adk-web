@@ -83,7 +83,8 @@
           },
           "defaultConfiguration": "development",
           "options": {
-            "poll": 2000
+            "poll": 2000,
+            "proxyConfig": "proxy.conf.mjs"
           }
         },
         "extract-i18n": {

@@ -36,6 +36,7 @@ import {EVAL_TAB_COMPONENT, EvalTabComponent} from './app/components/eval-tab/ev
 import {MarkdownComponent} from './app/components/markdown/markdown.component';
 import {MARKDOWN_COMPONENT} from './app/components/markdown/markdown.component.interface';
 import {A2UI_THEME} from './app/core/constants/a2ui-theme';
+import {RuntimeConfig} from './app/core/models/RuntimeConfig';
 import {AgentBuilderService} from './app/core/services/agent-builder.service';
 import {AgentService} from './app/core/services/agent.service';
 import {ArtifactService} from './app/core/services/artifact.service';
@@ -87,9 +88,14 @@ import {VideoService} from './app/core/services/video.service';
 import {WebSocketService} from './app/core/services/websocket.service';
 import {LOGO_COMPONENT} from './app/injection_tokens';
 
+// The dev server does not serve this file; in that setup the backend is
+// reached through the Angular dev-server proxy and every value here has a
+// safe default. Never let a missing config block bootstrap -- an unhandled
+// rejection here renders a blank page with no visible error.
 fetch('./assets/config/runtime-config.json')
-    .then((response) => response.json())
-    .then((config) => {
+    .then((response) => (response.ok ? response.json() : {}))
+    .catch(() => ({}))
+    .then((config: Partial<RuntimeConfig>) => {
       (window as any)['runtimeConfig'] = config;
 
       bootstrapApplication(AppComponent, {

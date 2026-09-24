@@ -7,9 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "clean-config": "node clean-backend.js",
-    "inject-backend": "node set-backend.js",
-    "serve": "npm run clean-config && npm run inject-backend && ng serve --poll 1000"
+    "serve": "ng serve --poll 1000"
   },
   "private": true,
   "dependencies": {
