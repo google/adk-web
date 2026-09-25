@@ -21,11 +21,11 @@ Agent Development Kit (ADK) is a flexible and modular framework for developing a
 
 ADK web is the built-in dev UI that comes along with adk for easier development and debug.
 
-## ✨ Prerequisite
+## ✨ Prerequisites
 
 - **Install [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)**
 
-- **Install [NodeJs](https://nodejs.org/en)**
+- **Install [Node.js](https://nodejs.org/en)**
 
 - **Install [Angular CLI](https://angular.dev/tools/cli)**
 
@@ -43,7 +43,7 @@ adk-web folder:
 ### Install dependencies
 
 ```bash
-sudo npm install
+npm install
 ```
 
 ### Run adk web
