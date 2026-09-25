@@ -26,6 +26,7 @@ import { MatInput } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import {isImeComposing} from '../../../../utils/keyboard-event.utils';
 
 @Component({
     changeDetection: ChangeDetectionStrategy.Default,
@@ -63,7 +64,11 @@ export class AddEvalSessionDialogComponent {
 
   constructor() {}
 
-  createNewEvalCase() {
+  createNewEvalCase(event?: Event) {
+    if (isImeComposing(event)) {
+      return;
+    }
+
     if (!this.newCaseId || this.newCaseId == '') {
       alert('Cannot create eval set with empty id!');
     } else {

@@ -24,7 +24,7 @@
   </div>
 } @else {
   <mat-form-field style="padding-left:20px; padding-right: 24px;">
-    <input [(ngModel)]="newCaseId" matInput (keydown.enter)="createNewEvalCase()">
+    <input [(ngModel)]="newCaseId" matInput (keydown.enter)="createNewEvalCase($event)">
   </mat-form-field>
 }
 <mat-dialog-actions align="end">
