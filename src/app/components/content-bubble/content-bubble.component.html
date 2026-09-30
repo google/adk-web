@@ -120,28 +120,28 @@
     @if (!uiEvent.codeExecutionSegments && !hasOnlyCodeResults && (uiEvent.executableCode || uiEvent.codeExecutionResult)) {
       <app-code-execution [executableCode]="uiEvent.executableCode" [codeExecutionResult]="uiEvent.codeExecutionResult"></app-code-execution>
     }
-    @if (uiEvent.inlineData) { @if (uiEvent.role === "bot") {
+    @for (inlineData of displayInlineDataParts; track $index) { @if (uiEvent.role === "bot") {
       <div>
         <div>
-          @switch (uiEvent.inlineData.mediaType) { @case (MediaType.IMAGE) {
+          @switch (inlineData.mediaType) { @case (MediaType.IMAGE) {
           <div class="generated-image-container">
             <img
               class="generated-image"
               alt="image"
-              [src]="uiEvent.inlineData.data"
-              (click)="openViewImageDialog.emit(uiEvent.inlineData.data)"
+              [src]="inlineData.data"
+              (click)="openViewImageDialog.emit(inlineData.data)"
             />
           </div>
           } @case (MediaType.AUDIO) {
           <div>
-            <app-audio-player [base64data]="uiEvent.inlineData.data"></app-audio-player>
+            <app-audio-player [base64data]="inlineData.data"></app-audio-player>
           </div>
           } @case (MediaType.VIDEO) {
           <div class="video-player-container" style="max-width: 400px; margin-top: 8px;">
-            <video [src]="uiEvent.inlineData.data" controls style="width: 100%; border-radius: 8px;"></video>
+            <video [src]="inlineData.data" controls style="width: 100%; border-radius: 8px;"></video>
           </div>
           } @case (MediaType.TEXT) {
-          @if (uiEvent.inlineData.mimeType === 'text/html') {
+          @if (inlineData.mimeType === 'text/html') {
           <div>
             <div class="html-artifact-container" style="display: flex; align-items: center; gap: 4px;">
               <mat-icon style="color: #1a73e8; font-size: 18px; width: 18px; height: 18px;">description</mat-icon>
@@ -149,18 +149,18 @@
                 style="color: #1a73e8; text-decoration: underline; cursor: pointer; font-weight: 500; font-size: 14px;"
                 (click)="
                                 openBase64InNewTab.emit({
-                                  data: uiEvent.inlineData.data,
-                                  mimeType: uiEvent.inlineData.mimeType
+                                  data: inlineData.data,
+                                  mimeType: inlineData.mimeType
                                 })
                               "
               >
-                {{ uiEvent.inlineData.name }}
+                {{ inlineData.name }}
               </a>
             </div>
           </div>
           } @else {
           <div class="text-artifact-container" style="max-height: 200px; overflow-y: auto; background: var(--mat-sys-surface-container-highest); padding: 12px; border-radius: 8px; margin-top: 8px;">
-            <pre style="margin: 0; white-space: pre-wrap; font-family: monospace; font-size: 12px; color: var(--mat-sys-on-surface);">{{ getTextContent(uiEvent.inlineData.data) }}</pre>
+            <pre style="margin: 0; white-space: pre-wrap; font-family: monospace; font-size: 12px; color: var(--mat-sys-on-surface);">{{ getTextContent(inlineData.data) }}</pre>
           </div>
           }
           } @default {
@@ -169,12 +169,12 @@
               class="link-style-button"
               (click)="
                               openBase64InNewTab.emit({
-                                data: uiEvent.inlineData.data,
-                                mimeType: uiEvent.inlineData.mimeType
+                                data: inlineData.data,
+                                mimeType: inlineData.mimeType
                               })
                             "
             >
-              {{ uiEvent.inlineData.name }}
+              {{ inlineData.name }}
             </button>
           </div>
           } }
@@ -182,23 +182,23 @@
       </div>
     } @else {
       <div>
-        @if (uiEvent.inlineData.mimeType.startsWith("image/")) {
+        @if (inlineData.mimeType.startsWith("image/")) {
         <div>
           <img
             class="image-preview-chat"
             alt="image"
-            [src]="uiEvent.inlineData.data"
-            (click)="openViewImageDialog.emit(uiEvent.inlineData.data)"
+            [src]="inlineData.data"
+            (click)="openViewImageDialog.emit(inlineData.data)"
           />
         </div>
-        } @else if (uiEvent.inlineData.mimeType.startsWith("video/")) {
+        } @else if (inlineData.mimeType.startsWith("video/")) {
         <div class="video-player-container" style="max-width: 400px; margin-top: 8px;">
-          <video [src]="uiEvent.inlineData.data" controls style="width: 100%; border-radius: 8px;"></video>
+          <video [src]="inlineData.data" controls style="width: 100%; border-radius: 8px;"></video>
         </div>
         } @else {
         <div class="attachment">
           <mat-icon>insert_drive_file</mat-icon>
-          <a [href]="uiEvent.inlineData.data" download>{{ uiEvent.inlineData.displayName }}</a>
+          <a [href]="inlineData.data" download>{{ inlineData.displayName }}</a>
         </div>
         }
       </div>
