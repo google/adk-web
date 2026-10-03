@@ -207,6 +207,18 @@ export class EventContentComponent {
     return isSkillToolResponse(functionResponse);
   }
 
+  /** Displays the answer sent by the human input form without hiding fields. */
+  getUserInputResponseText(functionResponse: FunctionResponse): string {
+    const response = functionResponse.response;
+    // Free-text submissions are wrapped in {result: text}; schema-based forms
+    // send their fields directly, including any field named "result".
+    if (Object.keys(response).length === 1 &&
+        typeof response['result'] === 'string') {
+      return response['result'];
+    }
+    return JSON.stringify(response, null, 2);
+  }
+
   /** Whether a function response is a file edit that failed. */
   isFailedFileEdit(functionResponse: FunctionResponse): boolean {
     return getFileEditError(functionResponse) !== null;

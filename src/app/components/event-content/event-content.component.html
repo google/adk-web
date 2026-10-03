@@ -13,6 +13,13 @@
       (openBase64InNewTab)="openBase64InNewTab.emit($event)"
     ></app-content-bubble>
     }
+    @if (uiEvent.role === 'user') {
+      @for (functionResponse of uiEvent.functionResponses; track functionResponse) {
+        @if (functionResponse.name === 'adk_request_input' && functionResponse.response) {
+          <pre class="user-input-response">{{ getUserInputResponseText(functionResponse) }}</pre>
+        }
+      }
+    }
     @if (uiEvent.event.output) {
     <app-content-bubble
       type="output"
