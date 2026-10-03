@@ -60,9 +60,15 @@ export class LongRunningResponseComponent implements OnChanges {
     confirmed: false,
     payload: ''
   };
+  confirmationPayloadInvalid = false;
 
   get isConfirmationRequest(): boolean {
     return this.functionCall?.name === 'adk_request_confirmation';
+  }
+
+  get hasConfirmationPayload(): boolean {
+    return this.functionCall.args?.toolConfirmation?.payload !== undefined &&
+      this.functionCall.args?.toolConfirmation?.payload !== null;
   }
 
   private readonly cdr = inject(ChangeDetectorRef);
@@ -76,6 +82,7 @@ export class LongRunningResponseComponent implements OnChanges {
   initForm() {
     this.formModel = {};
     this.formFields = [];
+    this.confirmationPayloadInvalid = false;
 
     if (this.isConfirmationRequest) {
       this.confirmationModel.confirmed = this.functionCall.args?.toolConfirmation?.confirmed || false;
@@ -163,6 +170,15 @@ export class LongRunningResponseComponent implements OnChanges {
     }
   }
 
+  onConfirmationPayloadChange(value: string) {
+    try {
+      JSON.parse(value);
+      this.confirmationPayloadInvalid = false;
+    } catch {
+      this.confirmationPayloadInvalid = true;
+    }
+  }
+
   setActiveTab(tab: string) {
     this.activeTab = tab;
     if (tab === 'json') {
@@ -213,7 +229,8 @@ export class LongRunningResponseComponent implements OnChanges {
       try {
         payloadObj = JSON.parse(this.confirmationModel.payload);
       } catch (e) {
-        payloadObj = this.functionCall.args?.originalFunctionCall?.args || {};
+        this.confirmationPayloadInvalid = true;
+        return;
       }
 
       const responseValue = {

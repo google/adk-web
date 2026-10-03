@@ -43,8 +43,23 @@
               {{functionCall.args?.toolConfirmation?.hint}}
             </div>
             <div class="confirmation-payload" style="margin-bottom: 10px;">
-              <div class="field-label" style="margin-bottom: 5px; font-size: 12px; font-weight: 500; color: var(--mat-sys-on-surface-variant);">Payload</div>
-              <app-custom-json-viewer [json]="functionCall.args?.originalFunctionCall?.args"></app-custom-json-viewer>
+              @if (hasConfirmationPayload) {
+                <label class="confirmation-payload-label" for="confirmation-payload-{{functionCall.id}}">Payload (JSON)</label>
+                <div class="json-view">
+                  <textarea id="confirmation-payload-{{functionCall.id}}"
+                    class="json-textarea"
+                    [(ngModel)]="confirmationModel.payload"
+                    (ngModelChange)="onConfirmationPayloadChange($event)"
+                    [attr.aria-invalid]="confirmationPayloadInvalid"
+                    [attr.aria-describedby]="confirmationPayloadInvalid ? 'confirmation-payload-error-' + functionCall.id : null"></textarea>
+                </div>
+                @if (confirmationPayloadInvalid) {
+                  <div id="confirmation-payload-error-{{functionCall.id}}" class="confirmation-payload-error" role="alert">Enter valid JSON before submitting.</div>
+                }
+              } @else {
+                <div class="confirmation-payload-label">Payload</div>
+                <app-custom-json-viewer [json]="functionCall.args?.originalFunctionCall?.args"></app-custom-json-viewer>
+              }
             </div>
             <div class="confirmation-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
               <div class="confirmation-checkbox" style="font-size: 12px;">
@@ -53,7 +68,7 @@
                   <span>Confirmed</span>
                 </label>
               </div>
-              <button mat-raised-button color="primary" (click)="onSend()" class="form-submit-button" style="margin-top: 0;">
+              <button mat-raised-button color="primary" (click)="onSend()" [disabled]="confirmationPayloadInvalid" class="form-submit-button" style="margin-top: 0;">
                 Submit
               </button>
             </div>
@@ -140,8 +155,23 @@
             {{functionCall.args?.toolConfirmation?.hint}}
           </div>
           <div class="confirmation-payload" style="margin-bottom: 10px;">
-            <div class="field-label" style="margin-bottom: 5px; font-size: 12px; font-weight: 500; color: var(--mat-sys-on-surface-variant);">Payload</div>
-            <app-custom-json-viewer [json]="functionCall.args?.originalFunctionCall?.args"></app-custom-json-viewer>
+            @if (hasConfirmationPayload) {
+              <label class="confirmation-payload-label" for="confirmation-payload-standalone-{{functionCall.id}}">Payload (JSON)</label>
+              <div class="json-view">
+                <textarea id="confirmation-payload-standalone-{{functionCall.id}}"
+                  class="json-textarea"
+                  [(ngModel)]="confirmationModel.payload"
+                  (ngModelChange)="onConfirmationPayloadChange($event)"
+                  [attr.aria-invalid]="confirmationPayloadInvalid"
+                  [attr.aria-describedby]="confirmationPayloadInvalid ? 'confirmation-payload-error-standalone-' + functionCall.id : null"></textarea>
+              </div>
+              @if (confirmationPayloadInvalid) {
+                <div id="confirmation-payload-error-standalone-{{functionCall.id}}" class="confirmation-payload-error" role="alert">Enter valid JSON before submitting.</div>
+              }
+            } @else {
+              <div class="confirmation-payload-label">Payload</div>
+              <app-custom-json-viewer [json]="functionCall.args?.originalFunctionCall?.args"></app-custom-json-viewer>
+            }
           </div>
           <div class="confirmation-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
             <div class="confirmation-checkbox" style="font-size: 12px;">
@@ -150,7 +180,7 @@
                 <span>Confirmed</span>
               </label>
             </div>
-            <button mat-raised-button color="primary" (click)="onSend()" class="form-submit-button" style="margin-top: 0;">
+            <button mat-raised-button color="primary" (click)="onSend()" [disabled]="confirmationPayloadInvalid" class="form-submit-button" style="margin-top: 0;">
               Submit
             </button>
           </div>
