@@ -135,6 +135,66 @@
   }
 }
 
+.copy-message-button {
+  position: absolute;
+  top: -6px;
+  right: -28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--mat-sys-on-surface-variant);
+  background-color: var(--mat-sys-surface-container-high);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  z-index: 5;
+
+  mat-icon {
+    font-family: 'Material Symbols Outlined', 'Google Symbols';
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background-color: var(--mat-sys-surface-container-highest);
+  }
+
+  &.copied {
+    color: #81c784;
+  }
+}
+
+.content-bubble:hover .copy-message-button,
+.copy-message-button:hover,
+.copy-message-button:focus-visible {
+  opacity: 1;
+}
+
+.role-user {
+  .copy-message-button {
+    right: auto;
+    left: -28px;
+  }
+}
+
+// Touch devices and small screens have no hover, so keep the button in flow.
+@media (hover: none), (max-width: 768px) {
+  .copy-message-button {
+    position: static;
+    opacity: 1;
+    margin-top: 6px;
+    box-shadow: none;
+    background-color: transparent;
+  }
+}
+
 .thought-container {
   margin-bottom: 12px;
   padding-bottom: 8px;

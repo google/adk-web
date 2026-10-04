@@ -23,6 +23,8 @@ import {InjectionToken} from '@angular/core';
 export const CHAT_PANEL_MESSAGES = {
   cancelEditingTooltip: 'Cancel editing',
   saveEvalMessageTooltip: 'Save eval case message',
+  copyMessageTooltip: 'Copy message',
+  messageCopiedTooltip: 'Copied',
   thoughtChipLabel: 'Thought',
   outcomeLabel: 'Outcome',
   outputLabel: 'Output',
