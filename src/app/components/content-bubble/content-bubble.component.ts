@@ -109,7 +109,7 @@ export class ContentBubbleComponent implements OnChanges {
   }
 
   get hasAudio(): boolean {
-    if (this.uiEvent.inlineData?.mediaType === MediaType.AUDIO) {
+    if (this.displayInlineDataParts.some(part => part.mediaType === MediaType.AUDIO)) {
       return true;
     }
     const parts = this.uiEvent.event?.content?.parts;
@@ -117,6 +117,13 @@ export class ContentBubbleComponent implements OnChanges {
       return parts.some((part: any) => part.fileData && part.fileData.mimeType && part.fileData.mimeType.startsWith('audio/'));
     }
     return false;
+  }
+
+  get displayInlineDataParts(): NonNullable<UiEvent['inlineData']>[] {
+    if (this.uiEvent.inlineDataParts?.length) {
+      return this.uiEvent.inlineDataParts;
+    }
+    return this.uiEvent.inlineData ? [this.uiEvent.inlineData] : [];
   }
 
   /** The event's text and code runs, each code paired with its result. */
@@ -140,18 +147,15 @@ export class ContentBubbleComponent implements OnChanges {
       return false;
     }
 
-    if (this.uiEvent.inlineData) {
-      const mediaType = this.uiEvent.inlineData.mediaType;
-      if (mediaType === MediaType.AUDIO || mediaType === MediaType.IMAGE || mediaType === MediaType.VIDEO || mediaType === MediaType.TEXT) {
-        return true;
-      }
-    }
-    
-    if (this.uiEvent.inlineData?.mimeType) {
-      const mimeType = this.uiEvent.inlineData.mimeType;
-      if (mimeType.startsWith('audio/') || mimeType.startsWith('image/') || mimeType.startsWith('video/')) {
-        return true;
-      }
+    if (this.displayInlineDataParts.some(part => {
+      const mediaType = part.mediaType;
+      const mimeType = part.mimeType;
+      return mediaType === MediaType.AUDIO || mediaType === MediaType.IMAGE ||
+        mediaType === MediaType.VIDEO || mediaType === MediaType.TEXT ||
+        mimeType.startsWith('audio/') || mimeType.startsWith('image/') ||
+        mimeType.startsWith('video/');
+    })) {
+      return true;
     }
 
     const parts = this.uiEvent.event?.content?.parts;

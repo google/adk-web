@@ -1872,6 +1872,54 @@ describe('ChatComponent', () => {
       expect(uiEvent.role).toBe('bot');
       expect(uiEvent.text).toBeUndefined();
     });
+
+    it('should preserve all inline image parts in a response event', () => {
+      const event = {
+        id: 'event-multiple-images',
+        author: 'bot',
+        content: {
+          parts: [
+            {inlineData: {mimeType: 'image/png', data: 'AQ=='}},
+            {inlineData: {mimeType: 'image/png', data: 'Ag=='}},
+          ],
+        },
+      };
+
+      const uiEvent = (component as any).buildUiEventFromEvent(event);
+
+      expect(uiEvent.inlineDataParts.map((part: any) => part.data)).toEqual([
+        'data:image/png;base64,AQ==',
+        'data:image/png;base64,Ag==',
+      ]);
+    });
+
+    it('should append streamed inline image parts without mutating prior events', () => {
+      const initialEvent = (component as any).buildUiEventFromEvent({
+        id: 'event-streamed-images',
+        author: 'bot',
+        partial: true,
+        content: {
+          parts: [{inlineData: {mimeType: 'image/png', data: 'AQ=='}}],
+        },
+      });
+
+      const updatedEvent = (component as any).mergePartialEvent(initialEvent, {
+        id: 'event-streamed-images',
+        author: 'bot',
+        partial: true,
+        content: {
+          parts: [{inlineData: {mimeType: 'image/png', data: 'Ag=='}}],
+        },
+      });
+
+      expect(initialEvent.inlineDataParts.map((part: any) => part.data)).toEqual([
+        'data:image/png;base64,AQ==',
+      ]);
+      expect(updatedEvent.inlineDataParts.map((part: any) => part.data)).toEqual([
+        'data:image/png;base64,AQ==',
+        'data:image/png;base64,Ag==',
+      ]);
+    });
   });
 
   describe('extractA2uiJsonFromText', () => {

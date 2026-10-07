@@ -18,6 +18,14 @@
 import type {CodeExecutionSegment} from './CodeExecution';
 import {CodeExecutionResult, Event, ExecutableCode, FunctionCall, FunctionResponse, MediaType} from './types';
 
+export interface UiEventInlineData {
+  mediaType?: MediaType | string;
+  data: string;
+  name?: string;
+  mimeType: string;
+  displayName?: string;
+}
+
 export class UiEvent {
   role!: 'user' | 'bot' | string;
   text?: string;
@@ -38,13 +46,8 @@ export class UiEvent {
   // events that contain code execution.
   codeExecutionSegments?: CodeExecutionSegment[];
   event!: Event;
-  inlineData?: {
-    mediaType?: MediaType | string;
-    data: string;
-    name?: string;
-    mimeType: string;
-    displayName?: string;
-  };
+  inlineData?: UiEventInlineData;
+  inlineDataParts?: UiEventInlineData[];
   functionCalls?: FunctionCall[];
   functionResponses?: FunctionResponse[];
   actualInvocationToolUses?: any;
