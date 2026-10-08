@@ -264,4 +264,16 @@
         {{ uiEvent.event.outputTranscription.text }}
       }
   }
+  @if (showCopyButton) {
+    <button
+      type="button"
+      class="copy-message-button"
+      [class.copied]="copied()"
+      [matTooltip]="copied() ? i18n.messageCopiedTooltip : i18n.copyMessageTooltip"
+      [attr.aria-label]="i18n.copyMessageTooltip"
+      (click)="copyMessage($event)"
+    >
+      <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+    </button>
+  }
 </div>
