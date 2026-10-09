@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { HttpClient } from '@angular/common/http';
-import { Injectable, NgZone } from '@angular/core';
+import { HttpClient, HttpXsrfTokenExtractor } from '@angular/common/http';
+import { DOCUMENT, inject, Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { URLUtil } from '../../../utils/url-util';
 import { AgentRunRequest } from '../models/AgentRunRequest';
@@ -31,6 +31,8 @@ export class AgentService implements AgentServiceInterface {
   private _currentApp = new BehaviorSubject<string>('');
   currentApp = this._currentApp.asObservable();
   private isLoading = new BehaviorSubject<boolean>(false);
+  private readonly document = inject(DOCUMENT);
+  private readonly xsrfTokenExtractor = inject(HttpXsrfTokenExtractor);
 
   constructor(
     private http: HttpClient,
@@ -57,13 +59,22 @@ export class AgentService implements AgentServiceInterface {
       const controller = new AbortController();
       const signal = controller.signal;
       let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream',
+      };
+
+      // Fetch bypasses HttpClient's default XSRF header handling.
+      if (this.isSameOrigin(url)) {
+        const token = this.xsrfTokenExtractor.getToken();
+        if (token !== null) {
+          headers['X-XSRF-TOKEN'] = token;
+        }
+      }
 
       fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'text/event-stream',
-        },
+        headers,
         body: JSON.stringify(req),
         signal,
       })
@@ -123,6 +134,16 @@ export class AgentService implements AgentServiceInterface {
         this.isLoading.next(false);
       };
     });
+  }
+
+  private isSameOrigin(url: string): boolean {
+    try {
+      return new URL(url, this.document.baseURI).origin ===
+        this.document.location?.origin;
+    } catch {
+      // Let fetch report invalid URLs without attaching the token.
+      return false;
+    }
   }
 
   listApps(): Observable<string[]> {
