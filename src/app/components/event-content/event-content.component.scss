@@ -8,6 +8,22 @@ app-content-bubble+app-content-bubble {
   margin-top: 5px;
 }
 
+.user-input-response {
+  align-self: flex-end;
+  box-sizing: border-box;
+  max-width: 80%;
+  margin: 5px 0;
+  padding: 5px 20px;
+  border-radius: 20px;
+  color: var(--mat-sys-on-primary-container);
+  background-color: var(--mat-sys-primary-container);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .event-chips-container {
   display: flex;
   flex-wrap: wrap;
