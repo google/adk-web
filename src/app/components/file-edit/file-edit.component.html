@@ -17,11 +17,13 @@
 @if (edit(); as fileEdit) {
   <div class="file-edit">
     <div class="file-edit-header">
-      <mat-icon class="file-edit-icon">edit_note</mat-icon>
+      <mat-icon class="file-edit-icon" aria-hidden="true">{{ fileEdit.kind === 'write' ? 'note_add' : 'edit_note' }}</mat-icon>
       <span class="file-edit-path" [title]="fileEdit.path">{{ fileEdit.path }}</span>
       <span class="file-edit-stats">
         <span class="file-edit-added-count">+{{ addedCount() }}</span>
-        <span class="file-edit-removed-count">-{{ removedCount() }}</span>
+        @if (fileEdit.kind === 'edit') {
+          <span class="file-edit-removed-count">-{{ removedCount() }}</span>
+        }
       </span>
     </div>
     <div class="file-edit-body">
@@ -40,6 +42,31 @@
       </div>
     </div>
   </div>
-} @else if (error(); as editError) {
-  <app-terminal-output [error]="editError"></app-terminal-output>
+} @else if (error(); as toolError) {
+  <app-terminal-output [error]="toolError"></app-terminal-output>
+} @else if (read(); as fileRead) {
+  <!-- Collapsed by default, like a read in a coding agent's transcript. -->
+  <details class="file-edit file-read">
+    <summary class="file-edit-header">
+      <mat-icon class="file-edit-icon" aria-hidden="true">description</mat-icon>
+      @if (readPath()) {
+        <span class="file-edit-path" [title]="readPath()">{{ readPath() }}</span>
+      }
+      <span class="file-read-range">{{ readRange() }}</span>
+      <mat-icon class="file-read-chevron" aria-hidden="true">expand_more</mat-icon>
+    </summary>
+    <div class="file-edit-body file-read-body">
+      <div class="file-read-gutter" aria-hidden="true">
+        @for (line of fileRead.lines; track $index) {
+          <div>{{ line.number ?? '' }}</div>
+        }
+      </div>
+      <div class="file-read-code">
+        <ng-container
+          [ngComponentOutlet]="markdownComponent"
+          [ngComponentOutletInputs]="{text: readMarkdown(), thought: false}"
+        ></ng-container>
+      </div>
+    </div>
+  </details>
 }

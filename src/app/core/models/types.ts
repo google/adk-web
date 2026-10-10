@@ -82,6 +82,23 @@ export declare interface VoiceActivity {
   audioOffset?: string;
 }
 
+/** A source a grounded response drew on: a web page or a retrieved document. */
+export declare interface GroundingChunk {
+  web?: {uri?: string; title?: string; domain?: string};
+  retrievedContext?: {uri?: string; title?: string; text?: string};
+}
+
+/**
+ * How a response was grounded, as sent by `google_search` and the other
+ * grounding tools. Only the fields the UI reads are listed.
+ */
+export declare interface GroundingMetadata {
+  webSearchQueries?: string[];
+  retrievalQueries?: string[];
+  groundingChunks?: GroundingChunk[];
+  searchEntryPoint?: {renderedContent?: string};
+}
+
 export declare interface LlmResponse {
   content: GenAiContent;
   error?: string;
@@ -89,6 +106,7 @@ export declare interface LlmResponse {
   errorCode?: string;
   longRunningToolIds?: string[];
   voiceActivity?: VoiceActivity;
+  groundingMetadata?: GroundingMetadata;
 }
 
 export enum NodeStatus {

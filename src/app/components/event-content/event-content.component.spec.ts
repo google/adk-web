@@ -245,6 +245,45 @@ describe('EventContentComponent', () => {
       expect(chip.nativeElement.nextElementSibling).toBe(edit.nativeElement);
     });
 
+    it('renders a read under its response chip, with the path from its call', () => {
+      const readCall = new UiEvent({
+        role: 'bot',
+        event: {id: 'read-call'} as AdkEvent,
+        functionCalls: [{
+          id: 'fc-read',
+          name: 'ReadFile',
+          args: {path: 'app.py', start_line: 4, end_line: 4},
+        }],
+      });
+      component.uiEvent = new UiEvent({
+        role: 'bot',
+        event: {id: 'read-response'} as AdkEvent,
+        functionResponses: [{
+          id: 'fc-read',
+          name: 'ReadFile',
+          response: {status: 'ok', content: '     4\tx = 1\n', total_lines: 9},
+        }],
+      });
+      component.uiEvents = [readCall, component.uiEvent];
+      component.index = 1;
+      fixture.detectChanges();
+
+      const chip = fixture.debugElement.query(By.css('.function-response-chip-container'));
+      const read = fixture.debugElement.query(By.css('app-file-edit'));
+      expect(chip.nativeElement.nextElementSibling).toBe(read.nativeElement);
+      expect(read.query(By.css('.file-edit-path')).nativeElement.textContent)
+          .toBe('app.py');
+      expect(read.query(By.css('.file-read-range')).nativeElement.textContent)
+          .toBe('Lines 4-4 of 9');
+    });
+
+    it('shows the path in the ReadFile chip when a range is passed', () => {
+      expect(component.getFunctionCallButtonText({
+        name: 'ReadFile',
+        args: {path: 'app.py', start_line: 4, end_line: 6},
+      })).toBe('ReadFile("app.py", …)');
+    });
+
     it('renders nothing extra for a successful edit response', () => {
       component.uiEvent = new UiEvent({
         role: 'bot',
@@ -291,6 +330,105 @@ describe('EventContentComponent', () => {
         name: 'load_skill_resource',
         args: {skill_name: 'text-skill', file_path: 'scripts/format.sh'},
       })).toBe('load_skill_resource("scripts/format.sh", …)');
+    });
+  });
+
+  describe('Web and search', () => {
+    it('renders the sources of a grounded response', () => {
+      component.uiEvent = new UiEvent({
+        role: 'bot',
+        event: {
+          id: 'grounded',
+          groundingMetadata: {
+            webSearchQueries: ['what is ADK'],
+            groundingChunks: [{web: {uri: 'https://example.com/', title: 'Example'}}],
+          },
+        } as AdkEvent,
+      });
+      component.index = 0;
+      fixture.detectChanges();
+
+      const sources = fixture.debugElement.query(By.css('app-grounding-sources'));
+      expect(sources.nativeElement.textContent).toContain('what is ADK');
+      expect(sources.nativeElement.textContent).toContain('Example');
+    });
+
+    it('renders nothing for a response without grounding', () => {
+      component.uiEvent = new UiEvent({
+        role: 'bot',
+        event: {id: 'plain'} as AdkEvent,
+      });
+      component.index = 0;
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('app-grounding-sources'))).toBeNull();
+    });
+
+    it('renders a fetched page under its response chip, with the URL from its call', () => {
+      const call = new UiEvent({
+        role: 'bot',
+        event: {id: 'fetch-call'} as AdkEvent,
+        functionCalls: [{id: 'fc-web', name: 'load_web_page', args: {url: 'https://example.com'}}],
+      });
+      component.uiEvent = new UiEvent({
+        role: 'bot',
+        event: {id: 'fetch-response'} as AdkEvent,
+        functionResponses: [{
+          id: 'fc-web',
+          name: 'load_web_page',
+          response: {result: 'Example text.'},
+        }],
+      });
+      component.uiEvents = [call, component.uiEvent];
+      component.index = 1;
+      fixture.detectChanges();
+
+      const chip = fixture.debugElement.query(By.css('.function-response-chip-container'));
+      const page = fixture.debugElement.query(By.css('app-web-page'));
+      expect(chip.nativeElement.nextElementSibling).toBe(page.nativeElement);
+      expect(page.nativeElement.textContent).toContain('https://example.com');
+    });
+  });
+
+  describe('Tool confirmation', () => {
+    it('renders an approval card for a confirmation request', () => {
+      component.uiEvent = new UiEvent({
+        role: 'bot',
+        event: {id: 'confirm-request'} as AdkEvent,
+        functionCalls: [{
+          id: 'confirm-1',
+          name: 'adk_request_confirmation',
+          args: {
+            originalFunctionCall: {id: 'fc-1', name: 'execute_bash', args: {command: 'ls'}},
+            toolConfirmation: {hint: 'Run ls?', confirmed: false},
+          },
+          needsResponse: true,
+        }],
+      });
+      component.index = 0;
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('app-tool-confirmation .confirmation-card')))
+          .toBeTruthy();
+      expect(fixture.debugElement.query(By.css('app-long-running-response'))).toBeNull();
+    });
+
+    it('shows a tool\'s approval placeholder as a status, not as shell output', () => {
+      component.uiEvent = new UiEvent({
+        role: 'bot',
+        event: {id: 'placeholder'} as AdkEvent,
+        functionResponses: [{
+          id: 'fc-1',
+          name: 'execute_bash',
+          response: {error: 'This tool call requires confirmation, please approve or reject.'},
+        }],
+      });
+      component.index = 1;
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('app-tool-confirmation')).nativeElement.textContent)
+          .toContain('Approval requested');
+      expect(fixture.debugElement.query(By.css('app-shell-command'))).toBeNull();
     });
   });
 });
