@@ -16,7 +16,7 @@
  */
 
 // 1p-ONLY-IMPORTS: import {describe, expect, it}
-import {collapseUnchangedLines, DiffLine, diffLines, getFileEdit, getFileEditError, isFileEditCall} from './FileEdit';
+import {collapseUnchangedLines, DiffLine, diffLines, getFileEdit, getFileRead, getFileReadRequest, getFileToolError, isFileEditCall} from './FileEdit';
 
 function context(text: string): DiffLine {
   return {type: 'context', text};
@@ -36,38 +36,107 @@ describe('FileEdit', () => {
       expect(getFileEdit({
         name: 'EditFile',
         args: {path: 'app.py', old_string: 'a', new_string: 'b'},
-      })).toEqual({path: 'app.py', oldText: 'a', newText: 'b'});
+      })).toEqual({kind: 'edit', path: 'app.py', oldText: 'a', newText: 'b'});
+    });
+
+    it('reads a WriteFile call as a change from empty text', () => {
+      expect(getFileEdit({
+        name: 'WriteFile',
+        args: {path: 'utils.py', content: 'x = 1\n'},
+      })).toEqual({kind: 'write', path: 'utils.py', oldText: '', newText: 'x = 1\n'});
     });
 
     it('returns null for other tools and incomplete arguments', () => {
-      expect(getFileEdit({name: 'WriteFile', args: {path: 'a', content: ''}}))
-          .toBeNull();
+      expect(getFileEdit({name: 'ReadFile', args: {path: 'a'}})).toBeNull();
       expect(getFileEdit({name: 'EditFile', args: {path: 'app.py'}})).toBeNull();
+      expect(getFileEdit({name: 'WriteFile', args: {content: 'x'}})).toBeNull();
       expect(getFileEdit(undefined)).toBeNull();
       expect(isFileEditCall({name: 'Execute', args: {command: 'ls'}}))
           .toBeFalse();
     });
   });
 
-  describe('getFileEditError', () => {
-    it('returns the error of a failed edit', () => {
-      expect(getFileEditError({
+  describe('getFileToolError', () => {
+    it('returns the error of a failed file tool call', () => {
+      expect(getFileToolError({
         name: 'EditFile',
+        response: {status: 'error', error: '`old_string` not found in file.'},
+      })).toBe('`old_string` not found in file.');
+      expect(getFileToolError({
+        name: 'ReadFile',
         response: {status: 'error', error: 'File not found: a.py'},
       })).toBe('File not found: a.py');
-      expect(getFileEditError({name: 'EditFile', response: {status: 'error'}}))
-          .toBe('The edit failed.');
+      expect(getFileToolError({name: 'WriteFile', response: {status: 'error'}}))
+          .toBe('The file operation failed.');
     });
 
-    it('returns null for successful edits and other tools', () => {
-      expect(getFileEditError({
+    it('returns null for successful calls and other tools', () => {
+      expect(getFileToolError({
         name: 'EditFile',
         response: {status: 'ok', message: 'Edited a.py'},
       })).toBeNull();
-      expect(getFileEditError({
+      expect(getFileToolError({
         name: 'Execute',
         response: {status: 'error', error: 'boom'},
       })).toBeNull();
+    });
+  });
+
+  describe('getFileReadRequest', () => {
+    it('reads the path and line range of a ReadFile call', () => {
+      expect(getFileReadRequest({
+        name: 'ReadFile',
+        args: {path: 'app.py', start_line: 4, end_line: 6},
+      })).toEqual({path: 'app.py', startLine: 4, endLine: 6});
+      expect(getFileReadRequest({name: 'ReadFile', args: {path: 'app.py'}}))
+          .toEqual({path: 'app.py', startLine: null, endLine: null});
+      expect(getFileReadRequest({name: 'WriteFile', args: {path: 'a'}}))
+          .toBeNull();
+    });
+  });
+
+  describe('getFileRead', () => {
+    it('splits the numbered content ReadFile returns', () => {
+      expect(getFileRead({
+        name: 'ReadFile',
+        response: {
+          status: 'ok',
+          content: '     4\tdef f():\n     5\t\n     6\t    return 1\n',
+          total_lines: 10,
+        },
+      })).toEqual({
+        lines: [
+          {number: 4, text: 'def f():'},
+          {number: 5, text: ''},
+          {number: 6, text: '    return 1'},
+        ],
+        totalLines: 10,
+      });
+    });
+
+    it('keeps notes such as truncation as unnumbered lines', () => {
+      expect(getFileRead({
+        name: 'ReadFile',
+        response: {
+          status: 'ok',
+          content: '     1\tx = 1\n... (truncated, 90000 total chars)',
+        },
+      })).toEqual({
+        lines: [
+          {number: 1, text: 'x = 1'},
+          {number: null, text: '... (truncated, 90000 total chars)'},
+        ],
+        totalLines: null,
+      });
+    });
+
+    it('returns null for errors and other tools', () => {
+      expect(getFileRead({
+        name: 'ReadFile',
+        response: {status: 'error', error: 'File not found: a.py'},
+      })).toBeNull();
+      expect(getFileRead({name: 'EditFile', response: {status: 'ok'}}))
+          .toBeNull();
     });
   });
 

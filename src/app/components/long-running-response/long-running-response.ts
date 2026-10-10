@@ -17,7 +17,6 @@
 
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CustomJsonViewerComponent } from '../custom-json-viewer/custom-json-viewer.component';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 
@@ -40,7 +39,6 @@ import {isImeComposing} from '../../utils/keyboard-event.utils';
     MatButton,
     MatIcon,
     MarkdownComponent,
-    CustomJsonViewerComponent,
   ],
 })
 export class LongRunningResponseComponent implements OnChanges {
@@ -56,15 +54,6 @@ export class LongRunningResponseComponent implements OnChanges {
   activeTab: string = 'form';
   formModelJson: string = '';
 
-  confirmationModel = {
-    confirmed: false,
-    payload: ''
-  };
-
-  get isConfirmationRequest(): boolean {
-    return this.functionCall?.name === 'adk_request_confirmation';
-  }
-
   private readonly cdr = inject(ChangeDetectorRef);
 
   ngOnChanges(changes: SimpleChanges) {
@@ -76,16 +65,6 @@ export class LongRunningResponseComponent implements OnChanges {
   initForm() {
     this.formModel = {};
     this.formFields = [];
-
-    if (this.isConfirmationRequest) {
-      this.confirmationModel.confirmed = this.functionCall.args?.toolConfirmation?.confirmed || false;
-      this.confirmationModel.payload = JSON.stringify(
-        this.functionCall.args?.toolConfirmation?.payload ??
-        this.functionCall.args?.originalFunctionCall?.args ??
-        {}, null, 2
-      );
-      return;
-    }
 
     const schema = this.functionCall?.args?.response_schema;
     if (schema && schema.type === 'object' && schema.properties) {
@@ -205,38 +184,6 @@ export class LongRunningResponseComponent implements OnChanges {
 
   onSend(event?: Event) {
     if (isImeComposing(event)) {
-      return;
-    }
-
-    if (this.isConfirmationRequest) {
-      let payloadObj: any = {};
-      try {
-        payloadObj = JSON.parse(this.confirmationModel.payload);
-      } catch (e) {
-        payloadObj = this.functionCall.args?.originalFunctionCall?.args || {};
-      }
-
-      const responseValue = {
-        confirmed: this.confirmationModel.confirmed,
-        payload: payloadObj
-      };
-
-      this.functionCall.responseStatus = 'sent';
-      this.cdr.detectChanges();
-
-      const content = {
-        role: 'user',
-        parts: [{
-          functionResponse: {
-            id: this.functionCall.id,
-            name: this.functionCall.name,
-            response: responseValue,
-          },
-        }],
-        functionCallEventId: this.functionCall.functionCallEventId
-      };
-
-      this.responseComplete.emit(content);
       return;
     }
 

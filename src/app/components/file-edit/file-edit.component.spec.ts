@@ -19,6 +19,8 @@ import {ComponentFixture, TestBed} from '@angular/core/testing';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
 
 import {initTestBed} from '../../testing/utils';
+import {MARKDOWN_COMPONENT} from '../markdown/markdown.component.interface';
+import {MockMarkdownComponent} from '../markdown/testing/mock-markdown.component';
 import {FileEditComponent} from './file-edit.component';
 
 describe('FileEditComponent', () => {
@@ -28,6 +30,7 @@ describe('FileEditComponent', () => {
     initTestBed();
     await TestBed.configureTestingModule({
       imports: [FileEditComponent],
+      providers: [{provide: MARKDOWN_COMPONENT, useValue: MockMarkdownComponent}],
     }).compileComponents();
     fixture = TestBed.createComponent(FileEditComponent);
   });
@@ -111,5 +114,72 @@ describe('FileEditComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent.trim()).toBe('');
+  });
+
+  it('renders a WriteFile call as added lines', () => {
+    fixture.componentRef.setInput('functionCall', {
+      name: 'WriteFile',
+      args: {path: 'utils.py', content: 'def add(a, b):\n    return a + b\n'},
+    });
+    fixture.detectChanges();
+
+    expect(query('.file-edit-path')?.textContent).toBe('utils.py');
+    expect(query('.file-edit-icon')?.textContent).toBe('note_add');
+    expect(query('.file-edit-added-count')?.textContent).toBe('+2');
+    expect(query('.file-edit-removed-count')).toBeNull();
+    expect(lineTexts()).toEqual(['+def add(a, b):', '+    return a + b']);
+  });
+
+  it('renders a ReadFile response collapsed, with its path and range', () => {
+    fixture.componentRef.setInput('functionCall', {
+      name: 'ReadFile',
+      args: {path: 'app.py', start_line: 4, end_line: 5},
+    });
+    fixture.componentRef.setInput('functionResponse', {
+      name: 'ReadFile',
+      response: {
+        status: 'ok',
+        content: '     4\tdef f():\n     5\t    return 1\n',
+        total_lines: 10,
+      },
+    });
+    fixture.detectChanges();
+
+    const details = query('details.file-read') as HTMLDetailsElement;
+    expect(details.open).toBeFalse();
+    expect(query('.file-edit-path')?.textContent).toBe('app.py');
+    expect(query('.file-read-range')?.textContent).toBe('Lines 4-5 of 10');
+    const gutter = Array.from(
+        fixture.nativeElement.querySelectorAll('.file-read-gutter div') as
+            NodeListOf<HTMLElement>,
+        line => line.textContent);
+    expect(gutter).toEqual(['4', '5']);
+    expect(query('.file-read-code')?.textContent)
+        .toContain('```python\ndef f():\n    return 1\n```');
+    // The call is there for the read's path; it does not render as a diff.
+    expect(query('.diff-line')).toBeNull();
+  });
+
+  it('counts the lines of a whole-file read', () => {
+    fixture.componentRef.setInput('functionResponse', {
+      name: 'ReadFile',
+      response: {status: 'ok', content: '     1\tx = 1\n'},
+    });
+    fixture.detectChanges();
+
+    expect(query('.file-edit-path')).toBeNull();
+    expect(query('.file-read-range')?.textContent).toBe('1 line');
+  });
+
+  it('renders the error of a failed read', () => {
+    fixture.componentRef.setInput('functionResponse', {
+      name: 'ReadFile',
+      response: {status: 'error', error: 'File not found: missing.py'},
+    });
+    fixture.detectChanges();
+
+    expect(query('.terminal-error')?.textContent)
+        .toBe('File not found: missing.py');
+    expect(query('.file-read')).toBeNull();
   });
 });

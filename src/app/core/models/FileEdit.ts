@@ -17,15 +17,50 @@
 
 import {FunctionCall, FunctionResponse} from './types';
 
-/** `EditFile` from EnvironmentToolset: replaces one exact substring in a file. */
-export const EDIT_FILE_TOOL = 'EditFile';
+/** EnvironmentToolset tools that read and change files. */
+export enum FileTool {
+  /** Replaces one exact substring in a file. */
+  EDIT = 'EditFile',
+  /** Creates a file or replaces its whole content. */
+  WRITE = 'WriteFile',
+  /** Returns a file's content, optionally a range of lines. */
+  READ = 'ReadFile',
+}
 
-/** A text replacement in a file, as requested by a file edit tool call. */
+/**
+ * A change a file tool call makes. A write is shown as a diff from empty text,
+ * since the tool does not say what the file held before.
+ */
 export interface FileEdit {
+  kind: 'edit'|'write';
   path: string;
   oldText: string;
   newText: string;
 }
+
+/** One line of a file as returned by `ReadFile`. */
+export interface FileReadLine {
+  /** Line number in the file, or null for a note such as truncation. */
+  number: number|null;
+  text: string;
+}
+
+/** The content a `ReadFile` call returned. */
+export interface FileRead {
+  lines: FileReadLine[];
+  /** Total lines in the file, reported only when part of it was read. */
+  totalLines: number|null;
+}
+
+/** The file and line range a `ReadFile` call asks for. */
+export interface FileReadRequest {
+  path: string;
+  startLine: number|null;
+  endLine: number|null;
+}
+
+// ReadFile prefixes each line with its number, right-aligned, and a tab.
+const NUMBERED_LINE_PATTERN = /^\s*(\d+)\t(.*)$/;
 
 /** One line of a line-based diff. */
 export interface DiffLine {
@@ -51,43 +86,87 @@ const MAX_DIFF_CELLS = 1_000_000;
 /** Unchanged lines kept next to each change when the rest are collapsed. */
 const CONTEXT_LINES = 3;
 
-/**
- * Returns the edit a function call makes, or null when the call is not a file
- * edit.
- */
-export function getFileEdit(fc: FunctionCall|undefined): FileEdit|null {
-  if (fc?.name !== EDIT_FILE_TOOL) return null;
-  const args = fc.args ?? {};
-  const path = args['path'];
-  const oldText = args['old_string'];
-  const newText = args['new_string'];
-  if (typeof path !== 'string' || typeof oldText !== 'string' ||
-      typeof newText !== 'string') {
-    return null;
-  }
-  return {path, oldText, newText};
+function isFileTool(name: string|undefined): boolean {
+  return Object.values(FileTool).includes(name as FileTool);
 }
 
-/** Whether a function call is a file edit. */
+/**
+ * Returns the change a function call makes to a file, or null when the call is
+ * not a file edit or write.
+ */
+export function getFileEdit(fc: FunctionCall|undefined): FileEdit|null {
+  const args = fc?.args ?? {};
+  const path = args['path'];
+  if (typeof path !== 'string') return null;
+  if (fc?.name === FileTool.EDIT) {
+    const oldText = args['old_string'];
+    const newText = args['new_string'];
+    if (typeof oldText !== 'string' || typeof newText !== 'string') return null;
+    return {kind: 'edit', path, oldText, newText};
+  }
+  if (fc?.name === FileTool.WRITE) {
+    const content = args['content'];
+    if (typeof content !== 'string') return null;
+    return {kind: 'write', path, oldText: '', newText: content};
+  }
+  return null;
+}
+
+/** Whether a function call edits or writes a file. */
 export function isFileEditCall(fc: FunctionCall|undefined): boolean {
   return getFileEdit(fc) !== null;
 }
 
-/** Whether a function response comes from a file edit tool. */
-export function isFileEditResponse(fr: FunctionResponse|undefined): boolean {
-  return fr?.name === EDIT_FILE_TOOL;
-}
-
 /**
- * Returns the error a file edit tool reported, such as the old text not being
- * found, or null when the edit succeeded.
+ * Returns the error a file tool reported, such as a missing file, or null when
+ * the call succeeded or did not come from a file tool.
  */
-export function getFileEditError(fr: FunctionResponse|undefined): string|null {
-  if (!fr || !isFileEditResponse(fr)) return null;
+export function getFileToolError(fr: FunctionResponse|undefined): string|null {
+  if (!fr || !isFileTool(fr.name)) return null;
   const response = fr.response;
   if (response?.['status'] !== 'error') return null;
   const error = response['error'];
-  return typeof error === 'string' && error ? error : 'The edit failed.';
+  return typeof error === 'string' && error ? error : 'The file operation failed.';
+}
+
+/** Returns the file and line range a `ReadFile` call asks for. */
+export function getFileReadRequest(fc: FunctionCall|undefined):
+    FileReadRequest|null {
+  if (fc?.name !== FileTool.READ) return null;
+  const args = fc.args ?? {};
+  const path = args['path'];
+  if (typeof path !== 'string') return null;
+  const lineNumber = (value: unknown) =>
+      typeof value === 'number' && Number.isInteger(value) ? value : null;
+  return {
+    path,
+    startLine: lineNumber(args['start_line']),
+    endLine: lineNumber(args['end_line']),
+  };
+}
+
+function parseReadLine(line: string): FileReadLine {
+  const match = NUMBERED_LINE_PATTERN.exec(line);
+  return match ? {number: Number(match[1]), text: match[2]} :
+                 {number: null, text: line};
+}
+
+/**
+ * Returns the content of a successful `ReadFile` response, split into numbered
+ * lines, or null for other responses.
+ */
+export function getFileRead(fr: FunctionResponse|undefined): FileRead|null {
+  if (fr?.name !== FileTool.READ) return null;
+  const response = fr.response;
+  const content = response?.['content'];
+  if (response?.['status'] !== 'ok' || typeof content !== 'string') return null;
+  const body = content.replace(/\n$/, '');
+  const lines = body ? body.split('\n').map(parseReadLine) : [];
+  const totalLines = response['total_lines'];
+  return {
+    lines,
+    totalLines: typeof totalLines === 'number' ? totalLines : null,
+  };
 }
 
 function splitLines(text: string): string[] {

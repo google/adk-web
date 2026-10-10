@@ -26,6 +26,12 @@
   --diff-removed-bg: rgba(248, 81, 73, 0.18);
   --diff-added-color: #81c995;
   --diff-removed-color: #f28b82;
+  // Same token colors as the code execution editor.
+  --code-keyword-color: #c58af9;
+  --code-string-color: #ee9b8e;
+  --code-number-color: #8ab4f8;
+  --code-function-color: #e5e1a6;
+  --code-comment-color: #9aa0a6;
 }
 
 :host-context(html.light-theme) {
@@ -33,6 +39,11 @@
   --diff-removed-bg: rgba(248, 81, 73, 0.14);
   --diff-added-color: #188038;
   --diff-removed-color: #c5221f;
+  --code-keyword-color: #8430ce;
+  --code-string-color: #a31515;
+  --code-number-color: #0b57d0;
+  --code-function-color: #795e26;
+  --code-comment-color: #5f6368;
 }
 
 // Sized to the diff, with the same minimum and maximum width as code execution.
@@ -162,4 +173,121 @@
   width: 16px;
   height: 16px;
   font-size: 16px;
+}
+
+// A read: the header is the toggle that shows the content.
+.file-read summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &:hover .file-read-chevron {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.file-read:not([open]) summary {
+  border-bottom: none;
+}
+
+.file-read-range {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.file-read-chevron {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  padding-left: 12px;
+  font-size: 18px;
+  color: var(--mat-sys-on-surface-variant);
+  transition: transform 0.15s;
+}
+
+.file-read[open] .file-read-chevron {
+  transform: rotate(180deg);
+}
+
+// Line numbers scroll with the content vertically and stay in place when it
+// scrolls sideways, as in the code execution editor.
+.file-read-body {
+  display: flex;
+  align-items: flex-start;
+  padding: 0;
+}
+
+.file-read-gutter,
+.file-read-code ::ng-deep pre,
+.file-read-code ::ng-deep code {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.file-read-gutter {
+  position: sticky;
+  z-index: 1;
+  left: 0;
+  flex-shrink: 0;
+  min-width: 2ch;
+  padding: 8px 10px 8px 12px;
+  border-right: 1px solid var(--mat-sys-outline-variant);
+  background-color: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface-variant);
+  text-align: right;
+  user-select: none;
+}
+
+.file-read-code {
+  flex: 1 0 auto;
+}
+
+.file-read-code ::ng-deep {
+  pre {
+    margin: 0;
+    padding: 8px 12px;
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    white-space: pre;
+  }
+
+  code {
+    background: transparent;
+    white-space: pre;
+  }
+
+  .token.keyword,
+  .token.boolean {
+    color: var(--code-keyword-color);
+  }
+
+  .token.string,
+  .token.char,
+  .token.triple-quoted-string {
+    color: var(--code-string-color);
+  }
+
+  .token.number {
+    color: var(--code-number-color);
+  }
+
+  .token.function,
+  .token.builtin,
+  .token.class-name,
+  .token.decorator {
+    color: var(--code-function-color);
+  }
+
+  .token.comment,
+  .token.shebang {
+    color: var(--code-comment-color);
+    font-style: italic;
+  }
 }

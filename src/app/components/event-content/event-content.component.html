@@ -20,6 +20,9 @@
         }
       }
     }
+    @if (hasGroundingSources(uiEvent)) {
+      <app-grounding-sources [groundingMetadata]="uiEvent.event.groundingMetadata"></app-grounding-sources>
+    }
     @if (uiEvent.event.output) {
     <app-content-bubble
       type="output"
@@ -121,12 +124,16 @@
               </button>
             </mat-menu>
           </div>
-          @if (isShellCommandResponse(functionResponse)) {
+          @if (hasConfirmationStatus(functionResponse)) {
+            <app-tool-confirmation [functionResponse]="functionResponse"></app-tool-confirmation>
+          } @else if (isShellCommandResponse(functionResponse)) {
             <app-shell-command [functionResponse]="functionResponse"></app-shell-command>
-          } @else if (isFailedFileEdit(functionResponse)) {
-            <app-file-edit [functionResponse]="functionResponse"></app-file-edit>
+          } @else if (hasFileToolView(functionResponse)) {
+            <app-file-edit [functionResponse]="functionResponse" [functionCall]="findFunctionCall(functionResponse)"></app-file-edit>
           } @else if (isSkillToolResponse(functionResponse)) {
             <app-skill-tool [functionResponse]="functionResponse"></app-skill-tool>
+          } @else if (isWebPageResponse(functionResponse)) {
+            <app-web-page [functionResponse]="functionResponse" [functionCall]="findFunctionCall(functionResponse)"></app-web-page>
           }
         }
       }
@@ -201,7 +208,12 @@
     }
     @if (uiEvent.functionCalls && uiEvent.functionCalls.length > 0) {
       @for (functionCall of uiEvent.functionCalls; track functionCall.id) {
-        @if (functionCall.needsResponse && !hasFunctionResponse(functionCall.id)) {
+        @if (functionCall.needsResponse && !hasFunctionResponse(functionCall.id) && isConfirmationRequest(functionCall)) {
+          <app-tool-confirmation
+            [functionCall]="functionCall"
+            (responseComplete)="longRunningResponseComplete.emit($event)"
+          ></app-tool-confirmation>
+        } @else if (functionCall.needsResponse && !hasFunctionResponse(functionCall.id)) {
           <app-long-running-response
             [functionCall]="functionCall"
             [appName]="appName"

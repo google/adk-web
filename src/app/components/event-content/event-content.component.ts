@@ -29,9 +29,11 @@ import { AgentRunRequest } from '../../core/models/AgentRunRequest';
 import { isComputerUseResponse, isVisibleComputerUseClick } from '../../core/models/ComputerUse';
 import { getStandaloneCodeResults } from '../../core/models/CodeExecution';
 import type { EvalCase } from '../../core/models/Eval';
-import { getFileEditError, isFileEditCall } from '../../core/models/FileEdit';
+import { getFileRead, getFileToolError, isFileEditCall } from '../../core/models/FileEdit';
 import { isShellCommandCall, isShellCommandResponse } from '../../core/models/ShellCommand';
 import { isSkillToolResponse } from '../../core/models/SkillTool';
+import { getConfirmationRequest, getConfirmationStatus } from '../../core/models/ToolConfirmation';
+import { getGroundingSummary, getWebPageResult } from '../../core/models/WebTool';
 import { UiEvent } from '../../core/models/UiEvent';
 import { WorkflowGraphTooltipDirective } from '../../directives/workflow-graph-tooltip.directive';
 import { JsonTooltipDirective } from '../../directives/html-tooltip.directive';
@@ -42,8 +44,11 @@ import { ChatPanelMessagesInjectionToken } from '../chat-panel/chat-panel.compon
 import { CodeExecutionComponent } from '../code-execution/code-execution.component';
 import { ContentBubbleComponent } from '../content-bubble/content-bubble.component';
 import { FileEditComponent } from '../file-edit/file-edit.component';
+import { GroundingSourcesComponent } from '../grounding-sources/grounding-sources.component';
 import { ShellCommandComponent } from '../shell-command/shell-command.component';
 import { SkillToolComponent } from '../skill-tool/skill-tool.component';
+import { ToolConfirmationComponent } from '../tool-confirmation/tool-confirmation.component';
+import { WebPageComponent } from '../web-page/web-page.component';
 import { SystemInstructionDiffDialogComponent } from '../system-instruction-diff-dialog/system-instruction-diff-dialog.component';
 
 @Component({
@@ -64,10 +69,13 @@ import { SystemInstructionDiffDialogComponent } from '../system-instruction-diff
     CodeExecutionComponent,
     ContentBubbleComponent,
     FileEditComponent,
+    GroundingSourcesComponent,
     MatMenuModule,
     JsonTooltipDirective,
     ShellCommandComponent,
     SkillToolComponent,
+    ToolConfirmationComponent,
+    WebPageComponent,
   ],
 })
 export class EventContentComponent {
@@ -124,6 +132,7 @@ export class EventContentComponent {
       const specialFuncArgMap: Record<string, string> = {
         'EditFile': 'path',
         'WriteFile': 'path',
+        'ReadFile': 'path',
         'load_skill_resource': 'file_path',
       };
       if (functionCall.name in specialFuncArgMap) {
@@ -219,9 +228,46 @@ export class EventContentComponent {
     return JSON.stringify(response, null, 2);
   }
 
-  /** Whether a function response is a file edit that failed. */
-  isFailedFileEdit(functionResponse: FunctionResponse): boolean {
-    return getFileEditError(functionResponse) !== null;
+  /** Whether a call asks the user to approve another tool call. */
+  isConfirmationRequest(functionCall: FunctionCall): boolean {
+    return getConfirmationRequest(functionCall) !== null;
+  }
+
+  /**
+   * Whether a response reports an approval status: the user's answer, or a
+   * tool's placeholder while its call waited for approval.
+   */
+  hasConfirmationStatus(functionResponse: FunctionResponse): boolean {
+    return getConfirmationStatus(functionResponse) !== null;
+  }
+
+  isWebPageResponse(functionResponse: FunctionResponse): boolean {
+    return getWebPageResult(functionResponse) !== null;
+  }
+
+  /** Whether the event is a grounded response with searches or sources. */
+  hasGroundingSources(uiEvent: UiEvent): boolean {
+    return getGroundingSummary(uiEvent.event?.groundingMetadata) !== null;
+  }
+
+  /**
+   * Whether a function response gets a file view under its chip: the content
+   * of a read, or the error of a failed file tool call.
+   */
+  hasFileToolView(functionResponse: FunctionResponse): boolean {
+    return getFileRead(functionResponse) !== null ||
+        getFileToolError(functionResponse) !== null;
+  }
+
+  /** Returns the call a function response answers, matched by id. */
+  findFunctionCall(functionResponse: FunctionResponse): FunctionCall|undefined {
+    if (!functionResponse.id) return undefined;
+    for (const event of this.uiEvents) {
+      const call =
+          event.functionCalls?.find(fc => fc.id === functionResponse.id);
+      if (call) return call;
+    }
+    return undefined;
   }
 
   getFilteredStateKeys(stateDelta: any): string[] {

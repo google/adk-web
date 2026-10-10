@@ -15,19 +15,24 @@
  * limitations under the License.
  */
 
-import {ChangeDetectionStrategy, Component, computed, input, signal} from '@angular/core';
+import {NgComponentOutlet} from '@angular/common';
+import {ChangeDetectionStrategy, Component, computed, inject, input, signal, Type} from '@angular/core';
 import {MatIconModule} from '@angular/material/icon';
 
-import {collapseUnchangedLines, diffLines, DiffRow, getFileEdit, getFileEditError} from '../../core/models/FileEdit';
+import {toMarkdownCodeBlock} from '../../core/models/CodeExecution';
+import {collapseUnchangedLines, diffLines, DiffRow, getFileEdit, getFileRead, getFileReadRequest, getFileToolError} from '../../core/models/FileEdit';
+import {getResourceLanguage} from '../../core/models/SkillTool';
 import type {FunctionCall, FunctionResponse} from '../../core/models/types';
+import {MARKDOWN_COMPONENT, MarkdownComponentInterface} from '../markdown/markdown.component.interface';
 import {TerminalOutputComponent} from '../terminal-output/terminal-output.component';
 
 const DIFF_MARKERS = {context: ' ', added: '+', removed: '-'} as const;
 
 /**
- * Renders a file edit tool call as a diff of the replaced text, or a failed
- * file edit response as its error. Successful responses render nothing, since
- * the call already shows the change.
+ * Renders file tool calls and responses. Under a call, an edit or write shows
+ * as a diff of the change. Under a response, a read shows the file content and
+ * a failed call shows its error. Successful edits and writes add nothing under
+ * the response, since the call already shows the change.
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,14 +40,23 @@ const DIFF_MARKERS = {context: ' ', added: '+', removed: '-'} as const;
   templateUrl: './file-edit.component.html',
   styleUrl: './file-edit.component.scss',
   standalone: true,
-  imports: [MatIconModule, TerminalOutputComponent],
+  imports: [MatIconModule, NgComponentOutlet, TerminalOutputComponent],
 })
 export class FileEditComponent {
+  /**
+   * The call to render. Given with a `functionResponse`, the call that
+   * response answers, which gives a read its path.
+   */
   readonly functionCall = input<FunctionCall>();
   readonly functionResponse = input<FunctionResponse>();
 
+  protected readonly markdownComponent: Type<MarkdownComponentInterface> =
+      inject(MARKDOWN_COMPONENT);
+
   protected readonly markers = DIFF_MARKERS;
-  protected readonly edit = computed(() => getFileEdit(this.functionCall()));
+  /** The change to show; only when rendering a call, not its response. */
+  protected readonly edit = computed(
+      () => this.functionResponse() ? null : getFileEdit(this.functionCall()));
   protected readonly lines = computed(() => {
     const edit = this.edit();
     return edit ? diffLines(edit.oldText, edit.newText) : [];
@@ -52,7 +66,7 @@ export class FileEditComponent {
   protected readonly removedCount = computed(
       () => this.lines().filter(line => line.type === 'removed').length);
   protected readonly error =
-      computed(() => getFileEditError(this.functionResponse()));
+      computed(() => getFileToolError(this.functionResponse()));
 
   private readonly rows = computed(() => collapseUnchangedLines(this.lines()));
   private readonly expandedRows = signal<ReadonlySet<number>>(new Set());
@@ -65,6 +79,28 @@ export class FileEditComponent {
             row.lines.map(line => ({row: line, index})) :
             [{row, index}]);
   });
+
+  protected readonly read =
+      computed(() => getFileRead(this.functionResponse()));
+  protected readonly readPath =
+      computed(() => getFileReadRequest(this.functionCall())?.path ?? '');
+  /** "Lines 4-6 of 10" for part of a file, or "10 lines" for all of it. */
+  protected readonly readRange = computed(() => {
+    const read = this.read();
+    const numbers = (read?.lines ?? [])
+                        .map(line => line.number)
+                        .filter((number): number is number => number !== null);
+    if (read?.totalLines != null && numbers.length) {
+      return `Lines ${numbers[0]}-${numbers[numbers.length - 1]} of ${
+          read.totalLines}`;
+    }
+    return `${numbers.length} ${numbers.length === 1 ? 'line' : 'lines'}`;
+  });
+  /** The content read, as a fenced code block for syntax highlighting. */
+  protected readonly readMarkdown = computed(
+      () => toMarkdownCodeBlock(
+          (this.read()?.lines ?? []).map(line => line.text).join('\n'),
+          getResourceLanguage(this.readPath())));
 
   protected expandRow(index: number) {
     this.expandedRows.update(rows => new Set([...rows, index]));

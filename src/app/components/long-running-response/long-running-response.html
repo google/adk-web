@@ -37,28 +37,7 @@
 
       <!-- Input field -->
       <div class="input-container">
-        @if (isConfirmationRequest) {
-          <div class="confirmation-container" style="width: 100%;">
-            <div class="confirmation-hint" style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: var(--mat-sys-on-surface);">
-              {{functionCall.args?.toolConfirmation?.hint}}
-            </div>
-            <div class="confirmation-payload" style="margin-bottom: 10px;">
-              <div class="field-label" style="margin-bottom: 5px; font-size: 12px; font-weight: 500; color: var(--mat-sys-on-surface-variant);">Payload</div>
-              <app-custom-json-viewer [json]="functionCall.args?.originalFunctionCall?.args"></app-custom-json-viewer>
-            </div>
-            <div class="confirmation-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-              <div class="confirmation-checkbox" style="font-size: 12px;">
-                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" id="confirmed-checkbox-{{functionCall.id}}" [(ngModel)]="confirmationModel.confirmed" style="cursor: pointer;" />
-                  <span>Confirmed</span>
-                </label>
-              </div>
-              <button mat-raised-button color="primary" (click)="onSend()" class="form-submit-button" style="margin-top: 0;">
-                Submit
-              </button>
-            </div>
-          </div>
-        } @else if (formFields.length > 0) {
+        @if (formFields.length > 0) {
           <div class="tabs-content">
             @if (activeTab === 'form') {
               <div class="schema-form grid-layout">
@@ -134,28 +113,7 @@
 
     <!-- Input field -->
     <div class="input-container">
-      @if (isConfirmationRequest) {
-        <div class="confirmation-container" style="width: 100%;">
-          <div class="confirmation-hint" style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: var(--mat-sys-on-surface);">
-            {{functionCall.args?.toolConfirmation?.hint}}
-          </div>
-          <div class="confirmation-payload" style="margin-bottom: 10px;">
-            <div class="field-label" style="margin-bottom: 5px; font-size: 12px; font-weight: 500; color: var(--mat-sys-on-surface-variant);">Payload</div>
-            <app-custom-json-viewer [json]="functionCall.args?.originalFunctionCall?.args"></app-custom-json-viewer>
-          </div>
-          <div class="confirmation-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-            <div class="confirmation-checkbox" style="font-size: 12px;">
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                <input type="checkbox" id="confirmed-checkbox-standalone-{{functionCall.id}}" [(ngModel)]="confirmationModel.confirmed" style="cursor: pointer;" />
-                <span>Confirmed</span>
-              </label>
-            </div>
-            <button mat-raised-button color="primary" (click)="onSend()" class="form-submit-button" style="margin-top: 0;">
-              Submit
-            </button>
-          </div>
-        </div>
-      } @else if (formFields.length > 0) {
+      @if (formFields.length > 0) {
         <div class="tabs-content">
           @if (activeTab === 'form') {
             <div class="schema-form grid-layout">

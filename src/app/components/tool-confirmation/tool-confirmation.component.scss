@@ -1,0 +1,131 @@
+/**
+ * @license
+ * Copyright 2026 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Takes the full row so it always sits under the chip, like shell output.
+:host {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  margin: 4px 0;
+
+  --confirmation-approved-color: #81c995;
+  --confirmation-rejected-color: #f28b82;
+  --confirmation-requested-color: #fdd663;
+}
+
+:host-context(html.light-theme) {
+  --confirmation-approved-color: #188038;
+  --confirmation-rejected-color: #c5221f;
+  --confirmation-requested-color: #b06000;
+}
+
+// The user's answer is in a user row, which is aligned to the right.
+:host-context(.user) {
+  justify-content: flex-end;
+}
+
+// Sized to the content, with the same minimum and maximum width as the other
+// tool cards.
+.confirmation-card {
+  box-sizing: border-box;
+  width: fit-content;
+  min-width: min(420px, 100%);
+  max-width: min(800px, 100%);
+  padding: 10px 12px;
+  border: 1px solid var(--confirmation-requested-color);
+  border-radius: 8px;
+  background-color: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  font-size: 13px;
+}
+
+.confirmation-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.confirmation-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  color: var(--confirmation-requested-color);
+}
+
+.confirmation-title {
+  font-weight: 500;
+}
+
+.confirmation-tool {
+  font-family: 'Roboto Mono', monospace;
+}
+
+.confirmation-hint {
+  margin-top: 4px;
+  padding-left: 24px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.confirmation-call {
+  margin-top: 6px;
+}
+
+.confirmation-payload {
+  margin-top: 6px;
+}
+
+.confirmation-label {
+  margin-bottom: 2px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
+}
+
+.confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.confirmation-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px 2px 6px;
+  border: 1px solid currentColor;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.confirmation-status-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
+
+.status-requested {
+  color: var(--confirmation-requested-color);
+}
+
+.status-approved {
+  color: var(--confirmation-approved-color);
+}
+
+.status-rejected {
+  color: var(--confirmation-rejected-color);
+}
