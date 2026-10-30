@@ -16,6 +16,7 @@
  */
 
 import { AsyncPipe, DOCUMENT, DecimalPipe, NgClass, NgComponentOutlet } from '@angular/common';
+import { MessageProcessor } from '@a2ui/angular/v0_8';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, ElementRef, effect, HostListener, inject, Injectable, OnDestroy, OnInit, Renderer2, signal, Type, viewChild, WritableSignal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -199,6 +200,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly _snackbarService = inject(SnackbarService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly agentService = inject(AGENT_SERVICE);
+  private readonly a2uiMessageProcessor = inject(MessageProcessor);
   private readonly artifactService = inject(ARTIFACT_SERVICE);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly dialog = inject(MatDialog);
@@ -232,6 +234,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   });
 
   private activeSseSubscription?: Subscription;
+  private a2uiActionSubscription?: Subscription;
 
   chatPanel = viewChild(ChatPanelComponent);
   canvasComponent = viewChild.required(CanvasComponent);
@@ -828,6 +831,27 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.a2uiActionSubscription = this.a2uiMessageProcessor.events.subscribe(
+      ({message, completion}) => {
+        const userAction = (message as any)?.userAction;
+        if (!userAction) {
+          completion.next([]);
+          completion.complete();
+          return;
+        }
+
+        this.sendMessage({
+          role: 'user',
+          parts: [{text: JSON.stringify({userAction})}],
+        }).then(
+          () => {
+            completion.next([]);
+            completion.complete();
+          },
+          (error) => completion.error(error),
+        );
+      },
+    );
     this.checkScreenSize();
     if (this.isMobile()) {
       this.showSidePanel = false;
@@ -2244,6 +2268,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.a2uiActionSubscription?.unsubscribe();
     this.handleStopMessage();
     this.streamChatService.closeStream();
   }
