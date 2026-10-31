@@ -102,16 +102,41 @@ describe('A2uiCanvasV09Component', () => {
     expect(consoleError).not.toHaveBeenCalled();
   });
 
-  it('should derive the surfaceId from updateComponents alone', () => {
-    // The streaming case: createSurface arrived in an earlier event, so this
-    // bubble sees only updates.
+  it('should process an update-only batch without mounting the surface', () => {
+    // The streaming case: createSurface arrived in an earlier event, whose
+    // bubble already mounts this live surface. The updates land on it there;
+    // mounting it here too would show the same surface once per event.
     const messages = [UPDATE_COMPONENTS];
     component.messages = messages;
 
     component.ngOnChanges(changeRecord(messages));
+    fixture.detectChanges();
 
-    expect(component.surfaceId()).toBe('dash');
+    expect(mockRenderer.processMessages)
+        .toHaveBeenCalledWith([UPDATE_COMPONENTS] as any);
+    expect(component.surfaceIds()).toEqual([]);
+    expect(component.surfaceId()).toBeNull();
+    expect(fixture.nativeElement.querySelector('a2ui-v09-surface')).toBeNull();
   });
+
+  it('should mount a streamed surface only in the bubble that created it',
+     () => {
+       // Three events, three canvases: create, then components, then data.
+       const updateData = {
+         version: 'v0.9',
+         updateDataModel: {surfaceId: 'dash', path: '/', value: {}}
+       };
+       const mounted = [[CREATE_SURFACE], [UPDATE_COMPONENTS], [updateData]].map(
+           (batch) => {
+             const f = TestBed.createComponent(A2uiCanvasV09Component);
+             f.componentInstance.messages = batch;
+             f.componentInstance.ngOnChanges(changeRecord(batch));
+             f.detectChanges();
+             return f.nativeElement.querySelectorAll('a2ui-v09-surface').length;
+           });
+
+       expect(mounted).toEqual([1, 0, 0]);
+     });
 
   it('should do nothing without a messages change record', () => {
     component.messages = [CREATE_SURFACE];

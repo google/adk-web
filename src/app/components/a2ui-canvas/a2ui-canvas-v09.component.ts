@@ -48,9 +48,15 @@ export class A2uiCanvasV09Component implements OnChanges {
   @Input() messages: readonly unknown[]|null = null;
 
   /**
-   * Every surface this batch builds or updates, in first-mention order. One
-   * event may legitimately carry several surfaces (v0.9 messages each name
-   * their own surfaceId), and each gets its own `<a2ui-v09-surface>`.
+   * Every surface this batch creates, in createSurface order. One event may
+   * legitimately carry several surfaces, and each gets its own
+   * `<a2ui-v09-surface>`.
+   *
+   * Only creates count. A surface is one live, root-scoped model, so a later
+   * event that merely updates it (streamed `updateComponents` /
+   * `updateDataModel`, or a follow-up turn) mutates the copy already mounted
+   * in the bubble that created it; mounting it again would show the same
+   * surface once per event.
    */
   readonly surfaceIds = signal<readonly string[]>([]);
 
@@ -127,8 +133,8 @@ export class A2uiCanvasV09Component implements OnChanges {
   }
 
   /**
-   * The surfaceIds named by the batch, de-duplicated in first-mention order,
-   * minus any surface a `deleteSurface` in the same batch removes.
+   * The surfaceIds the batch creates, de-duplicated in createSurface order,
+   * minus any surface a later `deleteSurface` in the same batch removes.
    */
   private surfaceIdsOf(messages: readonly unknown[]): string[] {
     const ids: string[] = [];
@@ -142,8 +148,8 @@ export class A2uiCanvasV09Component implements OnChanges {
         if (typeof surfaceId !== 'string') continue;
         if (kind === 'deleteSurface') {
           deleted.add(surfaceId);
-        } else {
-          // A later message (e.g. a re-create) revives a deleted surface.
+        } else if (kind === 'createSurface') {
+          // A re-create after a delete revives the surface.
           deleted.delete(surfaceId);
           if (!ids.includes(surfaceId)) ids.push(surfaceId);
         }
