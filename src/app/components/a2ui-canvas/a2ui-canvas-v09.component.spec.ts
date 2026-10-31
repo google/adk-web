@@ -172,6 +172,42 @@ describe('A2uiCanvasV09Component', () => {
     expect(consoleError).toHaveBeenCalled();
   });
 
+  it('should mount every surface of a multi-surface batch, in order', () => {
+    // One event can carry several surfaces; each message names its own.
+    const createOther = {
+      version: 'v0.9',
+      createSurface: {
+        surfaceId: 'other',
+        catalogId: CREATE_SURFACE.createSurface.catalogId
+      }
+    };
+    const updateOther = {
+      version: 'v0.9',
+      updateComponents: {surfaceId: 'other', components: []}
+    };
+    const messages =
+        [CREATE_SURFACE, UPDATE_COMPONENTS, createOther, updateOther];
+    component.messages = messages;
+
+    component.ngOnChanges(changeRecord(messages));
+    fixture.detectChanges();
+
+    expect(component.surfaceIds()).toEqual(['dash', 'other']);
+    expect(component.surfaceId()).toBe('dash');
+    expect(fixture.nativeElement.querySelectorAll('a2ui-v09-surface').length)
+        .toBe(2);
+  });
+
+  it('should not mount a surface the same batch deletes', () => {
+    const deleteDash = {version: 'v0.9', deleteSurface: {surfaceId: 'dash'}};
+    const messages = [CREATE_SURFACE, UPDATE_COMPONENTS, deleteDash];
+    component.messages = messages;
+
+    component.ngOnChanges(changeRecord(messages));
+
+    expect(component.surfaceIds()).toEqual([]);
+  });
+
   it('should not mount the surface before its messages are processed', () => {
     // `ComponentHostComponent` looks its surface up once in ngOnInit and, on a
     // miss, warns and never retries -- so the @if gate on surfaceId is

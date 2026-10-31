@@ -16,7 +16,7 @@
  */
 
 import {A2uiRendererService, SurfaceComponent} from '@a2ui/angular/v0_9';
-import {ChangeDetectionStrategy, Component, inject, Input, OnChanges, signal, SimpleChanges,} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, inject, Input, OnChanges, signal, SimpleChanges,} from '@angular/core';
 
 /** The message type the v0.9 renderer accepts. */
 type A2uiV09Message =
@@ -33,8 +33,8 @@ type A2uiV09Message =
 @Component({
   selector: 'app-a2ui-canvas-v09',
   template: `
-    @if (surfaceId()) {
-      <a2ui-v09-surface [surfaceId]="surfaceId()!" />
+    @for (id of surfaceIds(); track id) {
+      <a2ui-v09-surface [surfaceId]="id" />
     }
   `,
   styleUrls: ['./a2ui-canvas-v09.component.scss'],
@@ -47,7 +47,15 @@ export class A2uiCanvasV09Component implements OnChanges {
   /** The de-enveloped v0.9 messages for this bubble, in send order. */
   @Input() messages: readonly unknown[]|null = null;
 
-  readonly surfaceId = signal<string|null>(null);
+  /**
+   * Every surface this batch builds or updates, in first-mention order. One
+   * event may legitimately carry several surfaces (v0.9 messages each name
+   * their own surfaceId), and each gets its own `<a2ui-v09-surface>`.
+   */
+  readonly surfaceIds = signal<readonly string[]>([]);
+
+  /** The first surface of the batch, or null when there is none. */
+  readonly surfaceId = computed(() => this.surfaceIds()[0] ?? null);
 
   /**
    * The last array instance processed. The renderer service is root-scoped, so
@@ -68,13 +76,13 @@ export class A2uiCanvasV09Component implements OnChanges {
       this.processMessage(message);
     }
 
-    // Derive the surfaceId only after processing, so the template's @if gate
-    // cannot mount the child before its surface exists. `ComponentHostComponent`
+    // Derive the surfaceIds only after processing, so the template's @for
+    // cannot mount a child before its surface exists. `ComponentHostComponent`
     // looks the surface up once in ngOnInit and, on a miss, warns and never
     // retries -- unlike a missing component, which recovers via onCreated.
-    const surfaceId = this.surfaceIdOf(messages);
-    if (surfaceId) {
-      this.surfaceId.set(surfaceId);
+    const surfaceIds = this.surfaceIdsOf(messages);
+    if (surfaceIds.length > 0) {
+      this.surfaceIds.set(surfaceIds);
     }
   }
 
@@ -118,17 +126,29 @@ export class A2uiCanvasV09Component implements OnChanges {
     return this.renderer.surfaceGroup?.getSurface(surfaceId) !== undefined;
   }
 
-  /** The first surfaceId named by any message in the batch. */
-  private surfaceIdOf(messages: readonly unknown[]): string|null {
+  /**
+   * The surfaceIds named by the batch, de-duplicated in first-mention order,
+   * minus any surface a `deleteSurface` in the same batch removes.
+   */
+  private surfaceIdsOf(messages: readonly unknown[]): string[] {
+    const ids: string[] = [];
+    const deleted = new Set<string>();
     for (const message of messages) {
       if (!message || typeof message !== 'object') continue;
-      for (const body of Object.values(message as Record<string, unknown>)) {
-        if (body && typeof body === 'object') {
-          const surfaceId = (body as Record<string, unknown>)['surfaceId'];
-          if (typeof surfaceId === 'string') return surfaceId;
+      for (const [kind, body] of Object.entries(
+               message as Record<string, unknown>)) {
+        if (!body || typeof body !== 'object') continue;
+        const surfaceId = (body as Record<string, unknown>)['surfaceId'];
+        if (typeof surfaceId !== 'string') continue;
+        if (kind === 'deleteSurface') {
+          deleted.add(surfaceId);
+        } else {
+          // A later message (e.g. a re-create) revives a deleted surface.
+          deleted.delete(surfaceId);
+          if (!ids.includes(surfaceId)) ids.push(surfaceId);
         }
       }
     }
-    return null;
+    return ids.filter((id) => !deleted.has(id));
   }
 }
