@@ -21,11 +21,11 @@ Agent Development Kit (ADK) is a flexible and modular framework for developing a
 
 ADK web is the built-in dev UI that comes along with adk for easier development and debug.
 
-## ✨ Prerequisite
+## ✨ Prerequisites
 
 - **Install [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)**
 
-- **Install [NodeJs](https://nodejs.org/en)**
+- **Install [Node.js](https://nodejs.org/en)**
 
 - **Install [Angular CLI](https://angular.dev/tools/cli)**
 
@@ -43,13 +43,13 @@ adk-web folder:
 ### Install dependencies
 
 ```bash
-sudo npm install
+npm install
 ```
 
 ### Run adk web
 
 ```bash
-npm run serve --backend=http://localhost:8000
+npm run serve
 ```
 
 ### Run adk api web server
@@ -57,8 +57,32 @@ npm run serve --backend=http://localhost:8000
 In another terminal run:
 
 ```bash
-adk web --allow_origins=http://localhost:4200 --host=0.0.0.0
+adk web
 ```
+
+The dev server proxies API calls through to the backend, so from the browser's
+point of view everything is same-origin. `--allow_origins` and
+`--host=0.0.0.0` are no longer needed.
+
+#### Custom frontend and backend ports
+
+Each side picks its own port. Tell the dev server where the backend is with
+`ADK_BACKEND`, and pass `--port` through to `ng serve` for the frontend:
+
+```bash
+adk web --port 9000                                              # backend
+ADK_BACKEND=http://127.0.0.1:9000 npm run serve -- --port 5555   # frontend
+```
+
+The backend never needs to know the frontend's port. `ADK_BACKEND` accepts any
+URL, including a remote host (`ADK_BACKEND=http://my-workstation:8000`); a
+backend reachable from another machine still needs `--host 0.0.0.0`. Restart
+`npm run serve` after changing `ADK_BACKEND`, since the proxy configuration is
+read once at startup.
+
+Do not pass `--url_prefix` in this two-process setup — the prefix would not
+match the dev server's proxy routes. Reverse-proxy prefixes are exercised by
+the backend's own tests instead.
 
 If you see `adk command not found`, then be sure to install `google-adk` (or remember to activate your virtual environment if you are using one)
 
@@ -99,8 +123,8 @@ We welcome contributions from the community! Whether it's bug reports, feature r
 
 ### Testing quirks
 
-To maintain compatibility with upstream 1p code, testing code in this repo must
-follow a few rules:
+The tests in this repo also run in Google's internal test environment, so
+testing code must follow a few rules:
 
 - `initTestBed()` from `./src/app/testing/utils.ts` must be called before `TestBed.configureTestingModule()`
 

@@ -16,7 +16,8 @@
  */
 
 
-import {MessageProcessor, Types} from '@a2ui/angular/v0_8';
+import {MessageProcessor} from '@a2ui/angular/v0_8';
+import type {ServerToClientMessage, Surface} from '@a2ui/web_core/v0_8';
 import {SimpleChanges} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
@@ -61,7 +62,7 @@ describe('A2uiCanvasComponent', () => {
         root: 'root-column',
         styles: {primaryColor: '#00BFFF', font: 'Arial'}
       }
-    } as unknown as Types.ServerToClientMessage;
+    } as unknown as ServerToClientMessage;
     component.beginRendering = message;
 
     const changes: SimpleChanges = {
@@ -125,7 +126,7 @@ describe('A2uiCanvasComponent', () => {
           {id: 'item-value', component: {Text: {text: {path: 'value'}}}}
         ]
       }
-    } as unknown as Types.ServerToClientMessage;
+    } as unknown as ServerToClientMessage;
     component.surfaceUpdate = message;
 
     const changes: SimpleChanges = {
@@ -161,7 +162,7 @@ describe('A2uiCanvasComponent', () => {
           {key: 'chart.items[4].value', valueNumber: 6}
         ]
       }
-    } as unknown as Types.ServerToClientMessage;
+    } as unknown as ServerToClientMessage;
     component.dataModelUpdate = message;
 
     const changes: SimpleChanges = {
@@ -182,7 +183,7 @@ describe('A2uiCanvasComponent', () => {
     const consoleError = spyOn(console, 'error');
     const message = {
       beginRendering: {surfaceId: 'sales_data_yearly_surface', root: 'root'}
-    } as unknown as Types.ServerToClientMessage;
+    } as unknown as ServerToClientMessage;
     component.beginRendering = message;
 
     component.ngOnChanges({
@@ -204,7 +205,7 @@ describe('A2uiCanvasComponent', () => {
     const consoleError = spyOn(console, 'error');
     mockMessageProcessor.processMessages.and.throwError('malformed message');
     const message = {beginRendering: {surfaceId: 'surface-1', root: 'root'}} as
-        unknown as Types.ServerToClientMessage;
+        unknown as ServerToClientMessage;
     component.beginRendering = message;
 
     expect(() => component.ngOnChanges({
@@ -223,13 +224,13 @@ describe('A2uiCanvasComponent', () => {
 
   it('should update activeSurface when surfaceId matches', () => {
     const surfaceId = 'sales_data_yearly_surface';
-    const mockSurface = {} as Types.Surface;
-    const surfaces = new Map<string, Types.Surface>([[surfaceId, mockSurface]]);
+    const mockSurface = {} as Surface;
+    const surfaces = new Map<string, Surface>([[surfaceId, mockSurface]]);
     mockMessageProcessor.getSurfaces.and.returnValue(surfaces);
 
     const message = {
       beginRendering: {surfaceId: surfaceId, root: 'root-column'}
-    } as unknown as Types.ServerToClientMessage;
+    } as unknown as ServerToClientMessage;
 
     component.beginRendering = message;
     component.ngOnChanges({

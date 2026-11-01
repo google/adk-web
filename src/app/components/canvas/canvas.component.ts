@@ -84,12 +84,10 @@ export class CanvasComponent implements AfterViewInit, OnInit, OnChanges {
 
   public edges = signal<Edge[]>([]);
 
-  private readonly workflowShellWidth = 340;
   private readonly workflowGroupWidth = 420;
   private readonly workflowGroupHeight = 220;
   private readonly workflowGroupYOffset = 180;
   private readonly workflowGroupXOffset = -40;
-  private readonly workflowInnerNodePoint = { x: 40, y: 80 };
 
   private groupNodes = signal<TemplateDynamicGroupNode<any>[]>([]);
   public vflowNodes = computed(() => [

@@ -297,8 +297,11 @@
                         <div class="status-card__metrics">
                           @for (evalMetric of currentHistoryMetrics(); track evalMetric) {
                           <span class="status-card__metric">
-                            <span class="status-card__metric-name" [matTooltip]="evalMetric.metricName">{{ evalMetric.metricName | formatMetricName }}</span>:
-                            <span class="status-card__metric-value">{{ evalMetric.threshold | number:'1.2-2' }}</span>
+                            <!-- This row lists the threshold each metric ran with.
+                                 A metric that has none is named on its own, rather
+                                 than trailing a colon with nothing after it. -->
+                            <span class="status-card__metric-name" [matTooltip]="evalMetric.metricName">{{ evalMetric.metricName | formatMetricName }}</span>@if (evalMetric.threshold != null) {<span>:
+                            <span class="status-card__metric-value">{{ evalMetric.threshold | number:'1.2-2' }}</span></span>}
                           </span>
                           }
                         </div>

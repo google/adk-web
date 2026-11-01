@@ -30,6 +30,7 @@ import {InfoTable} from '../info-table/info-table';
 
 import {Event, Part} from '../../core/models/types';
 import {UI_STATE_SERVICE} from '../../core/services/interfaces/ui-state';
+import {FEATURE_FLAG_SERVICE} from '../../core/services/interfaces/feature-flag';
 import {SidePanelMessagesInjectionToken} from '../side-panel/side-panel.component.i18n';
 import {Span} from '../../core/models/Trace';
 import {TRACE_SERVICE} from '../../core/services/interfaces/trace';
@@ -161,12 +162,16 @@ export class EventTabComponent {
   protected readonly uiStateService = inject(UI_STATE_SERVICE);
   protected readonly traceService = inject(TRACE_SERVICE);
   private readonly storageService = inject(STORAGE_SERVICE);
+  private readonly featureFlagService = inject(FEATURE_FLAG_SERVICE);
   readonly i18n = inject(SidePanelMessagesInjectionToken);
 
   readonly isEventRequestResponseLoadingSignal = toSignal(
       this.uiStateService.isEventRequestResponseLoading(), {initialValue: false});
+  readonly isTraceEnabled = toSignal(this.featureFlagService.isTraceEnabled());
 
+  // Each span links to the trace view, so none are listed while traces are disabled.
   readonly associatedSpans = computed(() => {
+    if (!this.isTraceEnabled()) return [];
     const ev = this.selectedEvent();
     if (!ev || !ev.id) return [];
 
@@ -192,6 +197,8 @@ export class EventTabComponent {
     const allEvents = Array.from(this.eventDataMap().values());
     let totalPromptTokens = 0;
     let totalCandidatesTokens = 0;
+    let totalCachedContentTokens = 0;
+    let totalThoughtsTokens = 0;
     let totalTokens = 0;
 
     allEvents.forEach(ev => {
@@ -199,10 +206,14 @@ export class EventTabComponent {
       if (metadata) {
         const prompt = metadata.promptTokenCount ?? metadata.promptTokens ?? 0;
         const candidates = metadata.candidatesTokenCount ?? metadata.candidatesTokens ?? 0;
+        const cachedContent = metadata.cachedContentTokenCount ?? metadata.cachedContentTokens ?? 0;
+        const thoughts = metadata.thoughtsTokenCount ?? metadata.thoughtsTokens ?? 0;
         const total = metadata.totalTokenCount ?? metadata.totalTokens ?? 0;
 
         totalPromptTokens += Number(prompt);
         totalCandidatesTokens += Number(candidates);
+        totalCachedContentTokens += Number(cachedContent);
+        totalThoughtsTokens += Number(thoughts);
         totalTokens += Number(total);
       }
     });
@@ -210,6 +221,8 @@ export class EventTabComponent {
     return {
       'Prompt Tokens': totalPromptTokens,
       'Candidates Tokens': totalCandidatesTokens,
+      'Cached Content Tokens': totalCachedContentTokens,
+      'Thoughts Tokens': totalThoughtsTokens,
       'Total Tokens': totalTokens
     };
   });

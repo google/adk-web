@@ -1,0 +1,72 @@
+<!--
+ Copyright 2026 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+@if (edit(); as fileEdit) {
+  <div class="file-edit">
+    <div class="file-edit-header">
+      <mat-icon class="file-edit-icon" aria-hidden="true">{{ fileEdit.kind === 'write' ? 'note_add' : 'edit_note' }}</mat-icon>
+      <span class="file-edit-path" [title]="fileEdit.path">{{ fileEdit.path }}</span>
+      <span class="file-edit-stats">
+        <span class="file-edit-added-count">+{{ addedCount() }}</span>
+        @if (fileEdit.kind === 'edit') {
+          <span class="file-edit-removed-count">-{{ removedCount() }}</span>
+        }
+      </span>
+    </div>
+    <div class="file-edit-body">
+      <div class="diff-lines">
+        @for (item of displayRows(); track $index) {
+          @if (item.row.type === 'collapsed') {
+            <button type="button" class="diff-collapsed" (click)="expandRow(item.index)">
+              <mat-icon class="diff-collapsed-icon">unfold_more</mat-icon>
+              {{ item.row.lines.length }} unchanged lines
+            </button>
+          } @else {
+            <!-- Kept on one line: whitespace between the spans would show up in the diff. -->
+            <div class="diff-line diff-{{ item.row.type }}"><span class="diff-marker">{{ markers[item.row.type] }}</span><span class="diff-text">{{ item.row.text }}</span></div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+} @else if (error(); as toolError) {
+  <app-terminal-output [error]="toolError"></app-terminal-output>
+} @else if (read(); as fileRead) {
+  <!-- Collapsed by default, like a read in a coding agent's transcript. -->
+  <details class="file-edit file-read">
+    <summary class="file-edit-header">
+      <mat-icon class="file-edit-icon" aria-hidden="true">description</mat-icon>
+      @if (readPath()) {
+        <span class="file-edit-path" [title]="readPath()">{{ readPath() }}</span>
+      }
+      <span class="file-read-range">{{ readRange() }}</span>
+      <mat-icon class="file-read-chevron" aria-hidden="true">expand_more</mat-icon>
+    </summary>
+    <div class="file-edit-body file-read-body">
+      <div class="file-read-gutter" aria-hidden="true">
+        @for (line of fileRead.lines; track $index) {
+          <div>{{ line.number ?? '' }}</div>
+        }
+      </div>
+      <div class="file-read-code">
+        <ng-container
+          [ngComponentOutlet]="markdownComponent"
+          [ngComponentOutletInputs]="{text: readMarkdown(), thought: false}"
+        ></ng-container>
+      </div>
+    </div>
+  </details>
+}

@@ -16,7 +16,7 @@
  */
 
 import {A2uiRendererService, SurfaceComponent} from '@a2ui/angular/v0_9';
-import {ChangeDetectionStrategy, Component, inject, Input, OnChanges, signal, SimpleChanges,} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, DestroyRef, inject, Input, OnChanges, signal, SimpleChanges,} from '@angular/core';
 
 /** The message type the v0.9 renderer accepts. */
 type A2uiV09Message =
@@ -33,8 +33,8 @@ type A2uiV09Message =
 @Component({
   selector: 'app-a2ui-canvas-v09',
   template: `
-    @if (surfaceId()) {
-      <a2ui-v09-surface [surfaceId]="surfaceId()!" />
+    @for (id of surfaceIds(); track id) {
+      <a2ui-v09-surface [surfaceId]="id" />
     }
   `,
   styleUrls: ['./a2ui-canvas-v09.component.scss'],
@@ -47,20 +47,46 @@ export class A2uiCanvasV09Component implements OnChanges {
   /** The de-enveloped v0.9 messages for this bubble, in send order. */
   @Input() messages: readonly unknown[]|null = null;
 
-  readonly surfaceId = signal<string|null>(null);
+  /**
+   * Every surface this batch creates, in createSurface order. One event may
+   * legitimately carry several surfaces, and each gets its own
+   * `<a2ui-v09-surface>`.
+   *
+   * Only creates count. A surface is one live, chat-scoped model, so a later
+   * event that merely updates it (streamed `updateComponents` /
+   * `updateDataModel`, or a follow-up turn) mutates the copy already mounted
+   * in the bubble that created it; mounting it again would show the same
+   * surface once per event.
+   */
+  readonly surfaceIds = signal<readonly string[]>([]);
+
+  /** The first surface of the batch, or null when there is none. */
+  readonly surfaceId = computed(() => this.surfaceIds()[0] ?? null);
 
   /**
-   * The last array instance processed. The renderer service is root-scoped, so
+   * The last array instance processed. The renderer service is chat-scoped, so
    * re-processing the same batch would duplicate work and log spurious
    * "surface already exists" failures on every change-detection pass.
    */
   private lastProcessed: readonly unknown[]|null = null;
 
+  constructor() {
+    // Updates and deletes can arrive in another bubble. The upstream surface
+    // host does not unmount itself when its model is deleted.
+    const deletion = this.renderer.surfaceGroup.onSurfaceDeleted.subscribe(
+        (id) => this.surfaceIds.update((ids) => ids.filter((item) => item !== id)));
+    inject(DestroyRef).onDestroy(() => deletion.unsubscribe());
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (!changes['messages']) return;
 
     const messages = this.messages;
-    if (!messages || messages.length === 0) return;
+    if (!messages || messages.length === 0) {
+      this.lastProcessed = null;
+      this.surfaceIds.set([]);
+      return;
+    }
     if (messages === this.lastProcessed) return;
     this.lastProcessed = messages;
 
@@ -68,14 +94,10 @@ export class A2uiCanvasV09Component implements OnChanges {
       this.processMessage(message);
     }
 
-    // Derive the surfaceId only after processing, so the template's @if gate
-    // cannot mount the child before its surface exists. `ComponentHostComponent`
-    // looks the surface up once in ngOnInit and, on a miss, warns and never
-    // retries -- unlike a missing component, which recovers via onCreated.
-    const surfaceId = this.surfaceIdOf(messages);
-    if (surfaceId) {
-      this.surfaceId.set(surfaceId);
-    }
+    // Derive the surfaceIds only after processing, so the template's @for
+    // cannot mount a child before its surface exists.
+    const surfaceIds = this.surfaceIdsOf(messages);
+    this.surfaceIds.set(surfaceIds);
   }
 
   /**
@@ -99,9 +121,9 @@ export class A2uiCanvasV09Component implements OnChanges {
   /**
    * True when this `createSurface` names a surface that already exists.
    *
-   * The renderer service is root-scoped and its surfaces outlive any one
-   * bubble, so re-creating one -- on a history reload, or when a bubble
-   * re-processes its batch -- would throw "Surface <id> already exists". Since
+   * The renderer service is chat-scoped and its surfaces outlive any one
+   * bubble, so replaying a retained history or re-processing a batch would throw
+   * "Surface <id> already exists". Since
    * the subsequent update messages are idempotent upserts against the existing
    * surface, skipping the create is the correct recovery: the already-mounted
    * child keeps a valid surface reference and simply receives the new
@@ -118,17 +140,29 @@ export class A2uiCanvasV09Component implements OnChanges {
     return this.renderer.surfaceGroup?.getSurface(surfaceId) !== undefined;
   }
 
-  /** The first surfaceId named by any message in the batch. */
-  private surfaceIdOf(messages: readonly unknown[]): string|null {
+  /**
+   * The surfaceIds the batch creates, de-duplicated in createSurface order,
+   * minus any surface a later `deleteSurface` in the same batch removes.
+   */
+  private surfaceIdsOf(messages: readonly unknown[]): string[] {
+    const ids: string[] = [];
+    const deleted = new Set<string>();
     for (const message of messages) {
       if (!message || typeof message !== 'object') continue;
-      for (const body of Object.values(message as Record<string, unknown>)) {
-        if (body && typeof body === 'object') {
-          const surfaceId = (body as Record<string, unknown>)['surfaceId'];
-          if (typeof surfaceId === 'string') return surfaceId;
+      for (const [kind, body] of Object.entries(
+               message as Record<string, unknown>)) {
+        if (!body || typeof body !== 'object') continue;
+        const surfaceId = (body as Record<string, unknown>)['surfaceId'];
+        if (typeof surfaceId !== 'string') continue;
+        if (kind === 'deleteSurface') {
+          deleted.add(surfaceId);
+        } else if (kind === 'createSurface') {
+          // A re-create after a delete revives the surface.
+          deleted.delete(surfaceId);
+          if (!ids.includes(surfaceId)) ids.push(surfaceId);
         }
       }
     }
-    return null;
+    return ids.filter((id) => !deleted.has(id));
   }
 }

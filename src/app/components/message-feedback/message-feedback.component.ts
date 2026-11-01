@@ -29,6 +29,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {Feedback, FEEDBACK_SERVICE} from '../../core/services/interfaces/feedback';
 
 import {MessageFeedbackMessagesInjectionToken} from './message-feedback.component.i18n';
+import {MessageFeedbackComponentInterface} from './message-feedback.component.interface';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.Default,
@@ -47,7 +48,7 @@ import {MessageFeedbackMessagesInjectionToken} from './message-feedback.componen
     MatTooltipModule,
   ],
 })
-export class MessageFeedbackComponent {
+export class MessageFeedbackComponent implements MessageFeedbackComponentInterface {
   sessionName = input.required<string>();
   eventId = input.required<string>();
 

@@ -176,6 +176,98 @@ describe('RunEvalConfigDialogComponent', () => {
        });
   });
 
+  describe('with metrics that need no threshold', () => {
+    // An informational metric reports a value and never passes or fails, so
+    // the backend sends it with requiresThreshold false and no value interval.
+    const INFORMATIONAL_METRIC = {
+      metricName: 'token_usage_v1',
+      description: 'Tokens consumed',
+      metricValueInfo: {},
+      requiresThreshold: false,
+    };
+
+    it('does not offer them for selection', async () => {
+      const {component} = await createComponent({
+        evalMetrics: [],
+        metricsInfo: [...METRICS_INFO, INFORMATIONAL_METRIC],
+      });
+
+      expect(component.metricsInfo.map((m) => m.metricName)).toEqual([
+        'tool_trajectory_avg_score',
+        'response_match_score',
+      ]);
+      expect(component.evalForm.get('token_usage_v1_selected')).toBeNull();
+      expect(component.evalForm.get('token_usage_v1_threshold')).toBeNull();
+    });
+
+    it('never emits them, so the backend is not sent a threshold it rejects',
+       async () => {
+         const {component, dialogRef} = await createComponent({
+           evalMetrics: [],
+           metricsInfo: [...METRICS_INFO, INFORMATIONAL_METRIC],
+         });
+         component.evalForm.get('tool_trajectory_avg_score_selected')
+             ?.setValue(true);
+
+         component.onStart();
+
+         const arg = dialogRef.close.calls.mostRecent().args[0] as any;
+         expect(arg.metrics.map((m: any) => m.metricName)).toEqual([
+           'tool_trajectory_avg_score',
+         ]);
+       });
+  });
+
+  describe('with a metric whose interval the backend omitted', () => {
+    // `interval` is optional on the wire. A metric can still require a
+    // threshold without carrying one, and the dialog has to offer it.
+    const UNBOUNDED_METRIC = {
+      metricName: 'custom_unbounded_v1',
+      description: 'Requires a threshold but carries no value interval',
+      metricValueInfo: {},
+      requiresThreshold: true,
+    };
+
+    it('still offers it, and renders the threshold slider', async () => {
+      // Regression test: the slider read `metricValueInfo.interval.minValue`
+      // unconditionally, so this metric took the whole dialog down. The
+      // assertions below only hold if the metric survives the filter, which is
+      // what puts the slider on the page in the first place.
+      const {fixture, component} = await createComponent({
+        evalMetrics: [],
+        metricsInfo: [UNBOUNDED_METRIC],
+      });
+
+      expect(component.metricsInfo.map((m) => m.metricName)).toEqual([
+        'custom_unbounded_v1',
+      ]);
+      expect(fixture.nativeElement.querySelector('mat-slider')).not.toBeNull();
+    });
+
+    it('bounds the slider at 0..1 and validates only that a value is set',
+       async () => {
+         const {component} = await createComponent({
+           evalMetrics: [],
+           metricsInfo: [UNBOUNDED_METRIC],
+         });
+
+         const threshold =
+             component.evalForm.get('custom_unbounded_v1_threshold');
+         expect(threshold).not.toBeNull();
+         // getDefaultThreshold falls back to the slider's upper bound.
+         expect(threshold!.value).toBe(1.0);
+         expect(threshold!.valid).toBeTrue();
+
+         // No interval means no bounds to enforce, so a value outside 0..1 is
+         // still accepted by the form; only `required` applies.
+         threshold!.setValue(5);
+         expect(threshold!.valid).toBeTrue();
+
+         threshold!.setValue(null);
+         expect(threshold!.valid).toBeFalse();
+       });
+  });
+
   describe('without metricsInfo (fallback)', () => {
     let component: RunEvalConfigDialogComponent;
     let dialogRef: jasmine.SpyObj<MatDialogRef<RunEvalConfigDialogComponent>>;

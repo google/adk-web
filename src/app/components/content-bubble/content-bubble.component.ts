@@ -23,6 +23,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {CustomJsonViewerComponent} from '../custom-json-viewer/custom-json-viewer.component';
 
+import {CodeExecutionItem, getStandaloneCodeResults, groupCodeExecutionRuns} from '../../core/models/CodeExecution';
 import {UiEvent} from '../../core/models/UiEvent';
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {JsonTooltipDirective} from '../../directives/html-tooltip.directive';
@@ -30,6 +31,7 @@ import {A2uiCanvasV09Component} from '../a2ui-canvas/a2ui-canvas-v09.component';
 import {A2uiCanvasComponent} from '../a2ui-canvas/a2ui-canvas.component';
 import {MediaType} from '../artifact-tab/artifact-tab.component';
 import {AudioPlayerComponent} from '../audio-player/audio-player.component';
+import {CodeExecutionComponent} from '../code-execution/code-execution.component';
 import {MARKDOWN_COMPONENT, MarkdownComponentInterface} from '../markdown/markdown.component.interface';
 import {ChatPanelMessagesInjectionToken} from '../chat-panel/chat-panel.component.i18n';
 import { URLUtil } from '../../../utils/url-util';
@@ -48,6 +50,7 @@ import { base64ToArrayBuffer, pcmToWavBlob } from '../../core/utils/audio';
     A2uiCanvasComponent,
     A2uiCanvasV09Component,
     AudioPlayerComponent,
+    CodeExecutionComponent,
     JsonTooltipDirective,
   ],
   templateUrl: './content-bubble.component.html',
@@ -118,7 +121,22 @@ export class ContentBubbleComponent implements OnChanges {
     return false;
   }
 
+  /** The event's text and code runs, each code paired with its result. */
+  get codeExecutionItems(): CodeExecutionItem[] {
+    return groupCodeExecutionRuns(this.uiEvent.codeExecutionSegments ?? []);
+  }
+
+  /** Whether the event only has code results, which show under its chips. */
+  get hasOnlyCodeResults(): boolean {
+    return getStandaloneCodeResults(this.uiEvent).length > 0;
+  }
+
   get noBubble(): boolean {
+    // Code execution renders its own blocks, with a bubble per text segment.
+    if (this.uiEvent.codeExecutionSegments) {
+      return true;
+    }
+
     // If there is text content, we always want a bubble
     if (this.uiEvent.text || this.rawMessageText) {
       return false;

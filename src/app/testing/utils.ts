@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
-/** @fileoverview Utils for 1p<->3p test compatibility. */
+/**
+ * @fileoverview Test utils that keep tests compatible with both the
+ * open-source and Google-internal test setups.
+ */
 
 export {fakeAsync, tick} from '@angular/core/testing';
 
-/** no-op in 3p, but required for 1p compatibility. */
+/** No-op in the open-source build; the internal test setup requires it. */
 export function initTestBed() {}

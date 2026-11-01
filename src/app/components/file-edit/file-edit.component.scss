@@ -1,0 +1,293 @@
+/**
+ * @license
+ * Copyright 2026 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Takes the full row so it always sits under the chip, like shell output.
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 4px 0;
+
+  --diff-added-bg: rgba(46, 160, 67, 0.18);
+  --diff-removed-bg: rgba(248, 81, 73, 0.18);
+  --diff-added-color: #81c995;
+  --diff-removed-color: #f28b82;
+  // Same token colors as the code execution editor.
+  --code-keyword-color: #c58af9;
+  --code-string-color: #ee9b8e;
+  --code-number-color: #8ab4f8;
+  --code-function-color: #e5e1a6;
+  --code-comment-color: #9aa0a6;
+}
+
+:host-context(html.light-theme) {
+  --diff-added-bg: rgba(46, 160, 67, 0.14);
+  --diff-removed-bg: rgba(248, 81, 73, 0.14);
+  --diff-added-color: #188038;
+  --diff-removed-color: #c5221f;
+  --code-keyword-color: #8430ce;
+  --code-string-color: #a31515;
+  --code-number-color: #0b57d0;
+  --code-function-color: #795e26;
+  --code-comment-color: #5f6368;
+}
+
+// Sized to the diff, with the same minimum and maximum width as code execution.
+.file-edit {
+  box-sizing: border-box;
+  width: fit-content;
+  min-width: min(420px, 100%);
+  max-width: min(800px, 100%);
+  overflow: hidden;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  background-color: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+}
+
+.file-edit-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  background-color: var(--mat-sys-surface-container-high);
+  font-size: 12px;
+}
+
+.file-edit-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.file-edit-path {
+  min-width: 0;
+  overflow: hidden;
+  font-family: 'Roboto Mono', monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-edit-stats {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+  padding-left: 12px;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.file-edit-added-count {
+  color: var(--diff-added-color);
+}
+
+.file-edit-removed-count {
+  color: var(--diff-removed-color);
+}
+
+// Long edits scroll inside the card. Lines never wrap, so each row's
+// background spans the full scroll width.
+.file-edit-body {
+  max-height: 480px;
+  overflow: auto;
+  padding: 6px 0;
+}
+
+.diff-lines {
+  width: max-content;
+  min-width: 100%;
+}
+
+.diff-line {
+  padding-right: 12px;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.diff-marker {
+  display: inline-block;
+  width: 2ch;
+  padding-left: 8px;
+  color: var(--mat-sys-on-surface-variant);
+  user-select: none;
+}
+
+.diff-added {
+  background-color: var(--diff-added-bg);
+
+  .diff-marker {
+    color: var(--diff-added-color);
+  }
+}
+
+.diff-removed {
+  background-color: var(--diff-removed-bg);
+
+  .diff-marker {
+    color: var(--diff-removed-color);
+  }
+}
+
+// A folded run of unchanged lines; clicking shows them.
+.diff-collapsed {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 2px 12px 2px 8px;
+  border: none;
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+  font-family: 'Google Sans', 'Roboto', sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.diff-collapsed-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
+
+// A read: the header is the toggle that shows the content.
+.file-read summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &:hover .file-read-chevron {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.file-read:not([open]) summary {
+  border-bottom: none;
+}
+
+.file-read-range {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.file-read-chevron {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  padding-left: 12px;
+  font-size: 18px;
+  color: var(--mat-sys-on-surface-variant);
+  transition: transform 0.15s;
+}
+
+.file-read[open] .file-read-chevron {
+  transform: rotate(180deg);
+}
+
+// Line numbers scroll with the content vertically and stay in place when it
+// scrolls sideways, as in the code execution editor.
+.file-read-body {
+  display: flex;
+  align-items: flex-start;
+  padding: 0;
+}
+
+.file-read-gutter,
+.file-read-code ::ng-deep pre,
+.file-read-code ::ng-deep code {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.file-read-gutter {
+  position: sticky;
+  z-index: 1;
+  left: 0;
+  flex-shrink: 0;
+  min-width: 2ch;
+  padding: 8px 10px 8px 12px;
+  border-right: 1px solid var(--mat-sys-outline-variant);
+  background-color: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface-variant);
+  text-align: right;
+  user-select: none;
+}
+
+.file-read-code {
+  flex: 1 0 auto;
+}
+
+.file-read-code ::ng-deep {
+  pre {
+    margin: 0;
+    padding: 8px 12px;
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    white-space: pre;
+  }
+
+  code {
+    background: transparent;
+    white-space: pre;
+  }
+
+  .token.keyword,
+  .token.boolean {
+    color: var(--code-keyword-color);
+  }
+
+  .token.string,
+  .token.char,
+  .token.triple-quoted-string {
+    color: var(--code-string-color);
+  }
+
+  .token.number {
+    color: var(--code-number-color);
+  }
+
+  .token.function,
+  .token.builtin,
+  .token.class-name,
+  .token.decorator {
+    color: var(--code-function-color);
+  }
+
+  .token.comment,
+  .token.shebang {
+    color: var(--code-comment-color);
+    font-style: italic;
+  }
+}

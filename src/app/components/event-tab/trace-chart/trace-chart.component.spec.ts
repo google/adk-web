@@ -54,4 +54,33 @@ describe('TraceChartComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  describe('getSpanIcon', () => {
+    it('should use the tool icon for OTel GenAI tool spans', () => {
+      expect(component.getSpanIcon('execute_tool get_weather')).toBe('build');
+    });
+
+    it('should use the agent icon for OTel GenAI agent spans', () => {
+      expect(component.getSpanIcon('invoke_agent root_agent'))
+          .toBe('directions_run');
+    });
+
+    it('should fall back to the start icon for unknown spans', () => {
+      expect(component.getSpanIcon('something_else')).toBe('start');
+    });
+  });
+
+  describe('formatSpanName', () => {
+    it('should strip the OTel GenAI operation prefixes', () => {
+      expect(component.formatSpanName('invoke_agent root_agent'))
+          .toBe('root_agent');
+      expect(component.formatSpanName('execute_tool get_weather'))
+          .toBe('get_weather');
+      expect(component.formatSpanName('invoke_node my_node')).toBe('my_node');
+    });
+
+    it('should leave other span names unchanged', () => {
+      expect(component.formatSpanName('call_llm')).toBe('call_llm');
+    });
+  });
 });

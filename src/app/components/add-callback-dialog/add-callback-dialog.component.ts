@@ -35,6 +35,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { CallbackNode } from '../../core/models/AgentBuilder';
 import { TooltipUtil, CallbackInfo } from '../../../utils/tooltip-util';
 import { MatIconModule } from '@angular/material/icon';
+import {isImeComposing} from '../../utils/keyboard-event.utils';
 
 /** Error when invalid control is dirty, touched, or submitted. */
 export class ImmediateErrorStateMatcher implements ErrorStateMatcher {
@@ -98,7 +99,11 @@ export class AddCallbackDialogComponent {
     }
   }
 
-  addCallback() {
+  addCallback(event?: Event) {
+    if (isImeComposing(event)) {
+      return;
+    }
+
     if (!this.callbackName.trim() || this.hasSpaces() || this.isDuplicateName()) {
       return;
     }

@@ -29,6 +29,7 @@ import {of} from 'rxjs';
 
 import {EvalCase} from '../../core/models/Eval';
 import {Session} from '../../core/models/Session';
+import {GCP_VERTEX_AGENT_EVENT_ID, Span, SpanValidator} from '../../core/models/Trace';
 import {AgentService} from '../../core/services/agent.service';
 import {ArtifactService} from '../../core/services/artifact.service';
 import {AudioRecordingService} from '../../core/services/audio-recording.service';
@@ -72,6 +73,23 @@ const EVAL_TAB_SELECTOR = By.css('app-eval-tab');
 const DETAILS_PANEL_CLOSE_BUTTON_SELECTOR =
     By.css('.details-panel-container mat-icon');
 const EVENT_GRAPH_SELECTOR = By.css('.event-graph-container div');
+const SPAN_LINK_SELECTOR = By.css('app-event-tab .span-link');
+
+/** Routes a raw span through `SpanValidator` so `attrEventId` is populated. */
+function makeSpan(attributes: Record<string, unknown>): Span {
+  const result = SpanValidator.safeParse({
+    name: 'test-span',
+    trace_id: 'trace-id',
+    span_id: 'span-id',
+    start_time: 1,
+    end_time: 2,
+    attributes,
+  });
+  if (!result.success) {
+    throw new Error(`Failed to build test span: ${result.error.message}`);
+  }
+  return result.data;
+}
 
 const EVAL_TAB_INDEX = 3;
 
@@ -403,6 +421,25 @@ describe('SidePanelComponent', () => {
       });
     });
 
+    describe('associated spans', () => {
+      beforeEach(() => {
+        fixture.componentRef.setInput(
+            'traceData', [makeSpan({[GCP_VERTEX_AGENT_EVENT_ID]: 'event1'})]);
+      });
+
+      it('links the spans of the selected event', () => {
+        fixture.detectChanges();
+        expect(fixture.debugElement.queryAll(SPAN_LINK_SELECTOR).length)
+            .toBe(1);
+      });
+
+      it('links no spans when isTraceEnabled is false', () => {
+        mockFeatureFlagService.isTraceEnabledResponse.next(false);
+        fixture.detectChanges();
+        expect(fixture.debugElement.queryAll(SPAN_LINK_SELECTOR).length)
+            .toBe(0);
+      });
+    });
   });
 
   describe('Loading state', () => {

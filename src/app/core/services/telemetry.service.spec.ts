@@ -55,6 +55,35 @@ describe('TelemetryService', () => {
     expect(service.telemetryEnabled()).toBe(true);
   });
 
+  it(
+      'should fetch status on init when runtimeConfig carries no consent',
+      async () => {
+        // Dev server setups serve no runtime config, so the service has to ask
+        // the API instead of silently staying uninitialized.
+        (RuntimeConfigUtil.getRuntimeConfig as jasmine.Spy)
+            .and.returnValue({backendUrl: API_SERVER_BASE_URL});
+
+        // Rebuild the injector: the service from beforeEach is a cached
+        // singleton constructed with the old config.
+        TestBed.resetTestingModule();
+        initTestBed();
+        TestBed.configureTestingModule({
+          imports: [HttpClientTestingModule],
+          providers: [TelemetryService],
+        });
+        const fallbackService = TestBed.inject(TelemetryService);
+        const fallbackHttp = TestBed.inject(HttpTestingController);
+
+        const req = fallbackHttp.expectOne(
+            `${API_SERVER_BASE_URL}/config/telemetry`);
+        expect(req.request.method).toBe('GET');
+        req.flush({telemetry: false});
+        await Promise.resolve();
+
+        expect(fallbackService.telemetryStatus()).toBe(false);
+        fallbackHttp.verify();
+      });
+
   it('should fetch data from API', async () => {
     const promise = service.fetchTelemetryStatus();
 

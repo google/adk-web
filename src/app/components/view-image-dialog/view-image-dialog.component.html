@@ -46,33 +46,27 @@
     <div class="image-counter">{{ currentIndex + 1 }} / {{ images.length }}</div>
   }
 
-  @if (!isSvgContent) {
-    <div class="image-wrapper" (click)="close()">
-      @if (displayContent) {
-        <div class="image-container" 
-             (click)="$event.stopPropagation()"
-             [ngStyle]="getTransformStyle()"
-             (wheel)="onWheel($event)"
-             (mousedown)="onMouseDown($event)"
-             (mousemove)="onMouseMove($event)"
-             (mouseup)="onMouseUp()"
-             (mouseleave)="onMouseUp()"
-             style="position: relative; display: inline-block;">
-          <img [src]="displayContent" alt="Viewed Image">
-          @if (shouldShowHighlight()) {
-            <div class="highlight-circle" [ngStyle]="getHighlightStyle()"></div>
-          }
-        </div>
-      }
-      @if (!displayContent) {
-        <div class="no-image-placeholder">
-          No image data provided.
-        </div>
-      }
-    </div>
-  }
-
-  @if (isSvgContent) {
-    <div [innerHTML]="displayContent"></div>
-  }
+  <div class="image-wrapper" (click)="close()">
+    @if (displayContent) {
+      <div class="image-container" 
+           (click)="$event.stopPropagation()"
+           [ngStyle]="getTransformStyle()"
+           (wheel)="onWheel($event)"
+           (mousedown)="onMouseDown($event)"
+           (mousemove)="onMouseMove($event)"
+           (mouseup)="onMouseUp()"
+           (mouseleave)="onMouseUp()"
+           style="position: relative; display: inline-block;">
+        <img [src]="displayContent" alt="Viewed Image">
+        @if (shouldShowHighlight()) {
+          <div class="highlight-circle" [ngStyle]="getHighlightStyle()"></div>
+        }
+      </div>
+    }
+    @if (!displayContent) {
+      <div class="no-image-placeholder">
+        No image data provided.
+      </div>
+    }
+  </div>
 </div>

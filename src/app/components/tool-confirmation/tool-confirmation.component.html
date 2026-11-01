@@ -1,0 +1,59 @@
+<!--
+ Copyright 2026 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+@if (request(); as confirmationRequest) {
+  @if (!answered() && functionCall()?.responseStatus !== 'sent' && functionCall()?.responseStatus !== 'sending') {
+    <div class="confirmation-card" role="group" aria-label="Approve tool call">
+      <div class="confirmation-header">
+        <mat-icon class="confirmation-icon" aria-hidden="true">gpp_maybe</mat-icon>
+        <span class="confirmation-title">Allow <span class="confirmation-tool">{{ confirmationRequest.call.name }}</span>?</span>
+      </div>
+      @if (confirmationRequest.hint) {
+        <div class="confirmation-hint">{{ confirmationRequest.hint }}</div>
+      }
+      <div class="confirmation-call">
+        @if (isShellCommand()) {
+          <app-shell-command [functionCall]="confirmationRequest.call"></app-shell-command>
+        } @else if (isFileEdit()) {
+          <app-file-edit [functionCall]="confirmationRequest.call"></app-file-edit>
+        } @else {
+          <app-custom-json-viewer [json]="confirmationRequest.call.args"></app-custom-json-viewer>
+        }
+      </div>
+      @if (hasPayload()) {
+        <div class="confirmation-payload">
+          <div class="confirmation-label">Details</div>
+          <app-custom-json-viewer [json]="confirmationRequest.payload"></app-custom-json-viewer>
+        </div>
+      }
+      <div class="confirmation-actions">
+        <button mat-stroked-button class="confirmation-reject" (click)="respond(false)">
+          <mat-icon>block</mat-icon>
+          Reject
+        </button>
+        <button mat-flat-button class="confirmation-approve" (click)="respond(true)">
+          <mat-icon>check</mat-icon>
+          Approve
+        </button>
+      </div>
+    </div>
+  }
+} @else if (status(); as approvalStatus) {
+  <div class="confirmation-status status-{{ approvalStatus.status }}">
+    <mat-icon class="confirmation-status-icon" aria-hidden="true">{{ approvalStatus.icon }}</mat-icon>
+    {{ approvalStatus.label }}
+  </div>
+}

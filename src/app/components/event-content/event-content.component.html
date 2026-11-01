@@ -13,6 +13,9 @@
       (openBase64InNewTab)="openBase64InNewTab.emit($event)"
     ></app-content-bubble>
     }
+    @if (hasGroundingSources(uiEvent)) {
+      <app-grounding-sources [groundingMetadata]="uiEvent.event.groundingMetadata"></app-grounding-sources>
+    }
     @if (uiEvent.event.output) {
     <app-content-bubble
       type="output"
@@ -83,6 +86,10 @@
         @for (functionCall of uiEvent.functionCalls; track functionCall.id) {
           @if (isComputerUseClick(functionCall)) {
             <app-computer-action [functionCall]="functionCall" [allMessages]="uiEvents" [index]="index" (clickEvent)="clickEvent.emit($event)" (openImage)="openViewImageDialog.emit($event)"></app-computer-action>
+          } @else if (isShellCommandCall(functionCall)) {
+            <app-shell-command [functionCall]="functionCall"></app-shell-command>
+          } @else if (isFileEditCall(functionCall)) {
+            <app-file-edit [functionCall]="functionCall"></app-file-edit>
           }
         }
       </div>
@@ -110,6 +117,17 @@
               </button>
             </mat-menu>
           </div>
+          @if (hasConfirmationStatus(functionResponse)) {
+            <app-tool-confirmation [functionResponse]="functionResponse"></app-tool-confirmation>
+          } @else if (isShellCommandResponse(functionResponse)) {
+            <app-shell-command [functionResponse]="functionResponse"></app-shell-command>
+          } @else if (hasFileToolView(functionResponse)) {
+            <app-file-edit [functionResponse]="functionResponse" [functionCall]="findFunctionCall(functionResponse)"></app-file-edit>
+          } @else if (isSkillToolResponse(functionResponse)) {
+            <app-skill-tool [functionResponse]="functionResponse"></app-skill-tool>
+          } @else if (isWebPageResponse(functionResponse)) {
+            <app-web-page [functionResponse]="functionResponse" [functionCall]="findFunctionCall(functionResponse)"></app-web-page>
+          }
         }
       }
     }
@@ -132,12 +150,6 @@
           [tooltipTitle]="'Artifact'"
         ></app-hover-info-button>
       }
-    }
-    @if (uiEvent.error) {
-    <app-content-bubble
-      type="error"
-      [uiEvent]="uiEvent"
-    ></app-content-bubble>
     }
     @if (uiEvent.route) {
     <app-hover-info-button
@@ -176,9 +188,25 @@
     ></app-hover-info-button>
     }
     </div>
+    <!-- Errors show under the chips rather than beside them. -->
+    @if (uiEvent.error) {
+    <app-content-bubble
+      type="error"
+      [uiEvent]="uiEvent"
+    ></app-content-bubble>
+    }
+    <!-- Results sent in their own event show under the chips, like shell output. -->
+    @for (codeResult of getStandaloneCodeResults(uiEvent); track $index) {
+      <app-code-execution [codeExecutionResult]="codeResult"></app-code-execution>
+    }
     @if (uiEvent.functionCalls && uiEvent.functionCalls.length > 0) {
       @for (functionCall of uiEvent.functionCalls; track functionCall.id) {
-        @if (functionCall.needsResponse && !hasFunctionResponse(functionCall.id)) {
+        @if (functionCall.needsResponse && !hasFunctionResponse(functionCall.id) && isConfirmationRequest(functionCall)) {
+          <app-tool-confirmation
+            [functionCall]="functionCall"
+            (responseComplete)="longRunningResponseComplete.emit($event)"
+          ></app-tool-confirmation>
+        } @else if (functionCall.needsResponse && !hasFunctionResponse(functionCall.id)) {
           <app-long-running-response
             [functionCall]="functionCall"
             [appName]="appName"

@@ -32,12 +32,6 @@ import {WebSocketService} from './websocket.service';
 export type LiveModality = 'AUDIO'|'VIDEO';
 
 /**
- * Pre-built avatar the Live API renders in a video call. Avatar mode is
- * refused outright unless an avatar is named.
- */
-const DEFAULT_AVATAR_NAME = 'Kai';
-
-/**
  * Service for supporting live streaming with audio/video.
  */
 @Injectable({
@@ -63,9 +57,7 @@ export class StreamChatService implements StreamChatServiceInterface {
       session_id: sessionId,
       modalities: modality,
     });
-    if (modality === 'VIDEO') {
-      params.set('avatar_name', DEFAULT_AVATAR_NAME);
-    }
+    // The server picks the avatar for VIDEO sessions.
     return `${protocol}://${URLUtil.getWSServerUrl()}/run_live?${params}`;
   }
 

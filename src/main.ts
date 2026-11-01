@@ -16,8 +16,8 @@
  */
 
 
-import {Catalog, DEFAULT_CATALOG, provideMarkdownRenderer, Theme} from '@a2ui/angular/v0_8';
-import {A2UI_RENDERER_CONFIG, A2uiRendererService, BasicCatalog, provideMarkdownRenderer as provideV09MarkdownRenderer} from '@a2ui/angular/v0_9';
+import {Catalog, DEFAULT_CATALOG, Theme} from '@a2ui/angular/v0_8';
+import {BasicCatalog, provideA2Ui} from '@a2ui/angular/v0_9';
 import {Location} from '@angular/common';
 import {HttpClientModule} from '@angular/common/http';
 import {importProvidersFrom, inject} from '@angular/core';
@@ -31,16 +31,19 @@ import {provideMarkdown} from 'ngx-markdown';
 
 import {AppRoutingModule} from './app/app-routing.module';
 import {AppComponent} from './app/app.component';
+import {provideA2uiMarkdown} from './app/components/a2ui-canvas/a2ui-canvas.markdown';
 import {CustomLogoComponent} from './app/components/custom-logo/custom-logo.component';
 import {EVAL_TAB_COMPONENT, EvalTabComponent} from './app/components/eval-tab/eval-tab.component';
 import {MarkdownComponent} from './app/components/markdown/markdown.component';
 import {MARKDOWN_COMPONENT} from './app/components/markdown/markdown.component.interface';
 import {A2UI_THEME} from './app/core/constants/a2ui-theme';
+import {RuntimeConfig} from './app/core/models/RuntimeConfig';
 import {AgentBuilderService} from './app/core/services/agent-builder.service';
 import {AgentService} from './app/core/services/agent.service';
 import {ArtifactService} from './app/core/services/artifact.service';
 import {AudioPlayingService} from './app/core/services/audio-playing.service';
 import {AudioRecordingService} from './app/core/services/audio-recording.service';
+import {DeployService} from './app/core/services/deploy.service';
 import {DownloadService} from './app/core/services/download.service';
 import {EvalService} from './app/core/services/eval.service';
 import {EventService} from './app/core/services/event.service';
@@ -51,6 +54,7 @@ import {AGENT_SERVICE} from './app/core/services/interfaces/agent';
 import {AGENT_BUILDER_SERVICE} from './app/core/services/interfaces/agent-builder';
 import {ARTIFACT_SERVICE} from './app/core/services/interfaces/artifact';
 import {AUDIO_PLAYING_SERVICE} from './app/core/services/interfaces/audio-playing';
+import {DEPLOY_SERVICE} from './app/core/services/interfaces/deploy';
 import {AUDIO_RECORDING_SERVICE, AUDIO_WORKLET_MODULE_PATH} from './app/core/services/interfaces/audio-recording';
 import {DOWNLOAD_SERVICE} from './app/core/services/interfaces/download';
 import {EVAL_SERVICE} from './app/core/services/interfaces/eval';
@@ -85,9 +89,14 @@ import {VideoService} from './app/core/services/video.service';
 import {WebSocketService} from './app/core/services/websocket.service';
 import {LOGO_COMPONENT} from './app/injection_tokens';
 
+// The dev server does not serve this file; in that setup the backend is
+// reached through the Angular dev-server proxy and every value here has a
+// safe default. Never let a missing config block bootstrap -- an unhandled
+// rejection here renders a blank page with no visible error.
 fetch('./assets/config/runtime-config.json')
-    .then((response) => response.json())
-    .then((config) => {
+    .then((response) => (response.ok ? response.json() : {}))
+    .catch(() => ({}))
+    .then((config: Partial<RuntimeConfig>) => {
       (window as any)['runtimeConfig'] = config;
 
       bootstrapApplication(AppComponent, {
@@ -97,6 +106,7 @@ fetch('./assets/config/runtime-config.json')
               MatInputModule, MatFormFieldModule, MatButtonModule),
           {provide: SESSION_SERVICE, useClass: SessionService},
           {provide: AGENT_SERVICE, useClass: AgentService},
+          {provide: DEPLOY_SERVICE, useClass: DeployService},
           {provide: FEEDBACK_SERVICE, useClass: FeedbackService},
           {provide: WEBSOCKET_SERVICE, useClass: WebSocketService},
           {
@@ -124,28 +134,16 @@ fetch('./assets/config/runtime-config.json')
           {provide: LOCAL_FILE_SERVICE, useClass: LocalFileServiceImpl},
           {provide: Catalog, useValue: DEFAULT_CATALOG},
           {provide: Theme, useValue: A2UI_THEME},
-          // `Text` unconditionally injects `MarkdownRenderer`, whose base class
-          // is `providedIn: 'root'` but has no `render` method -- so without an
-          // explicit provider the injection succeeds and then throws
-          // "render is not a function" on the first Text component.
-          provideMarkdownRenderer(),
           // A2UI v0.9. Registered unconditionally alongside v0.8; which
           // renderer draws a bubble is decided per payload, by its version.
-          // v0.9.1 has no provideA2Ui() (that arrives in 0.10), so the config
-          // token is registered by hand, and A2uiRendererService must be listed
-          // explicitly because it is a plain @Injectable() with no providedIn.
-          {
-            provide: A2UI_RENDERER_CONFIG,
-            useFactory: () => ({
-              catalogs: [inject(BasicCatalog)],
-              // TODO: route client actions back to the agent, mirroring the
-              // v0.8 MessageProcessor.events path.
-              actionHandler: (action: unknown) =>
-                  console.debug('A2UI v0.9 client action:', action),
-            })
-          },
-          A2uiRendererService,
-          provideV09MarkdownRenderer(),
+          // Markdown for both versions goes through provideA2uiMarkdown().
+          provideA2Ui(() => ({
+            catalogs: [inject(BasicCatalog)],
+            // TODO: route client actions back to the agent, mirroring the
+            // v0.8 MessageProcessor.events path.
+            actionHandler: (action: unknown) =>
+                console.debug('A2UI v0.9 client action:', action),
+          })),
           {provide: MARKDOWN_COMPONENT, useValue: MarkdownComponent},
           ...(config.logo ?
                   [{provide: LOGO_COMPONENT, useValue: CustomLogoComponent}] :
@@ -154,6 +152,7 @@ fetch('./assets/config/runtime-config.json')
           {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
           provideAnimations(),
           provideMarkdown(),
+          provideA2uiMarkdown(),
           {provide: LOCATION_SERVICE, useClass: Location},
           {provide: UI_STATE_SERVICE, useClass: UiStateService},
           {provide: THEME_SERVICE, useClass: ThemeService}

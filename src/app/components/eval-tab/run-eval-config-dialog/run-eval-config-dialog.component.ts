@@ -112,7 +112,20 @@ export class RunEvalConfigDialogComponent {
       private fb: FormBuilder,
       @Inject(MAT_DIALOG_DATA) public data: EvalConfigData) {
     this.evalMetrics = this.data.evalMetrics || [];
-    this.metricsInfo = this.data.metricsInfo || [];
+    // This dialog asks the user to select metrics and set a threshold for
+    // each. A metric that needs no threshold has nothing to configure here, so
+    // it is not offered. Those metrics are always on and are reported without
+    // the user selecting them.
+    //
+    // Dropping them also keeps `collectMetrics` from emitting one: every metric
+    // it emits carries a threshold, and a metric that takes none rejects the
+    // request outright.
+    //
+    // Not showing them at all is interim. The end state the server's
+    // metrics-info filter is waiting on is a separate always-on, non-selectable
+    // section listing them; whoever removes that filter has to add it here.
+    this.metricsInfo = (this.data.metricsInfo || [])
+                           .filter((metric) => metric.requiresThreshold !== false);
 
     this.runForm = this.fb.group({
       runMode: [DEFAULT_RUN_MODE],
@@ -132,12 +145,17 @@ export class RunEvalConfigDialogComponent {
 
       this.evalForm.addControl(`${metric.metricName}_selected`, this.fb.control(isSelected));
       
-      const interval = metric.metricValueInfo.interval;
-      this.evalForm.addControl(`${metric.metricName}_threshold`, this.fb.control(threshold, [
-        Validators.required,
-        Validators.min(interval.minValue),
-        Validators.max(interval.maxValue)
-      ]));
+      // A metric that needs a threshold should carry an interval to bound it,
+      // but the field is optional on the wire. Without one there is nothing to
+      // validate against, so `required` is the only constraint we can apply.
+      const interval = metric.metricValueInfo?.interval;
+      const validators = [Validators.required];
+      if (interval) {
+        validators.push(
+            Validators.min(interval.minValue), Validators.max(interval.maxValue));
+      }
+      this.evalForm.addControl(
+          `${metric.metricName}_threshold`, this.fb.control(threshold, validators));
     });
 
     // Fallback if metricsInfo is empty, add the hardcoded ones to avoid empty UI if backend fails
@@ -169,7 +187,10 @@ export class RunEvalConfigDialogComponent {
   private getDefaultThreshold(metric: MetricsInfo): number {
     if (metric.metricName === 'tool_trajectory_avg_score') return 1.0;
     if (metric.metricName === 'response_match_score') return 0.7;
-    return metric.metricValueInfo.interval.maxValue;
+    // Default to the top of the metric's range, which for a score metric means
+    // "must be perfect". A metric whose interval the backend omitted falls back
+    // to 1.0, matching the bounds the slider defaults to.
+    return metric.metricValueInfo?.interval?.maxValue ?? 1.0;
   }
 
   onReset(): void {

@@ -288,16 +288,6 @@ export class SessionTabComponent implements OnInit {
     return date.toLocaleString();
   }
 
-  private fromApiResultToSession(res: Session|Partial<Session>): Session {
-    return {
-      id: res.id ?? '',
-      appName: res.appName ?? '',
-      userId: res.userId ?? '',
-      state: res.state ?? {},
-      events: res.events ?? [],
-    };
-  }
-
   reloadSession(sessionId: string) {
     this.sessionReloaded.emit(sessionId);
   }

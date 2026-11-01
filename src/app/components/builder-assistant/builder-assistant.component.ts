@@ -277,12 +277,15 @@ export class BuilderAssistantComponent implements OnInit, AfterViewChecked {
 
     YamlUtils.generateYamlFile(rootAgent, formData, appName, tabAgents);
 
-    this.agentService.agentBuildTmp(appName, formData).subscribe((success) => {
-      if (success) {
-        console.log("save to tmp")
-      } else {
-        console.log("something went wrong");
-      }
+    this.agentService.agentBuildTmp(appName, formData).subscribe({
+      next: (success) => {
+        if (!success) {
+          console.error('Agent draft save reported failure for app:', appName);
+        }
+      },
+      error: (err) => {
+        console.error('Agent draft save failed for app:', appName, err);
+      },
     });
   }
 }

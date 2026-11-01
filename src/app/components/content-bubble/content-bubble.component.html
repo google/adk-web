@@ -2,6 +2,7 @@
   class="content-bubble type-{{ type }} role-{{ role }}"
   [class.eval-fail]="evalStatus === 2"
   [class.no-bubble]="noBubble"
+  [class.code-execution-segments]="!!uiEvent.codeExecutionSegments"
 >
   @if (type !== 'message' && type !== 'output') {
     <div class="output-chip-header">{{ type }}</div>
@@ -25,7 +26,21 @@
         }
       </div>
     }
-    @if (uiEvent.event.nodeInfo?.['messageAsOutput']) {
+    @if (uiEvent.codeExecutionSegments && !hasOnlyCodeResults) {
+      <!-- In order, so text before and after each run stays where the model put it. -->
+      @for (item of codeExecutionItems; track $index) {
+        @if (item.kind === 'text') {
+          <div class="content-bubble type-message role-{{ role }} code-execution-text">
+            @if (item.thought) {
+              <div class="output-chip-header">thought</div>
+            }
+            <ng-container [ngComponentOutlet]="markdownComponent" [ngComponentOutletInputs]="{text: item.text, thought: item.thought}"></ng-container>
+          </div>
+        } @else {
+          <app-code-execution [executableCode]="item.executableCode" [codeExecutionResult]="item.codeExecutionResult"></app-code-execution>
+        }
+      }
+    } @else if (uiEvent.event.nodeInfo?.['messageAsOutput']) {
       <div [appJsonTooltip]="jsonOutputData" appJsonTooltipTitle="Node Output">
         @if (uiEvent.textParts && uiEvent.textParts.length > 0) {
           @for (part of uiEvent.textParts; track part; let first = $first) {
@@ -107,14 +122,10 @@
         }
       </div>
     }
-    @if (uiEvent.executableCode) {
-      <code> {{ uiEvent.executableCode.code }} </code>
-    } @if (uiEvent.codeExecutionResult) {
-      <div>
-        <div>{{ i18n.outcomeLabel }}: {{ uiEvent.codeExecutionResult.outcome }}</div>
-        <div>{{ i18n.outputLabel }}: {{ uiEvent.codeExecutionResult.output }}</div>
-      </div>
-    } @if (uiEvent.inlineData) { @if (uiEvent.role === "bot") {
+    @if (!uiEvent.codeExecutionSegments && !hasOnlyCodeResults && (uiEvent.executableCode || uiEvent.codeExecutionResult)) {
+      <app-code-execution [executableCode]="uiEvent.executableCode" [codeExecutionResult]="uiEvent.codeExecutionResult"></app-code-execution>
+    }
+    @if (uiEvent.inlineData) { @if (uiEvent.role === "bot") {
       <div>
         <div>
           @switch (uiEvent.inlineData.mediaType) { @case (MediaType.IMAGE) {

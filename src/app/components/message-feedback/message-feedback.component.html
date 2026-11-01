@@ -5,6 +5,8 @@
       [matTooltip]="i18n.goodResponseTooltip"
       (click)="sendFeedback('up')"
       [disabled]="isLoading()"
+      [class.selected]="feedbackDirection() === 'up'"
+      [attr.aria-pressed]="feedbackDirection() === 'up'"
     >
       @if (feedbackDirection() === 'up') {
       <mat-icon>thumb_up_filled</mat-icon>
@@ -17,6 +19,8 @@
       [matTooltip]="i18n.badResponseTooltip"
       (click)="sendFeedback('down')"
       [disabled]="isLoading()"
+      [class.selected]="feedbackDirection() === 'down'"
+      [attr.aria-pressed]="feedbackDirection() === 'down'"
     >
       @if (feedbackDirection() === 'down') {
       <mat-icon>thumb_down_filled</mat-icon>

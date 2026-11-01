@@ -32,6 +32,7 @@ import { MatFormField, MatHint } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
+import {isImeComposing} from '../../utils/keyboard-event.utils';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.Default,
@@ -84,7 +85,11 @@ export class AddItemDialogComponent {
     public dialogRef: MatDialogRef<AddItemDialogComponent>,
   ) {}
 
-  createNewApp() {
+  createNewApp(event?: Event) {
+    if (isImeComposing(event)) {
+      return;
+    }
+
     const trimmedName = this.newAppName.trim();
 
     // Check validation first

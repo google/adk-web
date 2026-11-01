@@ -579,10 +579,16 @@ export class EvalTabComponent implements OnInit, OnChanges {
     let passed = 0;
     let total = 0;
 
-    // Excludes NOT_EVALUATED so the ratio reads "passed / evaluated".
+    // Counts only metrics that reach a verdict, so the ratio reads
+    // "passed / judged". NOT_EVALUATED produced nothing to judge, and
+    // INFORMATIONAL reports a value without ever passing or failing; counting
+    // either one would make a fully passing case read as a partial one.
     const tally = (results: any[]) => {
       for (const r of results) {
-        if (r.evalStatus === EvalStatus.NOT_EVALUATED) continue;
+        if (r.evalStatus === EvalStatus.NOT_EVALUATED ||
+            r.evalStatus === EvalStatus.INFORMATIONAL) {
+          continue;
+        }
         total += 1;
         if (r.evalStatus === EvalStatus.PASSED) passed += 1;
       }

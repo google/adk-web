@@ -1,0 +1,99 @@
+<!--
+ Copyright 2026 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+@if (result(); as skillResult) {
+  @switch (skillResult.kind) {
+    @case ('error') {
+      <app-terminal-output [error]="skillResult.error"></app-terminal-output>
+    }
+    @case ('load') {
+      <div class="skill-card">
+        <div class="skill-header">
+          <mat-icon class="skill-icon" aria-hidden="true">auto_stories</mat-icon>
+          <span class="skill-title">Loaded skill <span class="skill-name">{{ skillResult.skillName }}</span></span>
+        </div>
+        @if (skillResult.description) {
+          <div class="skill-description">{{ skillResult.description }}</div>
+        }
+        <details class="skill-details">
+          <summary>Instructions</summary>
+          <div class="skill-details-body skill-instructions">
+            <ng-container
+              [ngComponentOutlet]="markdownComponent"
+              [ngComponentOutletInputs]="{text: skillResult.instructions, thought: false}"
+            ></ng-container>
+          </div>
+        </details>
+      </div>
+    }
+    @case ('resource') {
+      <div class="skill-card">
+        <div class="skill-header">
+          <mat-icon class="skill-icon" aria-hidden="true">description</mat-icon>
+          <span class="skill-title">Read <span class="skill-path">{{ skillResult.filePath }}</span> from <span class="skill-name">{{ skillResult.skillName }}</span></span>
+        </div>
+        @if (skillResult.content === null) {
+          <div class="skill-description">Binary file, not shown.</div>
+        } @else {
+          <details class="skill-details">
+            <summary>{{ resourceLineCount() }} {{ resourceLineCount() === 1 ? 'line' : 'lines' }}</summary>
+            <div class="skill-details-body skill-resource">
+              <ng-container
+                [ngComponentOutlet]="markdownComponent"
+                [ngComponentOutletInputs]="{text: resourceMarkdown(), thought: false}"
+              ></ng-container>
+            </div>
+          </details>
+        }
+      </div>
+    }
+    @case ('unload') {
+      <div class="skill-card">
+        <div class="skill-header">
+          <mat-icon class="skill-icon" aria-hidden="true">remove_circle_outline</mat-icon>
+          <span class="skill-title">Unloaded skill <span class="skill-name">{{ skillResult.skillName }}</span></span>
+        </div>
+        <div class="skill-description">
+          @if (skillResult.activeSkills.length) {
+            Still active: {{ skillResult.activeSkills.join(', ') }}
+          } @else {
+            No skills active.
+          }
+        </div>
+      </div>
+    }
+    @default {
+      <div class="skill-card">
+        <div class="skill-header">
+          <mat-icon class="skill-icon" aria-hidden="true">{{ skillResult.kind === 'search' ? 'search' : 'list' }}</mat-icon>
+          <span class="skill-title">{{ skillResult.skills.length }} {{ skillResult.skills.length === 1 ? 'skill' : 'skills' }} {{ skillResult.kind === 'search' ? 'found' : 'available' }}</span>
+        </div>
+        @if (skillResult.skills.length) {
+          <ul class="skill-list">
+            @for (skill of skillResult.skills; track skill.name) {
+              <li>
+                <span class="skill-name">{{ skill.name }}</span>
+                @if (skill.description) {
+                  {{ ' ' }}<span class="skill-list-description">{{ skill.description }}</span>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+  }
+}

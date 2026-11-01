@@ -155,7 +155,7 @@ describe('StreamChatService', () => {
 
       expect(mockWebSocketService.connect)
           .toHaveBeenCalledWith(
-              'ws://localhost:9876/run_live?app_name=fake-app-name&user_id=fake-user-id&session_id=fake-session-id&modalities=VIDEO&avatar_name=Kai');
+              'ws://localhost:9876/run_live?app_name=fake-app-name&user_id=fake-user-id&session_id=fake-session-id&modalities=VIDEO');
     });
 
     it('should start audio recording', async () => {

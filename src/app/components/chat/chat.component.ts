@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { A2uiRendererService } from '@a2ui/angular/v0_9';
 import { AsyncPipe, DOCUMENT, DecimalPipe, NgClass, NgComponentOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, ElementRef, effect, HostListener, inject, Injectable, OnDestroy, OnInit, Renderer2, signal, Type, viewChild, WritableSignal } from '@angular/core';
@@ -43,7 +44,8 @@ import { catchError, distinctUntilChanged, filter, first, map, shareReplay, star
 import { URLUtil } from '../../../utils/url-util';
 import { A2UI_V08_KINDS, A2UI_V09_KINDS, A2uiPayload, A2uiSpecVersion } from '../../core/models/A2uiPayload';
 import { AgentRunRequest } from '../../core/models/AgentRunRequest';
-import { EvalCase, EvaluationResult } from '../../core/models/Eval';
+import { appendCodeExecutionSegments } from '../../core/models/CodeExecution';
+import { EvalCase, EvaluationResult, EvalStatus } from '../../core/models/Eval';
 import { Session, SessionState } from '../../core/models/Session';
 import { Event as AdkEvent, Part } from '../../core/models/types';
 import { UiEvent } from '../../core/models/UiEvent';
@@ -80,6 +82,7 @@ import { pcmChunksToWavBase64 } from '../../core/utils/audio';
 import { BuilderTabsComponent } from '../builder-tabs/builder-tabs.component';
 import { CanvasComponent } from '../canvas/canvas.component';
 import { ChatPanelComponent } from '../chat-panel/chat-panel.component';
+import { DeployDialogComponent } from '../deploy-dialog/deploy-dialog.component';
 import { EditJsonDialogComponent } from '../edit-json-dialog/edit-json-dialog.component';
 import { EvalTabComponent } from '../eval-tab/eval-tab.component';
 import { DeleteSessionDialogComponent, DeleteSessionDialogData, } from '../session-tab/delete-session-dialog/delete-session-dialog.component';
@@ -116,6 +119,7 @@ export type ChatType = 'session' | 'eval-case' | 'eval-result' | 'file';
 const A2A_DATA_PART_START_TAG = '<a2a_datapart_json>';
 const A2A_DATA_PART_END_TAG = '</a2a_datapart_json>';
 const A2UI_MIME_TYPE = 'application/json+a2ui';
+const A2UI_CURRENT_MIME_TYPE = 'application/a2ui+json';
 
 function fixBase64String(base64: string): string {
   // Replace URL-safe characters if they exist
@@ -158,6 +162,9 @@ const BIDI_STREAMING_IN_PROGRESS_WARNING =
   styleUrl: './chat.component.scss',
   providers: [
     { provide: MatPaginatorIntl, useClass: CustomPaginatorIntl },
+    // Share live surfaces between this chat's bubbles, without leaking state
+    // into other chat instances. Configuration still comes from provideA2Ui().
+    A2uiRendererService,
   ],
   imports: [
     MatDrawerContainer,
@@ -197,6 +204,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly sidePanelI18n = inject(SidePanelMessagesInjectionToken);
   private readonly _snackbarService = inject(SnackbarService);
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly a2uiRenderer = inject(A2uiRendererService);
   private readonly agentService = inject(AGENT_SERVICE);
   private readonly artifactService = inject(ARTIFACT_SERVICE);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
@@ -340,6 +348,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly showBranches = signal(false);
   protected readonly expectedUiEvents = signal<UiEvent[]>([]);
   protected readonly viewMode = signal<'events' | 'traces'>((this.storageService.getItem('chat-view-mode') as 'events' | 'traces') || 'events');
+  /** The view shown; a stored `traces` choice is ignored while traces are disabled. */
+  protected readonly effectiveViewMode = computed(() => this.isTraceEnabled() ? this.viewMode() : 'events');
   protected readonly invocationIdFilterActive = signal<boolean>(false);
   protected readonly nodePathFilterActive = signal<boolean>(false);
   protected readonly invocationIdFilter = signal<string>('');
@@ -433,6 +443,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   shouldShowEvent(uiEvent: UiEvent): boolean {
+    if (this.isEmptyEvent(uiEvent)) {
+      return false;
+    }
+
     const invFilter = this.invocationIdFilter();
     if (invFilter) {
       const eventInvId = uiEvent.event?.invocationId || '';
@@ -497,6 +511,26 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   shouldShowEventFn = this.shouldShowEvent.bind(this);
 
+  /**
+   * Whether an agent event has nothing to render, such as the event with no
+   * content and no actions that ADK sends with built-in code execution.
+   */
+  private isEmptyEvent(uiEvent: UiEvent): boolean {
+    const event = uiEvent.event;
+    if (uiEvent.role === 'user' || uiEvent.isLoading || !event) {
+      return false;
+    }
+    const hasActions = Object.values(event.actions ?? {}).some(
+        value => value !== undefined && value !== null && value !== false &&
+            !(typeof value === 'object' && Object.keys(value).length === 0));
+    return !event.content?.parts?.length && !hasActions && !uiEvent.error &&
+        !uiEvent.inlineData && uiEvent.evalStatus === undefined &&
+        event.output === undefined && event.inputTranscription === undefined &&
+        event.outputTranscription === undefined && !event.voiceActivity &&
+        !event.turnComplete && !event.interrupted &&
+        !event.systemInstructionChanged;
+  }
+
   getMetricTooltip(metricName: string, score: any, threshold: any): string {
     const info = this.metricsInfo().find((m: any) => m.metricName === metricName);
     const desc = info?.description || '';
@@ -511,6 +545,24 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   getMetricDescription(metricName: string): string {
     const info = this.metricsInfo().find((m: any) => m.metricName === metricName);
     return info?.description || '';
+  }
+
+  /**
+   * Whether a metric reached a pass/fail verdict. An informational metric
+   * reports a value and never does, so it must not be styled as a failure
+   * merely for not having passed.
+   */
+  metricHasVerdict(metric: any): boolean {
+    return metric?.evalStatus !== EvalStatus.INFORMATIONAL;
+  }
+
+  /** Green when passed, red when failed, neutral when there is no verdict. */
+  getMetricColor(metric: any): string {
+    if (!this.metricHasVerdict(metric)) {
+      return 'var(--mat-sys-on-surface-variant)';
+    }
+    return metric?.evalStatus === EvalStatus.PASSED ? '#2e7d32' :
+                                                      'var(--mat-sys-error)';
   }
 
   /** Whether a single rubric result passed, per the backend verdict/score. */
@@ -757,6 +809,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.featureFlagService.isNewSessionButtonEnabled();
   readonly isEventFilteringEnabled =
     toSignal(this.featureFlagService.isEventFilteringEnabled());
+  readonly isTraceEnabled =
+    toSignal(this.featureFlagService.isTraceEnabled());
   readonly isApplicationSelectorEnabled =
     toSignal(this.featureFlagService.isApplicationSelectorEnabled());
   readonly isDeleteSessionEnabledObs: Observable<boolean> =
@@ -850,7 +904,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
 
-    // OAuth HACK: Opens oauth poup in a new window. If the oauth callback
+    // OAuth HACK: Opens oauth popup in a new window. If the oauth callback
     // is successful, the new window acquires the auth token, state and
     // optionally the scope. Send this back to the main window.
     const location = new URL(window.location.href);
@@ -936,6 +990,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   switchToTraceView() {
+    if (!this.isTraceEnabled()) return;
     this.onViewModeChange('traces');
   }
 
@@ -1017,7 +1072,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       if (evalResultUrl) {
         this.chatType.set('eval-result');
         const parts = evalResultUrl.split('/');
-        console.log('loadSessionByUrlOrReset evalResultUrl parts:', parts);
         if (parts.length === 3) {
           const evalSetId = parts[0];
           const evalId = parts[1];
@@ -1025,7 +1079,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           this.evalSetId = evalSetId;
 
           const runId = `${this.appName}_${evalSetId}_${timestamp}`;
-          console.log('loadSessionByUrlOrReset runId:', runId);
 
           // Warm the metrics-info cache so metric tooltips render on direct load.
           this.evalService.getMetricsInfo(this.appName)
@@ -1036,10 +1089,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
               .subscribe();
 
           this.evalService.getEvalResult(this.appName, runId).subscribe((runResult) => {
-            console.log('loadSessionByUrlOrReset runResult:', runResult);
             if (runResult) {
               const evalCaseResult = runResult.evalCaseResults?.find((r: any) => r.evalId === evalId);
-              console.log('loadSessionByUrlOrReset evalCaseResult:', evalCaseResult);
               if (evalCaseResult) {
                 const sessionId = evalCaseResult.sessionId;
 
@@ -1460,13 +1511,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       apiEvent.author = 'bot';
     }
 
-    if (apiEvent.errorMessage) {
-      if (apiEvent.id && !this.eventData.has(apiEvent.id)) {
-        this.eventData.set(apiEvent.id, apiEvent);
-        this.eventData = new Map(this.eventData);
-      }
-    }
-
     if (apiEvent.id && !this.eventData.has(apiEvent.id)) {
       this.eventData.set(apiEvent.id, apiEvent);
       this.eventData = new Map(this.eventData);
@@ -1648,6 +1692,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     parts = this.combineTextParts(parts);
 
+    updatedEvent.codeExecutionSegments = appendCodeExecutionSegments(
+        lastEvent.codeExecutionSegments, parts, lastEvent.textParts,
+        this.formatPartText);
+
     parts.forEach((part: any) => {
       if (part.text !== undefined && part.text !== null) {
         const processedText = part.thought ? this.processThoughtText(part.text) : part.text;
@@ -1744,7 +1792,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private isA2uiDataPart(part: Part) {
     const parsedObject = this.extractA2aDataPartJson(part);
     return parsedObject && parsedObject.kind === 'data' &&
-      parsedObject.metadata?.mimeType === A2UI_MIME_TYPE;
+      (parsedObject.metadata?.mimeType === A2UI_MIME_TYPE ||
+       parsedObject.metadata?.mimeType === A2UI_CURRENT_MIME_TYPE);
   }
 
   private extractA2aDataPartJson(part: Part) {
@@ -2468,7 +2517,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           resolve(authResponseUrl);
           window.removeEventListener('message', listener);
         } else {
-          console.log('OAuth failed', event);
+          console.error('OAuth popup returned no authResponseUrl.');
         }
       };
 
@@ -2725,6 +2774,12 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     boolean
   } = {}) {
     if (!keepMessages) {
+      // Surface IDs are local to a conversation. Replaying a different history
+      // must not reuse the previous session's components or data model.
+      const group = this.a2uiRenderer.surfaceGroup;
+      for (const id of Array.from(group.surfacesMap.keys())) {
+        group.deleteSurface(id);
+      }
       this.eventData.clear();
       this.uiEvents.set([]);
       this.selectedEvent = undefined;
@@ -2738,7 +2793,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.sessionId) return;
     this.uiStateService.setIsEventRequestResponseLoading(true);
     this.eventService.getTrace(this.appName, this.sessionId)
-      .pipe(first(), catchError((err) => { console.error('[DEBUG] getTrace error:', err); return of([] as Span[]); }))
+      .pipe(first(), catchError((err) => { console.error('Error fetching trace:', err); return of([] as Span[]); }))
       .subscribe(res => {
         this.traceData = res;
         this.updateSystemInstructionFlags();
@@ -2809,7 +2864,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private buildUiEventFromEvent(event: any, reverseOrder: boolean = false): UiEvent {
     const isA2aResponse = this.isEventA2aResponse(event);
     const rawParts = isA2aResponse ?
-      this.combineA2uiDataParts(event.content?.parts) :
+      this.combineA2uiDataParts(event.content?.parts || []) :
       event.content?.parts || [];
     const parts = this.combineTextParts(rawParts);
     const partsToProcess = reverseOrder ? [...parts].reverse() : parts;
@@ -2861,6 +2916,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       this.processPartIntoMessage(part, event, uiEvent);
     });
+    // Built from `parts`, which keeps the event's order even when
+    // `partsToProcess` is reversed.
+    uiEvent.codeExecutionSegments =
+        appendCodeExecutionSegments(undefined, parts, [], this.formatPartText);
 
     this.extractA2uiJsonFromText(uiEvent);
 
@@ -3771,6 +3830,16 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.analyticsService.sendEvent('graph_view_click');
   }
 
+  openDeployDialog(): void {
+    if (!this.appName) {
+      return;
+    }
+    this.dialog.open(DeployDialogComponent, {
+      maxWidth: '90vw',
+      data: { appName: this.appName },
+    });
+  }
+
   saveAgentBuilder() {
     this.canvasComponent()?.saveAgent(this.appName);
   }
@@ -4669,7 +4738,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           next: async (res) => {
             try {
               if (res) {
-                console.log('Light mode graph response:', res);
                 // Render each path's graph (supports both v1 and v2 responses)
                 this.sessionGraphSvgLight = {};
                 this.dynamicGraphDot = {};
@@ -4683,8 +4751,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.sessionGraphSvgLight[normalizedPath] = await this.graphService.render((graph as any).dotSrc);
                   }
                 }
-                console.log('sessionGraphSvgLight after rendering:', Object.keys(this.sessionGraphSvgLight));
-                console.log('graphsAvailable:', this.graphsAvailable());
                 if (this.selectedEvent && this.selectedEventIndex !== undefined) {
                   void this.updateRenderedGraph();
                 }
@@ -4916,6 +4982,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     return text.replace('/*PLANNING*/', '').replace('/*ACTION*/', '');
   }
 
+  private readonly formatPartText = (text: string, thought: boolean) =>
+      thought ? this.processThoughtText(text) : text;
+
   openLink(url: string) {
     this.safeValuesService.windowOpen(window, url, '_blank');
   }
@@ -4966,7 +5035,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   protected exportSession() {
     this.sessionService.getSession(this.userId, this.appName, this.sessionId)
       .subscribe((res) => {
-        console.log(res);
         const meta = (res.state as any)?.['__session_metadata__'] || (this.currentSessionState as any)?.['__session_metadata__'];
         const displayName = meta?.displayName;
         const filename = (displayName && displayName.trim())

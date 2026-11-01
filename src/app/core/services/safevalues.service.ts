@@ -22,7 +22,7 @@ import {SafeValuesService} from './interfaces/safevalues';
 
 /**
  * Service to provide safe values for DOM manipulation. *Warning*: methods are
- * not currently safe in the 3p implementation.
+ * not currently safe in this open-source implementation.
  */
 @Injectable({
   providedIn: 'root',

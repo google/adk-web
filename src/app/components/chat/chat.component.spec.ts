@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import {Catalog, DEFAULT_CATALOG, provideMarkdownRenderer, Theme} from '@a2ui/angular/v0_8';
-import {A2UI_RENDERER_CONFIG, A2uiRendererService, BasicCatalog, provideMarkdownRenderer as provideV09MarkdownRenderer} from '@a2ui/angular/v0_9';
 import {Location} from '@angular/common';
+import {Catalog} from '@a2ui/angular/v0_8';
+import {A2uiRendererService, BasicCatalog, provideA2Ui} from '@a2ui/angular/v0_9';
 import {HttpErrorResponse} from '@angular/common/http';
-import {ChangeDetectionStrategy, Component, ElementRef, ErrorHandler, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, ErrorHandler, inject, Input} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import { SnackbarService } from '../../core/services/snackbar.service';
@@ -29,7 +29,6 @@ import {ActivatedRoute, NavigationEnd, Router, UrlTree} from '@angular/router';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
 import {BehaviorSubject, NEVER, of, ReplaySubject, Subject, throwError} from 'rxjs';
 
-import {A2UI_THEME} from '../../core/constants/a2ui-theme';
 import {EvalCase} from '../../core/models/Eval';
 import {Session} from '../../core/models/Session';
 import {UiEvent} from '../../core/models/UiEvent';
@@ -114,6 +113,22 @@ class MockEvalTabComponent {
 })
 class TestHostComponent {
 }
+
+@Component({
+  changeDetection: ChangeDetectionStrategy.Default,
+  selector: 'testing-component',
+  template: '',
+  standalone: true,
+})
+class TestingComponent {
+  @Input() surfaceId?: string;
+  @Input() component?: any;
+  @Input() weight?: number;
+}
+
+const MOCK_A2UI_CATALOG: Catalog = {
+  TestingComponent: () => TestingComponent as any,
+};
 
 const SESSION_1_ID = 'session-1';
 const SESSION_2_ID = 'session-2';
@@ -214,6 +229,7 @@ describe('ChatComponent', () => {
     mockFeatureFlagService.isInfinityMessageScrollingEnabledResponse.next(
         false);
     mockFeatureFlagService.isNewSessionButtonEnabledResponse.next(true);
+    mockFeatureFlagService.isTraceEnabledResponse.next(true);
 
     mockDialog = jasmine.createSpyObj('MatDialog', ['open']);
     mockDialog.open.and.returnValue({
@@ -269,20 +285,10 @@ describe('ChatComponent', () => {
             TestHostComponent,
           ],
           providers: [
-            // Mirrors main.ts. A schema-valid A2UI payload renders a real
-            // surface, and the renderer resolves these during construction --
-            // outside any try/catch the canvas can install.
-            {provide: Catalog, useValue: DEFAULT_CATALOG},
-            {provide: Theme, useValue: A2UI_THEME},
-            provideMarkdownRenderer(),
+            {provide: Catalog, useValue: MOCK_A2UI_CATALOG},
             // The real v0.9 renderer, not a stub, so the A2UI tests below
             // exercise the same graph production uses.
-            {
-              provide: A2UI_RENDERER_CONFIG,
-              useFactory: () => ({catalogs: [inject(BasicCatalog)]})
-            },
-            A2uiRendererService,
-            provideV09MarkdownRenderer(),
+            provideA2Ui(() => ({catalogs: [inject(BasicCatalog)]})),
             {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
             {provide: SESSION_SERVICE, useValue: mockSessionService},
             {provide: ARTIFACT_SERVICE, useValue: mockArtifactService},
@@ -339,6 +345,23 @@ describe('ChatComponent', () => {
       expect(component.rubricPassed({score: 1})).toBe(true);
       expect(component.rubricPassed({score: 0})).toBe(false);
       expect(component.rubricPassed({})).toBe(false);
+    });
+
+    // EvalStatus: 1 PASSED, 2 FAILED, 3 NOT_EVALUATED, 4 INFORMATIONAL.
+    it('metricHasVerdict is false only for an informational metric', () => {
+      expect(component.metricHasVerdict({evalStatus: 1})).toBe(true);
+      expect(component.metricHasVerdict({evalStatus: 2})).toBe(true);
+      // NOT_EVALUATED keeps the failure styling it carried before this change.
+      expect(component.metricHasVerdict({evalStatus: 3})).toBe(true);
+      expect(component.metricHasVerdict({evalStatus: 4})).toBe(false);
+    });
+
+    it('getMetricColor is neutral when the metric reached no verdict', () => {
+      expect(component.getMetricColor({evalStatus: 1})).toBe('#2e7d32');
+      expect(component.getMetricColor({evalStatus: 2}))
+          .toBe('var(--mat-sys-error)');
+      expect(component.getMetricColor({evalStatus: 4}))
+          .toBe('var(--mat-sys-on-surface-variant)');
     });
 
     it(
@@ -529,10 +552,10 @@ describe('ChatComponent', () => {
         });
 
         /** Wraps an A2UI message as the A2A DataPart the history path sees. */
-        const createA2uiPart = (content: any) => {
+        const createA2uiPart = (content: any, mimeType = A2UI_MIME_TYPE) => {
           const json = JSON.stringify({
             kind: 'data',
-            metadata: {mimeType: A2UI_MIME_TYPE},
+            metadata: {mimeType},
             data: content
           });
           return {
@@ -545,16 +568,14 @@ describe('ChatComponent', () => {
         };
 
         it('should combine A2UI data parts in history messages', () => {
-          // These must validate against the v0.8 message schema: the renderer
-          // schema-checks every message and throws on a malformed one.
           const beginRendering = {
-            beginRendering: {surfaceId: 'surface-1', root: 'root'}
+            beginRendering: {surfaceId: 'surface-1', root: 'root-1'}
           };
           const surfaceUpdate = {
             surfaceUpdate: {
               surfaceId: 'surface-1',
               components: [
-                {id: 'root', component: {Text: {text: {literalString: 'hello'}}}}
+                {id: 'root-1', component: {TestingComponent: {}}}
               ]
             }
           };
@@ -590,59 +611,61 @@ describe('ChatComponent', () => {
           });
         });
 
-        it('should combine v0.9 A2UI data parts in history messages', () => {
-          // The real v0.9 renderer is wired up here, so this also proves the
-          // canonical catalogId below is accepted -- a mismatch is the top
-          // integration gotcha and its only symptom is a silent empty surface.
-          const consoleError = spyOn(console, 'error');
-          const createSurface = {
-            version: 'v0.9',
-            createSurface: {
-              surfaceId: 'surface-9',
-              catalogId: 'https://a2ui.org/specification/v0_9/basic_catalog.json'
-            }
-          };
-          const updateComponents = {
-            version: 'v0.9',
-            updateComponents: {surfaceId: 'surface-9', components: []}
-          };
-          const updateDataModel = {
-            version: 'v0.9',
-            updateDataModel: {surfaceId: 'surface-9', contents: []}
-          };
+        for (const mimeType of [A2UI_MIME_TYPE, 'application/a2ui+json']) {
+          it(`should combine v0.9 history data parts using ${mimeType}`, () => {
+            // The real v0.9 renderer is wired up here, so this also proves the
+            // canonical catalogId below is accepted -- a mismatch is the top
+            // integration gotcha and its only symptom is a silent empty surface.
+            const consoleError = spyOn(console, 'error');
+            const createSurface = {
+              version: 'v0.9',
+              createSurface: {
+                surfaceId: 'surface-9',
+                catalogId: 'https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json'
+              }
+            };
+            const updateComponents = {
+              version: 'v0.9',
+              updateComponents: {surfaceId: 'surface-9', components: []}
+            };
+            const updateDataModel = {
+              version: 'v0.9',
+              updateDataModel: {surfaceId: 'surface-9', contents: []}
+            };
 
-          mockUiStateService.newMessagesLoadedResponse.next({
-            items: [{
-              id: 'event-history-v09',
-              author: 'bot',
-              customMetadata: {'a2a:response': 'true'},
-              content: {
-                role: 'bot',
-                parts: [
-                  createA2uiPart(createSurface),
-                  createA2uiPart(updateComponents),
-                  createA2uiPart(updateDataModel),
-                ]
-              },
-            }],
-            nextPageToken: '',
-            isBackground: true
-          } as any);
-          fixture.detectChanges();
+            mockUiStateService.newMessagesLoadedResponse.next({
+              items: [{
+                id: 'event-history-v09',
+                author: 'bot',
+                customMetadata: {'a2a:response': 'true'},
+                content: {
+                  role: 'bot',
+                  parts: [
+                    createA2uiPart(createSurface, mimeType),
+                    createA2uiPart(updateComponents, mimeType),
+                    createA2uiPart(updateDataModel, mimeType),
+                  ]
+                },
+              }],
+              nextPageToken: '',
+              isBackground: true
+            } as any);
+            fixture.detectChanges();
 
-          expect(component.uiEvents().length).toBe(1);
-          const a2uiData = component.uiEvents()[0].a2uiData;
-          expect(a2uiData.version).toBe('v0.9');
-          // All three survive: v0.9 sends N updates that the old three-slot,
-          // last-wins shape could not represent.
-          expect(a2uiData.messages).toEqual([
-            createSurface, updateComponents, updateDataModel
-          ]);
-          expect(a2uiData.surfaceId).toBe('surface-9');
-          expect(a2uiData.beginRendering).toBeUndefined();
-          // Nothing degraded silently on the way through the real renderer.
-          expect(consoleError).not.toHaveBeenCalled();
-        });
+            expect(component.uiEvents().length).toBe(1);
+            const a2uiData = component.uiEvents()[0].a2uiData;
+            expect(a2uiData.version).toBe('v0.9');
+            // All three survive: v0.9 sends N updates that the old three-slot,
+            // last-wins shape could not represent.
+            expect(a2uiData.messages).toEqual([
+              createSurface, updateComponents, updateDataModel
+            ]);
+            expect(a2uiData.surfaceId).toBe('surface-9');
+            expect(a2uiData.beginRendering).toBeUndefined();
+            // Nothing degraded silently on the way through the real renderer.
+            expect(consoleError).not.toHaveBeenCalled();
+          });
+        }
       });
     });
   });
@@ -1126,6 +1149,74 @@ describe('ChatComponent', () => {
           const deleteButton = fixture.debugElement.query(
               By.css('#toolbar-delete-session-button'));
           expect(deleteButton).toBeFalsy();
+        });
+      });
+    });
+
+    describe('Events/Traces toggle', () => {
+      const toggleSelector =
+          By.css('.chat-sub-toolbar mat-button-toggle-group');
+
+      describe('when isTraceEnabled is true', () => {
+        beforeEach(() => {
+          fixture.detectChanges();
+        });
+
+        it('should be visible', () => {
+          expect(fixture.debugElement.query(toggleSelector)).toBeTruthy();
+        });
+      });
+
+      describe('when isTraceEnabled is false', () => {
+        beforeEach(() => {
+          mockFeatureFlagService.isTraceEnabledResponse.next(false);
+          fixture.detectChanges();
+        });
+
+        it('should not be visible', () => {
+          expect(fixture.debugElement.query(toggleSelector)).toBeFalsy();
+        });
+      });
+    });
+
+    describe('trace view', () => {
+      function chatPanelViewMode() {
+        return fixture.debugElement.query(By.directive(ChatPanelComponent))
+            .componentInstance.viewMode;
+      }
+
+      describe('when switched to while traces are enabled', () => {
+        beforeEach(() => {
+          component.switchToTraceView();
+          fixture.detectChanges();
+        });
+
+        it('should be shown', () => {
+          expect(chatPanelViewMode()).toBe('traces');
+        });
+
+        describe('and traces are then disabled', () => {
+          beforeEach(() => {
+            mockFeatureFlagService.isTraceEnabledResponse.next(false);
+            fixture.detectChanges();
+          });
+
+          it('should fall back to events', () => {
+            expect(chatPanelViewMode()).toBe('events');
+          });
+        });
+      });
+
+      describe('when switched to while traces are disabled', () => {
+        beforeEach(() => {
+          mockFeatureFlagService.isTraceEnabledResponse.next(false);
+          component.switchToTraceView();
+          mockFeatureFlagService.isTraceEnabledResponse.next(true);
+          fixture.detectChanges();
+        });
+
+        it('should not be selected', () => {
+          expect(chatPanelViewMode()).toBe('events');
         });
       });
     });
@@ -1828,6 +1919,97 @@ describe('ChatComponent', () => {
         });
   });
 
+  describe('buildUiEventFromEvent', () => {
+    it('should not throw for an A2A response event without content', () => {
+      const event = {
+        id: 'event-a2a-no-content',
+        author: 'remote_agent',
+        customMetadata: {'a2a:response': 'true'},
+      };
+
+      const uiEvent = (component as any).buildUiEventFromEvent(event);
+
+      expect(uiEvent.role).toBe('bot');
+      expect(uiEvent.text).toBeUndefined();
+    });
+  });
+
+  describe('A2UI DataPart MIME compatibility', () => {
+    const message = {updateDataModel: {surfaceId: 's1', value: {name: 'Ada'}}};
+    const dataPart = (mimeType: string, kind = 'data') => ({
+      inlineData: {
+        mimeType: 'text/plain',
+        data: btoa(A2A_DATA_PART_TAG_START +
+            JSON.stringify({kind, metadata: {mimeType}, data: message}) +
+            A2A_DATA_PART_TAG_END),
+      },
+    });
+
+    for (const mimeType of [A2UI_MIME_TYPE, 'application/a2ui+json']) {
+      it(`should ingest live A2A events using ${mimeType}`, () => {
+        (component as any).appendEventRow({
+          id: 'mime-event',
+          author: 'bot',
+          customMetadata: {'a2a:response': true},
+          content: {parts: [dataPart(mimeType)]},
+        });
+
+        expect(component.uiEvents().at(-1)?.a2uiData.messages)
+            .toEqual([message]);
+      });
+    }
+
+    it('should combine legacy and current MIME types in send order', () => {
+      const result = (component as any).combineA2uiDataParts([
+        dataPart(A2UI_MIME_TYPE), dataPart('application/a2ui+json'),
+      ]);
+
+      expect(result.length).toBe(1);
+      const combined = (component as any).extractA2aDataPartJson(result[0]);
+      expect(combined.data.map((part: any) => part.metadata.mimeType))
+          .toEqual([A2UI_MIME_TYPE, 'application/a2ui+json']);
+    });
+
+    it('should reject unrelated MIME types and non-data parts', () => {
+      expect((component as any).isA2uiDataPart(dataPart('application/json')))
+          .toBeFalse();
+      expect((component as any).isA2uiDataPart(
+          dataPart('application/a2ui+json', 'text'))).toBeFalse();
+    });
+  });
+
+  describe('A2UI surface lifetime', () => {
+    const createSurface = {
+      version: 'v0.9' as const,
+      createSurface: {
+        surfaceId: 'reused-id',
+        catalogId: 'https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json',
+      },
+    };
+
+    it('should discard previous surfaces when replacing chat history', () => {
+      const renderer = fixture.debugElement.injector.get(A2uiRendererService);
+      renderer.processMessages([createSurface]);
+      const previous = renderer.surfaceGroup.getSurface('reused-id');
+
+      (component as any).resetEventsAndMessages();
+
+      expect(renderer.surfaceGroup.getSurface('reused-id')).toBeUndefined();
+      renderer.processMessages([createSurface]);
+      expect(renderer.surfaceGroup.getSurface('reused-id')).not.toBe(previous);
+    });
+
+    it('should preserve surfaces when retaining existing messages', () => {
+      const renderer = fixture.debugElement.injector.get(A2uiRendererService);
+      renderer.processMessages([createSurface]);
+      const previous = renderer.surfaceGroup.getSurface('reused-id');
+
+      (component as any).resetEventsAndMessages({keepMessages: true});
+
+      expect(renderer.surfaceGroup.getSurface('reused-id')).toBe(previous);
+    });
+  });
+
   describe('detectA2uiVersion', () => {
     const cases: Array<[string, unknown, string|null]> = [
       ['envelope discriminator v0.9', {version: 'v0.9', createSurface: {}}, 'v0.9'],
@@ -1899,7 +2081,7 @@ describe('ChatComponent', () => {
           version: 'v0.9',
           createSurface: {
             surfaceId: 'cloud_dash',
-            catalogId: 'https://a2ui.org/specification/v0_9/basic_catalog.json'
+            catalogId: 'https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json'
           }
         },
         {
@@ -2345,6 +2527,86 @@ describe('ChatComponent', () => {
         await component.onTelemetryToggle(false);
         expect(mockTelemetryService.setTelemetry).toHaveBeenCalledWith(false);
       });
+    });
+  });
+
+  describe('code execution events', () => {
+    it('keeps text, code, and results in the order the model sent them', () => {
+      const uiEvent: UiEvent = component['buildUiEventFromEvent']({
+        id: 'builtin-1',
+        author: 'agent',
+        content: {
+          role: 'model',
+          parts: [
+            {text: 'I will compute both values.'},
+            {executableCode: {code: 'print(1)', language: 'PYTHON'}},
+            {codeExecutionResult: {outcome: 'OUTCOME_OK', output: '1\n'}},
+            {executableCode: {code: 'print(2)', language: 'PYTHON'}},
+            {codeExecutionResult: {outcome: 'OUTCOME_OK', output: '2\n'}},
+            {text: 'Done.'},
+          ],
+        },
+      });
+
+      expect(uiEvent.codeExecutionSegments?.map(segment => segment.kind))
+          .toEqual(['text', 'code', 'result', 'code', 'result', 'text']);
+    });
+
+    it('does not add segments to events without code execution', () => {
+      const uiEvent: UiEvent = component['buildUiEventFromEvent']({
+        id: 'text-1',
+        author: 'agent',
+        content: {role: 'model', parts: [{text: 'Hello'}]},
+      });
+
+      expect(uiEvent.codeExecutionSegments).toBeUndefined();
+    });
+
+    it('keeps earlier streamed text when a later chunk brings code', () => {
+      const first: UiEvent = component['buildUiEventFromEvent']({
+        id: 'stream-1',
+        author: 'agent',
+        partial: true,
+        content: {role: 'model', parts: [{text: 'Let me run that.'}]},
+      });
+      const merged: UiEvent = component['mergePartialEvent'](first, {
+        id: 'stream-1',
+        author: 'agent',
+        partial: true,
+        content: {
+          role: 'model',
+          parts: [{executableCode: {code: 'x = 1', language: 'PYTHON'}}],
+        },
+      });
+
+      expect(merged.codeExecutionSegments).toEqual([
+        {kind: 'text', text: 'Let me run that.', thought: false},
+        {kind: 'code', executableCode: {code: 'x = 1', language: 'PYTHON'}},
+      ]);
+    });
+
+    it('hides agent events that have nothing to show', () => {
+      const empty = new UiEvent({
+        role: 'bot',
+        event: {
+          id: 'empty-1',
+          author: 'agent',
+          content: {role: 'model', parts: []},
+          actions: {stateDelta: {}, artifactDelta: {}},
+        },
+      });
+      const stateUpdate = new UiEvent({
+        role: 'bot',
+        event: {
+          id: 'state-1',
+          author: 'agent',
+          content: {role: 'model', parts: []},
+          actions: {stateDelta: {count: 1}},
+        },
+      });
+
+      expect(component.shouldShowEvent(empty)).toBeFalse();
+      expect(component.shouldShowEvent(stateUpdate)).toBeTrue();
     });
   });
 });

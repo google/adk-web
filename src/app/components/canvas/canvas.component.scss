@@ -751,8 +751,7 @@
 
 // This is a workaround to fix a handle positioning bug in ngx-vflow.
 // The bug is that the bottom handle position does not change when the
-// node height decreases, cause the handle to appear detached from the node:
-// https://screenshot.googleplex.com/5MfKMEFJf725Xau
+// node height decreases, causing the handle to appear detached from the node.
 :host ::ng-deep div[nodehandlescontroller][noderesizecontroller].wrapper {
   height: 0px !important;
   overflow: visible !important;

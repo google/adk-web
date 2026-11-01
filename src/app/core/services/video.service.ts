@@ -28,7 +28,6 @@ export class VideoService implements VideoServiceInterface {
   private stream!: MediaStream;
   private renderer: Renderer2;
   private videoElement!: HTMLVideoElement;
-  private videoBuffer: Uint8Array[] = [];
 
   constructor(
       rendererFactory: RendererFactory2,

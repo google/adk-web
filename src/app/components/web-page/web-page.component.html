@@ -1,0 +1,36 @@
+<!--
+ Copyright 2026 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+@if (result(); as pageResult) {
+  @if (pageResult.kind === 'error') {
+    <app-terminal-output [error]="pageResult.error"></app-terminal-output>
+  } @else {
+    <!-- Collapsed by default: the text is what the model read, not an answer. -->
+    <details class="web-page">
+      <summary class="web-page-header">
+        <mat-icon class="web-page-icon" aria-hidden="true">public</mat-icon>
+        <span class="web-page-title">Fetched @if (url()) {<span class="web-page-url">{{ url() }}</span>}</span>
+        <span class="web-page-length">{{ lineCount() }} {{ lineCount() === 1 ? 'line' : 'lines' }}</span>
+        <mat-icon class="web-page-chevron" aria-hidden="true">expand_more</mat-icon>
+      </summary>
+      @if (pageResult.text) {
+        <div class="web-page-text">{{ pageResult.text }}</div>
+      } @else {
+        <div class="web-page-text web-page-empty">(no text)</div>
+      }
+    </details>
+  }
+}

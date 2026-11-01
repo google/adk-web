@@ -37,7 +37,9 @@ export const DEFAULT_EVAL_METRICS: EvalMetric[] = [
 ];
 
 export declare interface MetricValueInfo {
-  interval: {
+  // Absent for metrics whose value is unbounded, such as the informational
+  // efficiency metrics (token and call counts).
+  interval?: {
     minValue: number;
     openAtMin: boolean;
     maxValue: number;
@@ -49,6 +51,9 @@ export declare interface MetricsInfo {
   metricName: string;
   description: string;
   metricValueInfo: MetricValueInfo;
+  // False for metrics that report a value without passing or failing. Such a
+  // metric has no threshold to configure and no interval to bound one by.
+  requiresThreshold?: boolean;
 }
 
 export declare interface Invocation {
@@ -91,6 +96,10 @@ export enum EvalStatus {
   PASSED = 1,
   FAILED = 2,
   NOT_EVALUATED = 3,
+  // The metric reported a value but reached no verdict, so it is neither a
+  // pass nor a failure. Distinct from NOT_EVALUATED, which means the metric
+  // produced nothing at all.
+  INFORMATIONAL = 4,
 }
 
 export declare interface EvaluationResult {

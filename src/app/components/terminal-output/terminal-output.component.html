@@ -1,0 +1,39 @@
+<!--
+ Copyright 2026 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<div class="terminal-output" [class.terminal-output-boxed]="boxed()">
+  @if (hiddenLineCount()) {
+    <div class="terminal-truncated">
+      {{ hiddenLineCount() }} earlier {{ hiddenLineCount() === 1 ? 'line' : 'lines' }} hidden.
+      <button type="button" class="terminal-show-all" (click)="expanded.set(true)">Show all {{ totalLineCount() }} lines</button>
+    </div>
+  }
+  @if (stdoutText()) {
+    <pre class="terminal-stream terminal-stdout">{{ stdoutText() }}</pre>
+  }
+  @if (stderrText()) {
+    <pre class="terminal-stream terminal-stderr">{{ stderrText() }}</pre>
+  }
+  @if (error()) {
+    <pre class="terminal-stream terminal-error">{{ error() }}</pre>
+  }
+  @if (!hasOutput()) {
+    <div class="terminal-empty">(no output)</div>
+  }
+  @if (status()) {
+    <div class="terminal-status">{{ status() }}</div>
+  }
+</div>

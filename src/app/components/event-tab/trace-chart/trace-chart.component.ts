@@ -61,6 +61,7 @@ export class TraceChartComponent implements OnInit {
     ['agent_run', 'directions_run'],
     ['invoke_agent', 'directions_run'],
     ['tool', 'build'],
+    ['execute_tool', 'build'],
     ['call_llm', 'chat'],
   ]);
 
@@ -149,6 +150,9 @@ export class TraceChartComponent implements OnInit {
     }
     if (name.startsWith('execute_tool ')) {
       return name.substring('execute_tool '.length);
+    }
+    if (name.startsWith('invoke_node ')) {
+      return name.substring('invoke_node '.length);
     }
     return name;
   }

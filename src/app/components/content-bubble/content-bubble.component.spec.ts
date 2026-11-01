@@ -21,6 +21,7 @@ import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {Component} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {Subject} from 'rxjs';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
 
 import {UiEvent} from '../../core/models/UiEvent';
@@ -53,7 +54,10 @@ describe('ContentBubbleComponent', () => {
     mockMessageProcessor.getSurfaces.and.returnValue(new Map());
     const mockRenderer = jasmine.createSpyObj<A2uiRendererService>(
         'A2uiRendererService', ['processMessages'],
-        {surfaceGroup: {getSurface: () => undefined} as any});
+        {surfaceGroup: {
+          getSurface: () => undefined,
+          onSurfaceDeleted: new Subject<string>(),
+        } as any});
 
     await TestBed
         .configureTestingModule({

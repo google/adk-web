@@ -16,7 +16,7 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output, inject} from '@angular/core';
 
 import {AgentRunRequest} from '../../core/models/AgentRunRequest';
 import type {EvalCase} from '../../core/models/Eval';
@@ -24,6 +24,7 @@ import {UiEvent} from '../../core/models/UiEvent';
 import {ChatAvatarComponent} from '../chat-avatar/chat-avatar.component';
 import {MessageFeedbackComponent} from '../message-feedback/message-feedback.component';
 import {EventContentComponent} from '../event-content/event-content.component';
+import {MESSAGE_FEEDBACK_COMPONENT} from '../message-feedback/message-feedback.component.interface';
 
 @Component({
   selector: 'app-event-row',
@@ -46,6 +47,9 @@ import {EventContentComponent} from '../event-content/event-content.component';
   ],
 })
 export class EventRowComponent {
+  protected readonly messageFeedbackComponent =
+      inject(MESSAGE_FEEDBACK_COMPONENT, {optional: true});
+
   @Input({required: true}) uiEvent!: UiEvent;
   @Input({required: true}) index!: number;
   @Input() uiEvents: UiEvent[] = [];

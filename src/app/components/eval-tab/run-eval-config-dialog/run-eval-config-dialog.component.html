@@ -97,7 +97,10 @@
               <div style="display: flex; flex-direction: column; align-items: flex-start;">
                 <span class="slider-label" style="margin-right: 0; font-size: 11px; color: var(--mat-sys-on-surface-variant);">Threshold</span>
                 <div style="display: flex; align-items: center;">
-                  <mat-slider [min]="metric.metricValueInfo.interval.minValue" [max]="metric.metricValueInfo.interval.maxValue" step="0.1" thumbLabel class="threshold-slider">
+                  <!-- The interval is optional on the wire. A metric that arrives without
+                       one still needs a threshold, so the slider falls back to 0..1 rather
+                       than binding undefined bounds. -->
+                  <mat-slider [min]="metric.metricValueInfo?.interval?.minValue ?? 0" [max]="metric.metricValueInfo?.interval?.maxValue ?? 1" step="0.1" thumbLabel class="threshold-slider">
                     <input matSliderThumb [formControlName]="metric.metricName + '_threshold'" />
                   </mat-slider>
                   <span class="threshold-value">

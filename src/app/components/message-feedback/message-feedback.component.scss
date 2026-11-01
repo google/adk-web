@@ -19,6 +19,7 @@
     transition: all 0.2s ease;
 
     mat-icon {
+      font-family: 'Material Symbols Outlined', 'Google Symbols';
       font-size: var(--icon-size);
       height: var(--icon-size);
       width: var(--icon-size);
@@ -26,10 +27,11 @@
     }
 
     &.selected {
-      color: var(--side-panel-button-filled-label-text-color, white);
+      color: var(--mat-sys-primary);
 
       mat-icon {
         color: inherit;
+        font-variation-settings: 'FILL' 1;
       }
     }
   }

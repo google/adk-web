@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { ExecutableCode, CodeExecutionResult, FunctionCall, FunctionResponse, Event } from './types';
-import { MediaType } from './types';
+import type {CodeExecutionSegment} from './CodeExecution';
+import {CodeExecutionResult, Event, ExecutableCode, FunctionCall, FunctionResponse, MediaType} from './types';
 
 export class UiEvent {
   role!: 'user' | 'bot' | string;
@@ -34,6 +34,9 @@ export class UiEvent {
   textParts?: Array<{text: string, thought?: boolean}>;
   executableCode?: ExecutableCode;
   codeExecutionResult?: CodeExecutionResult;
+  // The event's text, code, and code execution results in order. Only set for
+  // events that contain code execution.
+  codeExecutionSegments?: CodeExecutionSegment[];
   event!: Event;
   inlineData?: {
     mediaType?: MediaType | string;

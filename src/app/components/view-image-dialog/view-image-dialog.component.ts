@@ -18,7 +18,7 @@
 import {SAFE_VALUES_SERVICE} from '../../core/services/interfaces/safevalues';
 import {Component, inject, OnInit, ChangeDetectionStrategy, HostListener} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {SafeHtml, SafeUrl} from '@angular/platform-browser';
+import {SafeUrl} from '@angular/platform-browser';
 import { NgStyle } from '@angular/common';
 
 export interface ViewImageDialogData {
@@ -38,8 +38,8 @@ export interface ViewImageDialogData {
     imports: [NgStyle]
 })
 export class ViewImageDialogComponent implements OnInit {
-  // Property to hold the sanitized image URL or SVG HTML
-  displayContent: SafeUrl|SafeHtml|null = null;
+  // Property to hold the image URL, including SVG rendered as a data: URL.
+  displayContent: SafeUrl|null = null;
   // Flag to determine if the content is SVG
   isSvgContent: boolean = false;
   
@@ -101,8 +101,14 @@ export class ViewImageDialogComponent implements OnInit {
   }
 
   /**
-   * Processes the input imageData to determine if it's base64 or SVG
-   * and sanitizes it for display.
+   * Processes the input imageData into a URL that can be rendered by an <img>
+   * element.
+   *
+   * Artifact and tool-response payloads are untrusted, so SVG markup is turned
+   * into an `image/svg+xml` URL rather than injected into the page as HTML.
+   * Browsers do not run scripts, event handlers or `<foreignObject>` content
+   * for an SVG loaded through <img>, so a hostile artifact cannot execute in
+   * the dev UI's origin.
    */
   private processImageData(imageData: string | null): void {
     if (!imageData) {
@@ -114,7 +120,9 @@ export class ViewImageDialogComponent implements OnInit {
     // Check if the data looks like SVG
     if (imageData.trim().includes('<svg')) {
       this.isSvgContent = true;
-      this.displayContent = this.safeValuesService.bypassSecurityTrustHtml(imageData);
+      // Percent-encode rather than base64 so that non-ASCII markup survives.
+      this.displayContent = this.safeValuesService.bypassSecurityTrustUrl(
+          `data:image/svg+xml;charset=utf-8,${encodeURIComponent(imageData)}`);
     } else {
       // Assume it's base64 data if not SVG.
       // Ensure it has the correct data URI prefix.

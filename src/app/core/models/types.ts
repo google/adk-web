@@ -42,13 +42,19 @@ export declare interface FileData {
 }
 
 export declare interface ExecutableCode {
-  language: 'UNKNOWN'|'PYTHON';
+  /** The genai enum only defines these values. The Java ADK leaves it unset. */
+  language?: 'LANGUAGE_UNSPECIFIED'|'PYTHON';
   code: string;
 }
 
 export declare interface CodeExecutionResult {
-  outcome: 'UNKNOWN'|'OK'|'FAILED'|'DEADLINE_EXCEEDED';
-  output: string;
+  /**
+   * The Python and TypeScript ADKs send the `OUTCOME_` values; the Java ADK
+   * sends them without the prefix.
+   */
+  outcome?: 'OUTCOME_UNSPECIFIED'|'OUTCOME_OK'|'OUTCOME_FAILED'|
+      'OUTCOME_DEADLINE_EXCEEDED'|'OK'|'FAILED'|'DEADLINE_EXCEEDED';
+  output?: string;
 }
 
 export declare interface Part {
@@ -76,6 +82,23 @@ export declare interface VoiceActivity {
   audioOffset?: string;
 }
 
+/** A source a grounded response drew on: a web page or a retrieved document. */
+export declare interface GroundingChunk {
+  web?: {uri?: string; title?: string; domain?: string};
+  retrievedContext?: {uri?: string; title?: string; text?: string};
+}
+
+/**
+ * How a response was grounded, as sent by `google_search` and the other
+ * grounding tools. Only the fields the UI reads are listed.
+ */
+export declare interface GroundingMetadata {
+  webSearchQueries?: string[];
+  retrievalQueries?: string[];
+  groundingChunks?: GroundingChunk[];
+  searchEntryPoint?: {renderedContent?: string};
+}
+
 export declare interface LlmResponse {
   content: GenAiContent;
   error?: string;
@@ -83,6 +106,7 @@ export declare interface LlmResponse {
   errorCode?: string;
   longRunningToolIds?: string[];
   voiceActivity?: VoiceActivity;
+  groundingMetadata?: GroundingMetadata;
 }
 
 export enum NodeStatus {

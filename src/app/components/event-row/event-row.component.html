@@ -47,5 +47,12 @@
     }
   <!-- Feedback UI -->
   @if(isUserFeedbackEnabled && !isLoadingAgentResponse && uiEvent.role === "bot") {
-    <app-message-feedback [sessionName]="sessionName" [eventId]="uiEvent.event.id || ''"></app-message-feedback>
+    @if (!messageFeedbackComponent) {
+      <app-message-feedback [sessionName]="sessionName" [eventId]="uiEvent.event.id || ''"></app-message-feedback>
+    } @else {
+      <ng-container
+        [ngComponentOutlet]="messageFeedbackComponent"
+        [ngComponentOutletInputs]="{sessionName: sessionName, eventId: uiEvent.event.id || ''}"
+      ></ng-container>
+    }
   }

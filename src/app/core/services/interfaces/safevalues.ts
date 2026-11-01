@@ -23,8 +23,8 @@ export const SAFE_VALUES_SERVICE = new InjectionToken<SafeValuesService>(
 );
 
 /**
- * Needed for 1p JS compiler. A declared interface is needed here because
- * abstract classes with implementations can't be declared.
+ * Needed for Google's internal JS compiler. A declared interface is needed
+ * here because abstract classes with implementations can't be declared.
 */
 declare interface SafeValuesServiceInterface {
   windowOpen(window: Window,

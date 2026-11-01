@@ -1,0 +1,165 @@
+/**
+ * @license
+ * Copyright 2026 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Takes the full row so it always sits under the chip, like shell output.
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 4px 0;
+
+  // Same token colors as the code execution editor.
+  --code-keyword-color: #c58af9;
+  --code-string-color: #ee9b8e;
+  --code-number-color: #8ab4f8;
+  --code-function-color: #e5e1a6;
+  --code-comment-color: #9aa0a6;
+}
+
+:host-context(html.light-theme) {
+  --code-keyword-color: #8430ce;
+  --code-string-color: #a31515;
+  --code-number-color: #0b57d0;
+  --code-function-color: #795e26;
+  --code-comment-color: #5f6368;
+}
+
+// Sized to the content, with the same maximum width as code execution.
+.skill-card {
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: min(800px, 100%);
+  overflow: hidden;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  background-color: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  font-size: 13px;
+}
+
+.skill-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+}
+
+.skill-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.skill-name,
+.skill-path {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.skill-description {
+  padding: 0 12px 6px 34px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.skill-details {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+
+  summary {
+    padding: 4px 12px;
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+      color: var(--mat-sys-primary);
+    }
+  }
+
+  &[open] summary {
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+}
+
+// Long instructions and files scroll inside the card.
+.skill-details-body {
+  max-height: 480px;
+  overflow: auto;
+}
+
+.skill-instructions {
+  padding: 4px 12px;
+}
+
+// The markdown component renders the code block; strip its box so it sits in
+// the card.
+.skill-resource ::ng-deep {
+  pre {
+    margin: 0;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .token.keyword,
+  .token.boolean {
+    color: var(--code-keyword-color);
+  }
+
+  .token.string,
+  .token.char {
+    color: var(--code-string-color);
+  }
+
+  .token.number {
+    color: var(--code-number-color);
+  }
+
+  .token.function,
+  .token.builtin,
+  .token.class-name {
+    color: var(--code-function-color);
+  }
+
+  .token.comment,
+  .token.shebang {
+    color: var(--code-comment-color);
+    font-style: italic;
+  }
+}
+
+.skill-list {
+  margin: 0;
+  padding: 0 12px 8px 34px;
+  list-style: none;
+
+  li {
+    padding: 2px 0;
+  }
+}
+
+.skill-list-description {
+  margin-left: 4px;
+  color: var(--mat-sys-on-surface-variant);
+}
