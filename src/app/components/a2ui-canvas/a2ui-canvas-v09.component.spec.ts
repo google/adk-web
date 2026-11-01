@@ -16,14 +16,17 @@
  */
 
 
-import {A2uiRendererService} from '@a2ui/angular/v0_9';
-import {SimpleChanges} from '@angular/core';
+import {A2uiRendererService, BasicCatalog, provideA2Ui} from '@a2ui/angular/v0_9';
+import {inject, SimpleChanges} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {provideMarkdown} from 'ngx-markdown';
+import {Subject} from 'rxjs';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
 
 import {initTestBed} from '../../testing/utils';
 
 import {A2uiCanvasV09Component} from './a2ui-canvas-v09.component';
+import {provideA2uiMarkdown} from './a2ui-canvas.markdown';
 
 /** A v0.9 message batch that builds one surface. */
 const CREATE_SURFACE = {
@@ -43,6 +46,7 @@ describe('A2uiCanvasV09Component', () => {
   let fixture: ComponentFixture<A2uiCanvasV09Component>;
   let mockRenderer: jasmine.SpyObj<A2uiRendererService>;
   let surfaces: Map<string, unknown>;
+  let surfaceDeleted: Subject<string>;
 
   /** Builds the SimpleChanges record Angular would pass for `messages`. */
   const changeRecord = (currentValue: unknown): SimpleChanges => ({
@@ -57,12 +61,14 @@ describe('A2uiCanvasV09Component', () => {
   beforeEach(async () => {
     initTestBed();
     surfaces = new Map<string, unknown>();
+    surfaceDeleted = new Subject<string>();
     // `surfaceGroup` is a getter, so it has to be spied as a property rather
     // than listed among the methods.
     mockRenderer = jasmine.createSpyObj<A2uiRendererService>(
         'A2uiRendererService', ['processMessages'], {
           surfaceGroup: {
             getSurface: (id: string) => surfaces.get(id),
+            onSurfaceDeleted: surfaceDeleted,
           } as any,
         });
 
@@ -246,5 +252,92 @@ describe('A2uiCanvasV09Component', () => {
 
     expect(fixture.nativeElement.querySelector('a2ui-v09-surface'))
         .not.toBeNull();
+  });
+
+  it('should unmount a surface deleted by a later event', () => {
+    const messages = [CREATE_SURFACE];
+    component.messages = messages;
+    component.ngOnChanges(changeRecord(messages));
+    fixture.detectChanges();
+
+    surfaceDeleted.next('dash');
+    fixture.detectChanges();
+
+    expect(component.surfaceIds()).toEqual([]);
+    expect(fixture.nativeElement.querySelector('a2ui-v09-surface')).toBeNull();
+  });
+
+  it('should clear mounted surfaces when the input batch is cleared', () => {
+    component.messages = [CREATE_SURFACE];
+    component.ngOnChanges(changeRecord(component.messages));
+    fixture.detectChanges();
+
+    component.messages = null;
+    component.ngOnChanges(changeRecord(null));
+    fixture.detectChanges();
+
+    expect(component.surfaceIds()).toEqual([]);
+    expect(fixture.nativeElement.querySelector('a2ui-v09-surface')).toBeNull();
+  });
+
+  it('should unsubscribe from deletion events when destroyed', () => {
+    component.messages = [CREATE_SURFACE];
+    component.ngOnChanges(changeRecord(component.messages));
+    fixture.destroy();
+
+    surfaceDeleted.next('dash');
+
+    expect(component.surfaceIds()).toEqual(['dash']);
+  });
+});
+
+describe('A2uiCanvasV09Component with the real renderer', () => {
+  beforeEach(async () => {
+    initTestBed();
+    await TestBed.configureTestingModule({
+      imports: [A2uiCanvasV09Component],
+      providers: [
+        provideA2Ui(() => ({catalogs: [inject(BasicCatalog)]})),
+        provideMarkdown(),
+        provideA2uiMarkdown(),
+      ],
+    }).compileComponents();
+  });
+
+  const render = (messages: unknown[]) => {
+    const fixture = TestBed.createComponent(A2uiCanvasV09Component);
+    fixture.componentRef.setInput('messages', messages);
+    fixture.detectChanges();
+    return fixture;
+  };
+
+  const textUpdate = {
+    version: 'v0.9',
+    updateComponents: {
+      surfaceId: 'dash',
+      components: [{id: 'root', component: 'Text', text: '### Heading'}],
+    },
+  };
+
+  it('should render v0.9 markdown through the existing markdown provider', async () => {
+    const fixture = render([CREATE_SURFACE, textUpdate]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('h3')?.textContent?.trim())
+        .toBe('Heading');
+  });
+
+  it('should remove the original widget when a different bubble deletes it', async () => {
+    const original = render([CREATE_SURFACE, textUpdate]);
+    await original.whenStable();
+    original.detectChanges();
+    expect(original.nativeElement.querySelector('h3')).not.toBeNull();
+
+    render([{version: 'v0.9', deleteSurface: {surfaceId: 'dash'}}]);
+    original.detectChanges();
+
+    expect(original.nativeElement.querySelector('a2ui-v09-surface')).toBeNull();
+    expect(original.nativeElement.querySelector('h3')).toBeNull();
   });
 });

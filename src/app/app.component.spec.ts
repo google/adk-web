@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import {provideA2Ui} from '@a2ui/angular/v0_9';
 import {Location} from '@angular/common';
 import {TestBed} from '@angular/core/testing';
 import {MatDialog} from '@angular/material/dialog';
@@ -100,6 +101,7 @@ describe('AppComponent', () => {
         .configureTestingModule({
           imports: [AppComponent, NoopAnimationsModule],
           providers: [
+            provideA2Ui({catalogs: []}),
             {
               provide: TelemetryService,
               useValue: { telemetryEnabled: () => false }

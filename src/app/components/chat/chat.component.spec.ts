@@ -17,7 +17,7 @@
 
 import {Location} from '@angular/common';
 import {Catalog} from '@a2ui/angular/v0_8';
-import {BasicCatalog, provideA2Ui} from '@a2ui/angular/v0_9';
+import {A2uiRendererService, BasicCatalog, provideA2Ui} from '@a2ui/angular/v0_9';
 import {HttpErrorResponse} from '@angular/common/http';
 import {ChangeDetectionStrategy, Component, ElementRef, ErrorHandler, inject, Input} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
@@ -552,10 +552,10 @@ describe('ChatComponent', () => {
         });
 
         /** Wraps an A2UI message as the A2A DataPart the history path sees. */
-        const createA2uiPart = (content: any) => {
+        const createA2uiPart = (content: any, mimeType = A2UI_MIME_TYPE) => {
           const json = JSON.stringify({
             kind: 'data',
-            metadata: {mimeType: A2UI_MIME_TYPE},
+            metadata: {mimeType},
             data: content
           });
           return {
@@ -611,59 +611,61 @@ describe('ChatComponent', () => {
           });
         });
 
-        it('should combine v0.9 A2UI data parts in history messages', () => {
-          // The real v0.9 renderer is wired up here, so this also proves the
-          // canonical catalogId below is accepted -- a mismatch is the top
-          // integration gotcha and its only symptom is a silent empty surface.
-          const consoleError = spyOn(console, 'error');
-          const createSurface = {
-            version: 'v0.9',
-            createSurface: {
-              surfaceId: 'surface-9',
-              catalogId: 'https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json'
-            }
-          };
-          const updateComponents = {
-            version: 'v0.9',
-            updateComponents: {surfaceId: 'surface-9', components: []}
-          };
-          const updateDataModel = {
-            version: 'v0.9',
-            updateDataModel: {surfaceId: 'surface-9', contents: []}
-          };
+        for (const mimeType of [A2UI_MIME_TYPE, 'application/a2ui+json']) {
+          it(`should combine v0.9 history data parts using ${mimeType}`, () => {
+            // The real v0.9 renderer is wired up here, so this also proves the
+            // canonical catalogId below is accepted -- a mismatch is the top
+            // integration gotcha and its only symptom is a silent empty surface.
+            const consoleError = spyOn(console, 'error');
+            const createSurface = {
+              version: 'v0.9',
+              createSurface: {
+                surfaceId: 'surface-9',
+                catalogId: 'https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json'
+              }
+            };
+            const updateComponents = {
+              version: 'v0.9',
+              updateComponents: {surfaceId: 'surface-9', components: []}
+            };
+            const updateDataModel = {
+              version: 'v0.9',
+              updateDataModel: {surfaceId: 'surface-9', contents: []}
+            };
 
-          mockUiStateService.newMessagesLoadedResponse.next({
-            items: [{
-              id: 'event-history-v09',
-              author: 'bot',
-              customMetadata: {'a2a:response': 'true'},
-              content: {
-                role: 'bot',
-                parts: [
-                  createA2uiPart(createSurface),
-                  createA2uiPart(updateComponents),
-                  createA2uiPart(updateDataModel),
-                ]
-              },
-            }],
-            nextPageToken: '',
-            isBackground: true
-          } as any);
-          fixture.detectChanges();
+            mockUiStateService.newMessagesLoadedResponse.next({
+              items: [{
+                id: 'event-history-v09',
+                author: 'bot',
+                customMetadata: {'a2a:response': 'true'},
+                content: {
+                  role: 'bot',
+                  parts: [
+                    createA2uiPart(createSurface, mimeType),
+                    createA2uiPart(updateComponents, mimeType),
+                    createA2uiPart(updateDataModel, mimeType),
+                  ]
+                },
+              }],
+              nextPageToken: '',
+              isBackground: true
+            } as any);
+            fixture.detectChanges();
 
-          expect(component.uiEvents().length).toBe(1);
-          const a2uiData = component.uiEvents()[0].a2uiData;
-          expect(a2uiData.version).toBe('v0.9');
-          // All three survive: v0.9 sends N updates that the old three-slot,
-          // last-wins shape could not represent.
-          expect(a2uiData.messages).toEqual([
-            createSurface, updateComponents, updateDataModel
-          ]);
-          expect(a2uiData.surfaceId).toBe('surface-9');
-          expect(a2uiData.beginRendering).toBeUndefined();
-          // Nothing degraded silently on the way through the real renderer.
-          expect(consoleError).not.toHaveBeenCalled();
-        });
+            expect(component.uiEvents().length).toBe(1);
+            const a2uiData = component.uiEvents()[0].a2uiData;
+            expect(a2uiData.version).toBe('v0.9');
+            // All three survive: v0.9 sends N updates that the old three-slot,
+            // last-wins shape could not represent.
+            expect(a2uiData.messages).toEqual([
+              createSurface, updateComponents, updateDataModel
+            ]);
+            expect(a2uiData.surfaceId).toBe('surface-9');
+            expect(a2uiData.beginRendering).toBeUndefined();
+            // Nothing degraded silently on the way through the real renderer.
+            expect(consoleError).not.toHaveBeenCalled();
+          });
+        }
       });
     });
   });
@@ -1929,6 +1931,82 @@ describe('ChatComponent', () => {
 
       expect(uiEvent.role).toBe('bot');
       expect(uiEvent.text).toBeUndefined();
+    });
+  });
+
+  describe('A2UI DataPart MIME compatibility', () => {
+    const message = {updateDataModel: {surfaceId: 's1', value: {name: 'Ada'}}};
+    const dataPart = (mimeType: string, kind = 'data') => ({
+      inlineData: {
+        mimeType: 'text/plain',
+        data: btoa(A2A_DATA_PART_TAG_START +
+            JSON.stringify({kind, metadata: {mimeType}, data: message}) +
+            A2A_DATA_PART_TAG_END),
+      },
+    });
+
+    for (const mimeType of [A2UI_MIME_TYPE, 'application/a2ui+json']) {
+      it(`should ingest live A2A events using ${mimeType}`, () => {
+        (component as any).appendEventRow({
+          id: 'mime-event',
+          author: 'bot',
+          customMetadata: {'a2a:response': true},
+          content: {parts: [dataPart(mimeType)]},
+        });
+
+        expect(component.uiEvents().at(-1)?.a2uiData.messages)
+            .toEqual([message]);
+      });
+    }
+
+    it('should combine legacy and current MIME types in send order', () => {
+      const result = (component as any).combineA2uiDataParts([
+        dataPart(A2UI_MIME_TYPE), dataPart('application/a2ui+json'),
+      ]);
+
+      expect(result.length).toBe(1);
+      const combined = (component as any).extractA2aDataPartJson(result[0]);
+      expect(combined.data.map((part: any) => part.metadata.mimeType))
+          .toEqual([A2UI_MIME_TYPE, 'application/a2ui+json']);
+    });
+
+    it('should reject unrelated MIME types and non-data parts', () => {
+      expect((component as any).isA2uiDataPart(dataPart('application/json')))
+          .toBeFalse();
+      expect((component as any).isA2uiDataPart(
+          dataPart('application/a2ui+json', 'text'))).toBeFalse();
+    });
+  });
+
+  describe('A2UI surface lifetime', () => {
+    const createSurface = {
+      version: 'v0.9' as const,
+      createSurface: {
+        surfaceId: 'reused-id',
+        catalogId: 'https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json',
+      },
+    };
+
+    it('should discard previous surfaces when replacing chat history', () => {
+      const renderer = fixture.debugElement.injector.get(A2uiRendererService);
+      renderer.processMessages([createSurface]);
+      const previous = renderer.surfaceGroup.getSurface('reused-id');
+
+      (component as any).resetEventsAndMessages();
+
+      expect(renderer.surfaceGroup.getSurface('reused-id')).toBeUndefined();
+      renderer.processMessages([createSurface]);
+      expect(renderer.surfaceGroup.getSurface('reused-id')).not.toBe(previous);
+    });
+
+    it('should preserve surfaces when retaining existing messages', () => {
+      const renderer = fixture.debugElement.injector.get(A2uiRendererService);
+      renderer.processMessages([createSurface]);
+      const previous = renderer.surfaceGroup.getSurface('reused-id');
+
+      (component as any).resetEventsAndMessages({keepMessages: true});
+
+      expect(renderer.surfaceGroup.getSurface('reused-id')).toBe(previous);
     });
   });
 

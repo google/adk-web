@@ -16,7 +16,7 @@
  */
 
 import {A2uiRendererService, SurfaceComponent} from '@a2ui/angular/v0_9';
-import {ChangeDetectionStrategy, Component, computed, inject, Input, OnChanges, signal, SimpleChanges,} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, DestroyRef, inject, Input, OnChanges, signal, SimpleChanges,} from '@angular/core';
 
 /** The message type the v0.9 renderer accepts. */
 type A2uiV09Message =
@@ -52,7 +52,7 @@ export class A2uiCanvasV09Component implements OnChanges {
    * legitimately carry several surfaces, and each gets its own
    * `<a2ui-v09-surface>`.
    *
-   * Only creates count. A surface is one live, root-scoped model, so a later
+   * Only creates count. A surface is one live, chat-scoped model, so a later
    * event that merely updates it (streamed `updateComponents` /
    * `updateDataModel`, or a follow-up turn) mutates the copy already mounted
    * in the bubble that created it; mounting it again would show the same
@@ -64,17 +64,29 @@ export class A2uiCanvasV09Component implements OnChanges {
   readonly surfaceId = computed(() => this.surfaceIds()[0] ?? null);
 
   /**
-   * The last array instance processed. The renderer service is root-scoped, so
+   * The last array instance processed. The renderer service is chat-scoped, so
    * re-processing the same batch would duplicate work and log spurious
    * "surface already exists" failures on every change-detection pass.
    */
   private lastProcessed: readonly unknown[]|null = null;
 
+  constructor() {
+    // Updates and deletes can arrive in another bubble. The upstream surface
+    // host does not unmount itself when its model is deleted.
+    const deletion = this.renderer.surfaceGroup.onSurfaceDeleted.subscribe(
+        (id) => this.surfaceIds.update((ids) => ids.filter((item) => item !== id)));
+    inject(DestroyRef).onDestroy(() => deletion.unsubscribe());
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (!changes['messages']) return;
 
     const messages = this.messages;
-    if (!messages || messages.length === 0) return;
+    if (!messages || messages.length === 0) {
+      this.lastProcessed = null;
+      this.surfaceIds.set([]);
+      return;
+    }
     if (messages === this.lastProcessed) return;
     this.lastProcessed = messages;
 
@@ -83,13 +95,9 @@ export class A2uiCanvasV09Component implements OnChanges {
     }
 
     // Derive the surfaceIds only after processing, so the template's @for
-    // cannot mount a child before its surface exists. `ComponentHostComponent`
-    // looks the surface up once in ngOnInit and, on a miss, warns and never
-    // retries -- unlike a missing component, which recovers via onCreated.
+    // cannot mount a child before its surface exists.
     const surfaceIds = this.surfaceIdsOf(messages);
-    if (surfaceIds.length > 0) {
-      this.surfaceIds.set(surfaceIds);
-    }
+    this.surfaceIds.set(surfaceIds);
   }
 
   /**
@@ -113,9 +121,9 @@ export class A2uiCanvasV09Component implements OnChanges {
   /**
    * True when this `createSurface` names a surface that already exists.
    *
-   * The renderer service is root-scoped and its surfaces outlive any one
-   * bubble, so re-creating one -- on a history reload, or when a bubble
-   * re-processes its batch -- would throw "Surface <id> already exists". Since
+   * The renderer service is chat-scoped and its surfaces outlive any one
+   * bubble, so replaying a retained history or re-processing a batch would throw
+   * "Surface <id> already exists". Since
    * the subsequent update messages are idempotent upserts against the existing
    * surface, skipping the create is the correct recovery: the already-mounted
    * child keeps a valid surface reference and simply receives the new

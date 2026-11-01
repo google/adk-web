@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { A2uiRendererService } from '@a2ui/angular/v0_9';
 import { AsyncPipe, DOCUMENT, DecimalPipe, NgClass, NgComponentOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, ElementRef, effect, HostListener, inject, Injectable, OnDestroy, OnInit, Renderer2, signal, Type, viewChild, WritableSignal } from '@angular/core';
@@ -118,6 +119,7 @@ export type ChatType = 'session' | 'eval-case' | 'eval-result' | 'file';
 const A2A_DATA_PART_START_TAG = '<a2a_datapart_json>';
 const A2A_DATA_PART_END_TAG = '</a2a_datapart_json>';
 const A2UI_MIME_TYPE = 'application/json+a2ui';
+const A2UI_CURRENT_MIME_TYPE = 'application/a2ui+json';
 
 function fixBase64String(base64: string): string {
   // Replace URL-safe characters if they exist
@@ -160,6 +162,9 @@ const BIDI_STREAMING_IN_PROGRESS_WARNING =
   styleUrl: './chat.component.scss',
   providers: [
     { provide: MatPaginatorIntl, useClass: CustomPaginatorIntl },
+    // Share live surfaces between this chat's bubbles, without leaking state
+    // into other chat instances. Configuration still comes from provideA2Ui().
+    A2uiRendererService,
   ],
   imports: [
     MatDrawerContainer,
@@ -199,6 +204,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly sidePanelI18n = inject(SidePanelMessagesInjectionToken);
   private readonly _snackbarService = inject(SnackbarService);
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly a2uiRenderer = inject(A2uiRendererService);
   private readonly agentService = inject(AGENT_SERVICE);
   private readonly artifactService = inject(ARTIFACT_SERVICE);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
@@ -1786,7 +1792,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private isA2uiDataPart(part: Part) {
     const parsedObject = this.extractA2aDataPartJson(part);
     return parsedObject && parsedObject.kind === 'data' &&
-      parsedObject.metadata?.mimeType === A2UI_MIME_TYPE;
+      (parsedObject.metadata?.mimeType === A2UI_MIME_TYPE ||
+       parsedObject.metadata?.mimeType === A2UI_CURRENT_MIME_TYPE);
   }
 
   private extractA2aDataPartJson(part: Part) {
@@ -2767,6 +2774,12 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     boolean
   } = {}) {
     if (!keepMessages) {
+      // Surface IDs are local to a conversation. Replaying a different history
+      // must not reuse the previous session's components or data model.
+      const group = this.a2uiRenderer.surfaceGroup;
+      for (const id of Array.from(group.surfacesMap.keys())) {
+        group.deleteSurface(id);
+      }
       this.eventData.clear();
       this.uiEvents.set([]);
       this.selectedEvent = undefined;
