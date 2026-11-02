@@ -117,10 +117,16 @@ export class SessionTabComponent implements OnInit {
                           pageSize: this.SESSIONS_PAGE_LIMIT,
                         },
                         )
-                    .pipe(catchError(() => of({items: [], nextPageToken: ''})));
+                    .pipe(catchError((error) => {
+                      console.error('Error listing sessions:', error);
+                      return of({items: [], nextPageToken: ''});
+                    }));
               }
               return this.sessionService.listSessions(this.userId, this.appName)
-                  .pipe(catchError(() => of({items: [], nextPageToken: ''})));
+                  .pipe(catchError((error) => {
+                    console.error('Error listing sessions:', error);
+                    return of({items: [], nextPageToken: ''});
+                  }));
             }),
             tap(({items, nextPageToken}) => {
               this.isInitialized.set(true);
