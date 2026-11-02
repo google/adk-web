@@ -244,6 +244,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
               this.shouldShowTab.emit(false);
               return of(null);
             }
+            console.error('Error fetching eval sets', error);
             return of([]);
           }))
           .subscribe((sets) => {
@@ -349,6 +350,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
             )
         .pipe(catchError((error) => {
           runFailed = true;
+          console.error('Error running eval', error);
           if (error.error?.detail?.includes('not installed')) {
             this.evalNotInstalledMsg.emit(error.error.detail);
           }
@@ -806,6 +808,7 @@ export class EvalTabComponent implements OnInit, OnChanges {
               this.shouldShowTab.emit(false);
               return of(null);
             }
+            console.error('Error fetching eval results', error);
             return of([]);
           }),
           switchMap((ids: string[] | null) => {
