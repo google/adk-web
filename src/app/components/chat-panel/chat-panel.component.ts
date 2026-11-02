@@ -305,7 +305,10 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
                   pageSize: 100,
                   pageToken: this.nextPageToken,
                 })
-                .pipe(first(), catchError(() => NEVER));
+                .pipe(first(), catchError((error) => {
+                  console.error('Error loading older messages:', error);
+                  return NEVER;
+                }));
             })))),
         takeUntilDestroyed(this.destroyRef),
       )
