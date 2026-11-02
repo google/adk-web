@@ -1145,6 +1145,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     combineLatest([
       this.sessionService.getSession(this.userId, this.appName, sessionId).pipe(
         catchError((error) => {
+          console.error('Error loading session:', error);
           if (isFromUrl) {
             this.openSnackBar(
               'Cannot find specified session. Creating a new one.',
