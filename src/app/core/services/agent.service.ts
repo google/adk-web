@@ -82,20 +82,15 @@ export class AgentService implements AgentServiceInterface {
                 }
                 const chunk = decoder.decode(value, { stream: true });
                 lastData += chunk;
-                try {
-                  const lines = lastData.split(/\r?\n/).filter(
-                    (line) => line.startsWith('data:'));
-                  lines.forEach((line) => {
+                const lines = lastData.split(/\r?\n/);
+                // Keep only the unfinished line for the next chunk. Replaying
+                // complete lines would emit earlier events more than once.
+                lastData = lines.pop()!;
+                for (const line of lines) {
+                  if (line.startsWith('data:')) {
                     const data = line.replace(/^data:\s*/, '');
                     const llmResponse = JSON.parse(data) as LlmResponse;
                     self.zone.run(() => observer.next(llmResponse));
-                  });
-                  lastData = '';
-                } catch (e) {
-                  // the data is not a valid json, it could be an incomplete
-                  // chunk. we ignore it and wait for the next chunk.
-                  if (e instanceof SyntaxError) {
-                    read();
                   }
                 }
                 read();  // Read the next chunk

@@ -222,6 +222,86 @@ describe('AgentService', () => {
 
       expect(results).toEqual([fakeResponse]);
     });
+
+    it('should emit complete events only once when the next event is split',
+       async () => {
+      const first = createFakeLlmResponse({
+        content: {role: 'model', parts: [{text: 'first'}]},
+      });
+      const second = createFakeLlmResponse({
+        content: {role: 'model', parts: [{text: 'second'}]},
+      });
+      const secondJson = JSON.stringify(second);
+      const mid = Math.floor(secondJson.length / 2);
+      const encoder = new TextEncoder();
+      const body = new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode(
+              `data: ${JSON.stringify(first)}\n\ndata: ${secondJson.slice(0, mid)}`));
+          controller.enqueue(encoder.encode(`${secondJson.slice(mid)}\n\n`));
+          controller.close();
+        },
+      });
+      spyOn(window, 'fetch').and.resolveTo(new Response(body));
+
+      const results = await firstValueFrom(
+          service.runSse(RUN_SSE_PAYLOAD).pipe(toArray()));
+
+      expect(results).toEqual([first, second]);
+    });
+
+    it('should preserve a data prefix split across chunks', async () => {
+      const response = createFakeLlmResponse();
+      const encoder = new TextEncoder();
+      const body = new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode('da'));
+          controller.enqueue(
+              encoder.encode(`ta: ${JSON.stringify(response)}\n\n`));
+          controller.close();
+        },
+      });
+      spyOn(window, 'fetch').and.resolveTo(new Response(body));
+
+      const results = await firstValueFrom(
+          service.runSse(RUN_SSE_PAYLOAD).pipe(toArray()));
+
+      expect(results).toEqual([response]);
+    });
+
+    it('should preserve UTF-8 events and CRLF boundaries in single-byte chunks',
+       async () => {
+      const response = createFakeLlmResponse({
+        content: {role: 'model', parts: [{text: 'Hello, 世界 🌍'}]},
+      });
+      const bytes = new TextEncoder().encode(
+          `: keep-alive\r\ndata: ${JSON.stringify(response)}\r\n\r\n`);
+      const body = new ReadableStream({
+        start(controller) {
+          for (const byte of bytes) {
+            controller.enqueue(new Uint8Array([byte]));
+          }
+          controller.close();
+        },
+      });
+      spyOn(window, 'fetch').and.resolveTo(new Response(body));
+
+      const results = await firstValueFrom(
+          service.runSse(RUN_SSE_PAYLOAD).pipe(toArray()));
+
+      expect(results).toEqual([response]);
+    });
+
+    it('should report invalid JSON on a complete data line and reset loading',
+       async () => {
+      spyOn(window, 'fetch').and.resolveTo(new Response('data: invalid JSON\n\n'));
+
+      await expectAsync(
+          firstValueFrom(service.runSse(RUN_SSE_PAYLOAD).pipe(toArray())))
+          .toBeRejectedWithError(SyntaxError);
+
+      expect(service.getLoadingState().value).toBeFalse();
+    });
   });
 
   describe('Agent Builder Endpoints', () => {
