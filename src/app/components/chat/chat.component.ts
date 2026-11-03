@@ -908,6 +908,15 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       window.opener?.postMessage({ authResponseUrl }, window.origin);
       // Close the popup
       window.close();
+    } else if (searchParams.has('error')) {
+      const authError = searchParams.get('error_description') ||
+        searchParams.get('error') || 'Authorization failed';
+      if (window.opener) {
+        window.opener.postMessage({authError}, window.origin);
+        window.close();
+      } else {
+        this.openSnackBar(`Authorization failed: ${authError}`, 'OK');
+      }
     } else if (searchParams.has('user_id_validation_state')) {
       // Agent Identity Auth Manager (3LO): the connector redirects the consent
       // popup here (the agent's continue_uri) after the user authorizes. Relay
@@ -1568,6 +1577,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
             })
             .catch((error) => {
               console.error('OAuth Error:', error);
+              this.openSnackBar(`Authorization failed: ${error}`, 'OK');
             });
           break;  // Handle one OAuth at a time
         }
@@ -2416,9 +2426,12 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         if (event.origin !== window.location.origin) {
           return;  // Ignore messages from unknown sources
         }
-        const { authResponseUrl } = event.data;
+        const { authResponseUrl, authError } = event.data || {};
         if (authResponseUrl) {
           resolve(authResponseUrl);
+          window.removeEventListener('message', listener);
+        } else if (authError) {
+          reject(authError);
           window.removeEventListener('message', listener);
         } else {
           console.error('OAuth popup returned no authResponseUrl.');

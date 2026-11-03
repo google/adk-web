@@ -2364,4 +2364,38 @@ describe('ChatComponent', () => {
       expect(component.shouldShowEvent(stateUpdate)).toBeTrue();
     });
   });
+
+  describe('OAuth popup', () => {
+    it('rejects an authorization error returned by the popup', async () => {
+      mockSafeValuesService.windowOpen.and.returnValue({} as Window);
+      const authorization = component['openOAuthPopup']('https://example.com/authorize');
+
+      window.dispatchEvent(new MessageEvent('message', {
+        origin: window.location.origin,
+        data: {authError: 'Access denied'},
+      }));
+
+      await expectAsync(authorization).toBeRejectedWith('Access denied');
+    });
+
+    it('shows a provider error after a same-window redirect', async () => {
+      const originalUrl = window.location.href;
+      const callbackUrl = new URL(originalUrl);
+      callbackUrl.searchParams.set('error', 'access_denied');
+      callbackUrl.searchParams.set('error_description', 'The requested scope was denied');
+
+      try {
+        window.history.replaceState({}, '', callbackUrl.toString());
+        const redirected = TestBed.createComponent(ChatComponent);
+        redirected.detectChanges();
+        await redirected.whenStable();
+
+        expect(mockSnackBar.open).toHaveBeenCalledWith(
+          'Authorization failed: The requested scope was denied', 'OK');
+        redirected.destroy();
+      } finally {
+        window.history.replaceState({}, '', originalUrl);
+      }
+    });
+  });
 });
