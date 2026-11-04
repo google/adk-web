@@ -218,6 +218,17 @@ export class MarkdownComponent implements OnInit {
     });
   }
 
+  openExternalLinksInNewTab() {
+    // Run after each sanitized render, including streamed message updates.
+    const container: HTMLElement = this.elementRef.nativeElement;
+    container.querySelectorAll<HTMLAnchorElement>('a[href]').forEach((link) => {
+      if (/^https?:\/\//i.test(link.getAttribute('href') || '')) {
+        link.target = '_blank';
+        link.relList.add('noopener', 'noreferrer');
+      }
+    });
+  }
+
   private renderMermaid() {
     const container = this.elementRef.nativeElement;
     const codeElements = container.querySelectorAll('pre code.language-mermaid');
