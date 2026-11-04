@@ -58,6 +58,31 @@ describe('ArtifactService', () => {
     expect(service).toBeTruthy();
   });
 
+  for (const artifactName of ['report#1.json', 'report?draft.json', '100%.txt']) {
+    it(`should preserve reserved characters in latest artifact ${artifactName}`, () => {
+      service.getLatestArtifact(USER_ID, APP_NAME, SESSION_ID, artifactName)
+          .subscribe();
+      const req = httpTestingController.expectOne(
+          API_SERVER_BASE_URL +
+          `/apps/${APP_NAME}/users/${USER_ID}/sessions/${SESSION_ID}/artifacts/${
+              encodeURIComponent(artifactName)}`);
+      expect(req.request.method).toBe('GET');
+      req.flush({});
+    });
+
+    it(`should preserve reserved characters in versioned artifact ${artifactName}`, () => {
+      service.getArtifactVersion(
+          USER_ID, APP_NAME, SESSION_ID, artifactName, ARTIFACT_VERSION)
+          .subscribe();
+      const req = httpTestingController.expectOne(
+          API_SERVER_BASE_URL +
+          `/apps/${APP_NAME}/users/${USER_ID}/sessions/${SESSION_ID}/artifacts/${
+              encodeURIComponent(artifactName)}/versions/${ARTIFACT_VERSION}`);
+      expect(req.request.method).toBe('GET');
+      req.flush({});
+    });
+  }
+
   describe('getLatestArtifact', () => {
     it('should call the correct endpoint to get latest artifact', () => {
       service.getLatestArtifact(USER_ID, APP_NAME, SESSION_ID, ARTIFACT_ID)
