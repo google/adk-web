@@ -353,6 +353,104 @@ describe('ChatComponent', () => {
       expect(component.metricHasVerdict({evalStatus: 4})).toBe(false);
     });
 
+    it('metricBreakdown is null for a metric that carries no details', () => {
+      expect(component.metricBreakdown({metricName: 'tool_call_count_v1'}))
+          .toBeNull();
+      expect(component.metricBreakdown({details: {}})).toBeNull();
+      expect(component.metricBreakdown(undefined)).toBeNull();
+    });
+
+    it('metricBreakdown nests the token counts under what contains them',
+       () => {
+         const breakdown = component.metricBreakdown({
+           details: {
+             tokenUsageDetails: {
+               totalTokens: 1651,
+               inputTokens: 1180,
+               promptTokens: 1180,
+               toolUseTokens: 0,
+               outputTokens: 471,
+               candidatesTokens: 343,
+               reasoningTokens: 128,
+             },
+           },
+         });
+
+         expect(breakdown!.title).toBe('Token breakdown');
+         expect(breakdown!.rows.map((r) => [r.label, r.value, r.depth]))
+             .toEqual([
+               ['total', '1651', 0],
+               ['input', '1180', 1],
+               ['prompt', '1180', 2],
+               // Never reported by this backend, so n/a rather than 0.
+               ['cached', 'n/a', 3],
+               ['tool use', '0', 2],
+               ['output', '471', 1],
+               ['candidates', '343', 2],
+               ['reasoning', '128', 2],
+             ]);
+       });
+
+    it('metricBreakdown splits a duration into its three parts', () => {
+      const breakdown = component.metricBreakdown({
+        details: {
+          durationDetails: {
+            totalSeconds: 7.366,
+            modelSeconds: 3.55,
+            toolSeconds: 0.003,
+            frameworkSeconds: 3.813,
+          },
+        },
+      });
+
+      expect(breakdown!.title).toBe('Duration breakdown');
+      // The parts partition the turn, so they all sit one level under it.
+      expect(breakdown!.rows.map((r) => [r.label, r.value, r.depth])).toEqual([
+        ['total', '7.366s', 0],
+        ['model', '3.55s', 1],
+        ['tool', '0.003s', 1],
+        ['framework', '3.813s', 1],
+      ]);
+    });
+
+    it('metricBreakdown reports an unmeasured part as n/a, not zero', () => {
+      // A turn timed before the split existed carries a total and no parts.
+      const breakdown = component.metricBreakdown({
+        details: {durationDetails: {totalSeconds: 7.366}},
+      });
+
+      expect(breakdown!.rows.map((r) => r.value)).toEqual([
+        '7.366s',
+        'n/a',
+        'n/a',
+        'n/a',
+      ]);
+    });
+
+    it('metricBreakdown trims trailing zeros off an averaged figure', () => {
+      const breakdown = component.metricBreakdown({
+        details: {
+          durationDetails: {totalSeconds: 3.0, modelSeconds: 2.123456},
+        },
+      });
+
+      expect(breakdown!.rows[0].value).toBe('3s');
+      // Seconds keep milliseconds and no more.
+      expect(breakdown!.rows[1].value).toBe('2.123s');
+    });
+
+    it('metricBreakdown prefers the token split when a metric has both', () => {
+      // Not expected from the server, but the renderer must pick one.
+      const breakdown = component.metricBreakdown({
+        details: {
+          tokenUsageDetails: {totalTokens: 10},
+          durationDetails: {totalSeconds: 1},
+        },
+      });
+
+      expect(breakdown!.title).toBe('Token breakdown');
+    });
+
     it('getMetricColor is neutral when the metric reached no verdict', () => {
       expect(component.getMetricColor({evalStatus: 1})).toBe('#2e7d32');
       expect(component.getMetricColor({evalStatus: 2}))

@@ -1337,6 +1337,27 @@ app-canvas {
     font-weight: 500;
     color: var(--mat-sys-on-surface);
   }
+
+  .tooltip-breakdown {
+    margin-top: 8px;
+    border-top: 1px solid var(--mat-sys-outline-variant);
+    padding-top: 6px;
+    font-size: 11px;
+  }
+
+  .tooltip-breakdown-title {
+    margin-bottom: 4px;
+  }
+
+  // One row per figure, label left and value right, so the column of values
+  // lines up however deep the labels are indented.
+  .tooltip-breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    line-height: 1.6;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 .logo-title-container {

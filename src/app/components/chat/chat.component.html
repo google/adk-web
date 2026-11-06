@@ -766,6 +766,18 @@
                                   getMetricMax(metric.metricName) }}</span></div>
                             }
                           </div>
+                          @let breakdown = metricBreakdown(metric);
+                          @if (breakdown) {
+                          <div class="tooltip-breakdown">
+                            <div class="tooltip-label tooltip-breakdown-title">{{ breakdown.title }}</div>
+                            @for (row of breakdown.rows; track row.key) {
+                            <div class="tooltip-breakdown-row">
+                              <span class="tooltip-label" [style.padding-left.px]="row.depth * 10">{{ row.label }}</span>
+                              <span class="tooltip-value">{{ row.value }}</span>
+                            </div>
+                            }
+                          </div>
+                          }
                           @let desc = getMetricDescription(metric.metricName);
                           @if (desc) {
                           <div class="tooltip-desc"

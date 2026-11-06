@@ -149,6 +149,22 @@ class CustomPaginatorIntl extends MatPaginatorIntl {
   };
 }
 
+/** One line of a metric's breakdown, before its value is filled in. */
+interface BreakdownRow {
+  /** The field on the details object this row reads. */
+  readonly key: string;
+  /** What the row is called, without the unit the heading already gives. */
+  readonly label: string;
+  /** How far the row is indented; what that means is per breakdown. */
+  readonly depth: number;
+}
+
+/** The breakdown behind one metric's score, ready to render. */
+interface MetricBreakdown {
+  readonly title: string;
+  readonly rows: ReadonlyArray<BreakdownRow&{readonly value: string}>;
+}
+
 const BIDI_STREAMING_IN_PROGRESS_WARNING =
   'Another streaming request is already in progress. Please stop it before starting a new one.';
 
@@ -577,6 +593,89 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     const info = this.metricsInfo().find((m: any) => m.metricName === metricName);
     const val = info?.metricValueInfo?.interval?.maxValue;
     return val != null ? val.toFixed(2) : '?';
+  }
+
+  /**
+   * Rows of the token breakdown, and how deep each one sits.
+   *
+   * Indentation is containment: a row is a part of the nearest row above it
+   * that is indented less, so `cached` reads as a portion of `prompt` rather
+   * than an addition to it. Mirrors the breakdown `adk eval` prints, so the
+   * two surfaces describe the same quantities the same way.
+   */
+  private static readonly TOKEN_BREAKDOWN_ROWS: ReadonlyArray<BreakdownRow> = [
+    {key: 'totalTokens', label: 'total', depth: 0},
+    {key: 'inputTokens', label: 'input', depth: 1},
+    {key: 'promptTokens', label: 'prompt', depth: 2},
+    {key: 'cachedTokens', label: 'cached', depth: 3},
+    {key: 'toolUseTokens', label: 'tool use', depth: 2},
+    {key: 'outputTokens', label: 'output', depth: 1},
+    {key: 'candidatesTokens', label: 'candidates', depth: 2},
+    {key: 'reasoningTokens', label: 'reasoning', depth: 2},
+  ];
+
+  /**
+   * Rows of the duration breakdown.
+   *
+   * Unlike the token counts these do not nest -- they partition the turn --
+   * so the parts sit under the total only to show that they add back up to it.
+   */
+  private static readonly DURATION_BREAKDOWN_ROWS:
+      ReadonlyArray<BreakdownRow> = [
+    {key: 'totalSeconds', label: 'total', depth: 0},
+    {key: 'modelSeconds', label: 'model', depth: 1},
+    {key: 'toolSeconds', label: 'tool', depth: 1},
+    {key: 'frameworkSeconds', label: 'framework', depth: 1},
+  ];
+
+  /**
+   * The breakdown behind a metric's score, for the hover card, or null when
+   * the metric carries none.
+   *
+   * Only the two informational metrics that report a composite number carry
+   * one: token usage splits into the per-type counts, invocation duration into
+   * the time awaiting a model, inside tools, and in the framework.
+   */
+  metricBreakdown(metric: any): MetricBreakdown|null {
+    const tokens = metric?.details?.tokenUsageDetails;
+    if (tokens) {
+      return {
+        title: 'Token breakdown',
+        rows: ChatComponent.TOKEN_BREAKDOWN_ROWS.map(
+            (row) => ({
+              ...row,
+              value: this.formatBreakdownNumber(tokens[row.key], 2),
+            })),
+      };
+    }
+    const duration = metric?.details?.durationDetails;
+    if (duration) {
+      return {
+        title: 'Duration breakdown',
+        rows: ChatComponent.DURATION_BREAKDOWN_ROWS.map(
+            (row) => ({
+              ...row,
+              value: this.formatBreakdownNumber(duration[row.key], 3, 's'),
+            })),
+      };
+    }
+    return null;
+  }
+
+  /**
+   * Formats one breakdown figure.
+   *
+   * A figure the run never reported reads `n/a`, never `0`: for a token count
+   * the backend may simply not publish it, and for a duration part the turn
+   * may predate the split. Trailing zeros are dropped so a column of whole
+   * numbers does not read as false precision.
+   */
+  private formatBreakdownNumber(
+      value: unknown, maxDecimals: number, suffix = ''): string {
+    if (typeof value !== 'number' || !isFinite(value)) {
+      return 'n/a';
+    }
+    return `${Number(value.toFixed(maxDecimals))}${suffix}`;
   }
 
   getVersionTooltip(): string {
