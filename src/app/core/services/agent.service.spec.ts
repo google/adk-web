@@ -149,6 +149,131 @@ describe('AgentService', () => {
           });
     });
 
+    describe('XSRF protection', () => {
+      const token = 'test-xsrf-token';
+      let fetchSpy: jasmine.Spy<typeof window.fetch>;
+
+      beforeEach(() => {
+        service.apiServerDomain = '';
+        document.cookie = `XSRF-TOKEN=${token}; Path=/; SameSite=Strict`;
+        fetchSpy = spyOn(window, 'fetch').and.callFake(
+            async () => new Response(''));
+      });
+
+      afterEach(() => {
+        document.cookie = 'XSRF-TOKEN=; Path=/; Max-Age=0';
+      });
+
+      it('uses the same token as an ordinary HttpClient POST', async () => {
+        service.agentChangeCancel(TEST_APP_NAME).subscribe();
+        const request = httpTestingController.expectOne(
+            `/dev/apps/${TEST_APP_NAME}/builder/cancel`);
+        const httpToken = request.request.headers.get('X-XSRF-TOKEN');
+        expect(httpToken).toBe(token);
+        request.flush(true);
+
+        await firstValueFrom(service.runSse(RUN_SSE_PAYLOAD).pipe(toArray()));
+        const options = fetchSpy.calls.mostRecent().args[1];
+        expect(new Headers(options?.headers).get('X-XSRF-TOKEN'))
+            .toBe(httpToken);
+      });
+
+      for (const [kind, getBaseUrl] of [
+        ['root-relative', () => ''],
+        ['path-relative', () => 'api'],
+        ['absolute same-origin', () => window.location.origin],
+        ['protocol-relative same-origin', () => `//${window.location.host}`],
+      ] as const) {
+        it(`includes the token for a ${kind} URL`, async () => {
+          service.apiServerDomain = getBaseUrl();
+          await firstValueFrom(service.runSse(RUN_SSE_PAYLOAD).pipe(toArray()));
+          const [url, options] = fetchSpy.calls.mostRecent().args;
+          expect(url).toBe(service.apiServerDomain + RUN_SSE_PATH);
+          expect(new Headers(options?.headers).get('X-XSRF-TOKEN')).toBe(token);
+        });
+      }
+
+      for (const [kind, getBaseUrl] of [
+        ['another host', () => 'https://example.invalid'],
+        ['a protocol-relative external URL', () => '//example.invalid'],
+        ['a different port', () => {
+          const url = new URL(window.location.origin);
+          url.port = url.port === '8000' ? '8001' : '8000';
+          return url.origin;
+        }],
+        ['a different scheme', () => {
+          const url = new URL(window.location.origin);
+          url.protocol = url.protocol === 'https:' ? 'http:' : 'https:';
+          return url.origin;
+        }],
+      ] as const) {
+        it(`does not send the token to ${kind}`, async () => {
+          service.apiServerDomain = getBaseUrl();
+          await firstValueFrom(service.runSse(RUN_SSE_PAYLOAD).pipe(toArray()));
+          const options = fetchSpy.calls.mostRecent().args[1];
+          expect(new Headers(options?.headers).has('X-XSRF-TOKEN')).toBeFalse();
+        });
+      }
+
+      it('omits the header when the cookie is absent', async () => {
+        document.cookie = 'XSRF-TOKEN=; Path=/; Max-Age=0';
+        await firstValueFrom(service.runSse(RUN_SSE_PAYLOAD).pipe(toArray()));
+        const options = fetchSpy.calls.mostRecent().args[1];
+        expect(new Headers(options?.headers).has('X-XSRF-TOKEN')).toBeFalse();
+      });
+
+      it('reads the latest token for every subscription', async () => {
+        const responses = service.runSse(RUN_SSE_PAYLOAD);
+        for (const currentToken of ['updated-xsrf-token', 'rotated-xsrf-token']) {
+          document.cookie = `XSRF-TOKEN=${currentToken}; Path=/; SameSite=Strict`;
+          await firstValueFrom(responses.pipe(toArray()));
+          const options = fetchSpy.calls.mostRecent().args[1];
+          expect(new Headers(options?.headers).get('X-XSRF-TOKEN'))
+              .toBe(currentToken);
+        }
+        expect(fetchSpy).toHaveBeenCalledTimes(2);
+      });
+
+      it('uses the decoded cookie value', async () => {
+        const encodedToken = 'token+with/encoded=characters';
+        document.cookie =
+            `XSRF-TOKEN=${encodeURIComponent(encodedToken)}; Path=/`;
+        await firstValueFrom(service.runSse(RUN_SSE_PAYLOAD).pipe(toArray()));
+        const options = fetchSpy.calls.mostRecent().args[1];
+        expect(new Headers(options?.headers).get('X-XSRF-TOKEN'))
+            .toBe(encodedToken);
+      });
+
+      it('respects a cross-origin document base URL', async () => {
+        spyOnProperty(document, 'baseURI', 'get')
+            .and.returnValue('https://example.invalid/dev-ui/');
+        await firstValueFrom(service.runSse(RUN_SSE_PAYLOAD).pipe(toArray()));
+        const options = fetchSpy.calls.mostRecent().args[1];
+        expect(new Headers(options?.headers).has('X-XSRF-TOKEN')).toBeFalse();
+      });
+
+      it('preserves fetch errors for an invalid URL', async () => {
+        service.apiServerDomain = 'http://[';
+        fetchSpy.and.rejectWith(new TypeError('Invalid URL'));
+        await expectAsync(firstValueFrom(service.runSse(RUN_SSE_PAYLOAD)))
+            .toBeRejectedWithError(TypeError, 'Invalid URL');
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        const options = fetchSpy.calls.mostRecent().args[1];
+        expect(new Headers(options?.headers).has('X-XSRF-TOKEN')).toBeFalse();
+        expect(service.getLoadingState().value).toBeFalse();
+      });
+
+      it('aborts the request when unsubscribed', () => {
+        fetchSpy.and.returnValue(new Promise<Response>(() => {}));
+        const subscription = service.runSse(RUN_SSE_PAYLOAD).subscribe();
+        const options = fetchSpy.calls.mostRecent().args[1];
+        expect(new Headers(options?.headers).get('X-XSRF-TOKEN')).toBe(token);
+        subscription.unsubscribe();
+        expect(options?.signal?.aborted).toBeTrue();
+        expect(service.getLoadingState().value).toBeFalse();
+      });
+    });
+
     it(
         'should emit LlmResponses received from fetch', async () => {
           const fakeResponse1 = createFakeLlmResponse();
