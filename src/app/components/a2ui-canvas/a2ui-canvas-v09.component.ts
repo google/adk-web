@@ -1,0 +1,168 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {A2uiRendererService, SurfaceComponent} from '@a2ui/angular/v0_9';
+import {ChangeDetectionStrategy, Component, computed, DestroyRef, inject, Input, OnChanges, signal, SimpleChanges,} from '@angular/core';
+
+/** The message type the v0.9 renderer accepts. */
+type A2uiV09Message =
+    Parameters<A2uiRendererService['processMessages']>[0][number];
+
+/**
+ * Renders an A2UI spec v0.9 surface.
+ *
+ * A sibling of `A2uiCanvasComponent` rather than a branch inside it: the two
+ * renderers have different lifecycles. v0.8's `<a2ui-surface>` needs a resolved
+ * surface object re-read from a map on every change, while v0.9's
+ * `<a2ui-v09-surface>` takes only a surfaceId and resolves internally.
+ */
+@Component({
+  selector: 'app-a2ui-canvas-v09',
+  template: `
+    @for (id of surfaceIds(); track id) {
+      <a2ui-v09-surface [surfaceId]="id" />
+    }
+  `,
+  styleUrls: ['./a2ui-canvas-v09.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [SurfaceComponent],
+})
+export class A2uiCanvasV09Component implements OnChanges {
+  private readonly renderer = inject(A2uiRendererService);
+
+  /** The de-enveloped v0.9 messages for this bubble, in send order. */
+  @Input() messages: readonly unknown[]|null = null;
+
+  /**
+   * Every surface this batch creates, in createSurface order. One event may
+   * legitimately carry several surfaces, and each gets its own
+   * `<a2ui-v09-surface>`.
+   *
+   * Only creates count. A surface is one live, chat-scoped model, so a later
+   * event that merely updates it (streamed `updateComponents` /
+   * `updateDataModel`, or a follow-up turn) mutates the copy already mounted
+   * in the bubble that created it; mounting it again would show the same
+   * surface once per event.
+   */
+  readonly surfaceIds = signal<readonly string[]>([]);
+
+  /** The first surface of the batch, or null when there is none. */
+  readonly surfaceId = computed(() => this.surfaceIds()[0] ?? null);
+
+  /**
+   * The last array instance processed. The renderer service is chat-scoped, so
+   * re-processing the same batch would duplicate work and log spurious
+   * "surface already exists" failures on every change-detection pass.
+   */
+  private lastProcessed: readonly unknown[]|null = null;
+
+  constructor() {
+    // Updates and deletes can arrive in another bubble. The upstream surface
+    // host does not unmount itself when its model is deleted.
+    const deletion = this.renderer.surfaceGroup.onSurfaceDeleted.subscribe(
+        (id) => this.surfaceIds.update((ids) => ids.filter((item) => item !== id)));
+    inject(DestroyRef).onDestroy(() => deletion.unsubscribe());
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['messages']) return;
+
+    const messages = this.messages;
+    if (!messages || messages.length === 0) {
+      this.lastProcessed = null;
+      this.surfaceIds.set([]);
+      return;
+    }
+    if (messages === this.lastProcessed) return;
+    this.lastProcessed = messages;
+
+    for (const message of messages) {
+      this.processMessage(message);
+    }
+
+    // Derive the surfaceIds only after processing, so the template's @for
+    // cannot mount a child before its surface exists.
+    const surfaceIds = this.surfaceIdsOf(messages);
+    this.surfaceIds.set(surfaceIds);
+  }
+
+  /**
+   * Processes one message in isolation.
+   *
+   * Per-message rather than one batched `processMessages` call because v0.9's
+   * processor throws on a duplicate `createSurface`, an unknown catalogId, and
+   * an update naming an absent surface -- and a throw mid-batch would abandon
+   * every remaining message, leaving a half-built surface.
+   */
+  private processMessage(message: unknown): void {
+    if (this.isRedundantCreateSurface(message)) return;
+
+    try {
+      this.renderer.processMessages([message as A2uiV09Message]);
+    } catch (e: unknown) {
+      console.error('Failed to process an A2UI v0.9 message:', e, message);
+    }
+  }
+
+  /**
+   * True when this `createSurface` names a surface that already exists.
+   *
+   * The renderer service is chat-scoped and its surfaces outlive any one
+   * bubble, so replaying a retained history or re-processing a batch would throw
+   * "Surface <id> already exists". Since
+   * the subsequent update messages are idempotent upserts against the existing
+   * surface, skipping the create is the correct recovery: the already-mounted
+   * child keeps a valid surface reference and simply receives the new
+   * components.
+   */
+  private isRedundantCreateSurface(message: unknown): boolean {
+    if (!message || typeof message !== 'object') return false;
+    const create = (message as Record<string, unknown>)['createSurface'];
+    if (!create || typeof create !== 'object') return false;
+
+    const surfaceId = (create as Record<string, unknown>)['surfaceId'];
+    if (typeof surfaceId !== 'string') return false;
+
+    return this.renderer.surfaceGroup?.getSurface(surfaceId) !== undefined;
+  }
+
+  /**
+   * The surfaceIds the batch creates, de-duplicated in createSurface order,
+   * minus any surface a later `deleteSurface` in the same batch removes.
+   */
+  private surfaceIdsOf(messages: readonly unknown[]): string[] {
+    const ids: string[] = [];
+    const deleted = new Set<string>();
+    for (const message of messages) {
+      if (!message || typeof message !== 'object') continue;
+      for (const [kind, body] of Object.entries(
+               message as Record<string, unknown>)) {
+        if (!body || typeof body !== 'object') continue;
+        const surfaceId = (body as Record<string, unknown>)['surfaceId'];
+        if (typeof surfaceId !== 'string') continue;
+        if (kind === 'deleteSurface') {
+          deleted.add(surfaceId);
+        } else if (kind === 'createSurface') {
+          // A re-create after a delete revives the surface.
+          deleted.delete(surfaceId);
+          if (!ids.includes(surfaceId)) ids.push(surfaceId);
+        }
+      }
+    }
+    return ids.filter((id) => !deleted.has(id));
+  }
+}
