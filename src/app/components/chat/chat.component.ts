@@ -1677,7 +1677,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     const updatedEvent = new UiEvent({
       ...lastEvent,
       event: apiEvent as any,
-      textParts: lastEvent.textParts ? lastEvent.textParts.map(p => ({ ...p })) : undefined
+      textParts: lastEvent.textParts ? lastEvent.textParts.map(p => ({ ...p })) : undefined,
+      inlineDataParts: lastEvent.inlineDataParts ?
+        lastEvent.inlineDataParts.map(part => ({ ...part })) : undefined,
     });
 
     let parts = apiEvent.content?.parts || [];
@@ -1984,12 +1986,14 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       const base64Data = this.formatBase64Data(
         part.inlineData.data, part.inlineData.mimeType);
       const mediaType = getMediaTypeFromMimetype(part.inlineData.mimeType);
-      uiEvent.inlineData = {
+      const inlineData = {
         displayName: part.inlineData.displayName,
         data: base64Data,
         mimeType: part.inlineData.mimeType,
         mediaType,
       };
+      uiEvent.inlineData = inlineData;
+      uiEvent.inlineDataParts = [...(uiEvent.inlineDataParts ?? []), inlineData];
       if (uiEvent.role === 'user' && event?.id) {
         uiEvent.event = event as any;
       }
@@ -2069,6 +2073,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       data: '',
       mimeType: 'image/png',
     };
+    uiEvent.inlineDataParts = [uiEvent.inlineData];
 
     // Add placeholder artifact.
     const placeholderArtifact = {
@@ -2127,6 +2132,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           };
 
           uiEvent.inlineData = inlineData;
+          uiEvent.inlineDataParts = [inlineData];
           this.changeDetectorRef.detectChanges();
 
           // Update placeholder artifact with fetched data.
