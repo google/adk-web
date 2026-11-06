@@ -219,6 +219,13 @@ export class SidePanelComponent implements AfterViewInit, OnInit {
     });
   }
 
+  refreshAfterEvalCaseDeleted(appName: string, evalSetId: string, evalCaseId: string) {
+    const tab = this.evalTabRef()?.instance ?? this.evalTabComponent();
+    if (tab?.appName() === appName && tab.selectedEvalSet() === evalSetId) {
+      tab.refreshAfterEvalCaseDeleted(evalCaseId);
+    }
+  }
+
   selectEvalCase(evalSetId: string, evalCase: EvalCase) {
     const tab = this.evalTabComponent();
     if (tab) {
