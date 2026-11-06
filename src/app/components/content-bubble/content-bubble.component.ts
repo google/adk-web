@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Input, Output, Type, inject, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, Type, inject, OnChanges, SimpleChanges, ChangeDetectorRef, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
@@ -92,6 +92,51 @@ export class ContentBubbleComponent implements OnChanges {
         .join('');
     }
     return '';
+  }
+
+  /** The message text copied by the copy button, in the order the model sent it. */
+  get copyableText(): string {
+    if (this.uiEvent.textParts && this.uiEvent.textParts.length > 0) {
+      return this.uiEvent.textParts
+          .map((part) => part.text)
+          .filter((text) => !!text)
+          .join('\n\n');
+    }
+    if (this.uiEvent.text) {
+      return this.uiEvent.text;
+    }
+    if (this.uiEvent.codeExecutionSegments) {
+      return this.codeExecutionItems
+          .flatMap((item) => item.kind === 'text' ? [item.text] : [])
+          .join('\n\n');
+    }
+    return this.rawMessageText;
+  }
+
+  get showCopyButton(): boolean {
+    return this.type === 'message' && !this.uiEvent.isEditing &&
+        !!this.copyableText;
+  }
+
+  // A signal, not a plain field: the app runs without zone.js, so only a
+  // signal write schedules the change detection that resets the icon.
+  readonly copied = signal(false);
+  private copyTimeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  copyMessage(event: MouseEvent) {
+    event.stopPropagation();
+    const text = this.copyableText;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      this.copied.set(true);
+      if (this.copyTimeoutId) clearTimeout(this.copyTimeoutId);
+      this.copyTimeoutId = setTimeout(() => {
+        this.copied.set(false);
+        this.copyTimeoutId = undefined;
+      }, 2000);
+    }).catch(() => {
+      this.copied.set(false);
+    });
   }
 
   get jsonOutputData(): any {
