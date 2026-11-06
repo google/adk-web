@@ -90,8 +90,28 @@
 }
 
 .confirmation-label {
+  display: block;
   margin-bottom: 2px;
   color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
+}
+
+.confirmation-payload-editor {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 4px;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font-family: 'Roboto Mono', monospace;
+  font-size: 12px;
+  resize: vertical;
+}
+
+.confirmation-payload-error {
+  margin-top: 4px;
+  color: var(--mat-sys-error);
   font-size: 12px;
 }
 
