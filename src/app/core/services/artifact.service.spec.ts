@@ -58,6 +58,38 @@ describe('ArtifactService', () => {
     expect(service).toBeTruthy();
   });
 
+  for (const [artifactName, encodedName] of [
+    ['report#1.json', 'report%231.json'],
+    ['report?draft.json', 'report%3Fdraft.json'],
+    ['100%.txt', '100%25.txt'],
+    ['report%23.json', 'report%2523.json'],
+    ['user:reports/summary.json', 'user%3Areports%2Fsummary.json'],
+    ['résumé final.json', 'r%C3%A9sum%C3%A9%20final.json'],
+  ]) {
+    it(`should preserve reserved characters in latest artifact ${artifactName}`, () => {
+      service.getLatestArtifact(USER_ID, APP_NAME, SESSION_ID, artifactName)
+          .subscribe();
+      const req = httpTestingController.expectOne(
+          API_SERVER_BASE_URL +
+          `/apps/${APP_NAME}/users/${USER_ID}/sessions/${SESSION_ID}/artifacts/${
+              encodedName}`);
+      expect(req.request.method).toBe('GET');
+      req.flush({});
+    });
+
+    it(`should preserve reserved characters in versioned artifact ${artifactName}`, () => {
+      service.getArtifactVersion(
+          USER_ID, APP_NAME, SESSION_ID, artifactName, ARTIFACT_VERSION)
+          .subscribe();
+      const req = httpTestingController.expectOne(
+          API_SERVER_BASE_URL +
+          `/apps/${APP_NAME}/users/${USER_ID}/sessions/${SESSION_ID}/artifacts/${
+              encodedName}/versions/${ARTIFACT_VERSION}`);
+      expect(req.request.method).toBe('GET');
+      req.flush({});
+    });
+  }
+
   describe('getLatestArtifact', () => {
     it('should call the correct endpoint to get latest artifact', () => {
       service.getLatestArtifact(USER_ID, APP_NAME, SESSION_ID, ARTIFACT_ID)

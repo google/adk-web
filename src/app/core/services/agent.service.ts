@@ -72,33 +72,40 @@ export class AgentService implements AgentServiceInterface {
           const decoder = new TextDecoder('utf-8');
           let lastData = '';
 
+          const emitLine = (line: string) => {
+            if (!line.startsWith('data:')) {
+              return;
+            }
+            let llmResponse: LlmResponse;
+            try {
+              llmResponse =
+                  JSON.parse(line.replace(/^data:\s*/, '')) as LlmResponse;
+            } catch (e) {
+              if (e instanceof SyntaxError) {
+                return;
+              }
+              throw e;
+            }
+            self.zone.run(() => observer.next(llmResponse));
+          };
+
           const read = () => {
             reader?.read()
               .then(({ done, value }) => {
+                if (signal.aborted) {
+                  return;
+                }
                 this.isLoading.next(true);
                 if (done) {
+                  emitLine(lastData);
                   this.isLoading.next(false);
                   return observer.complete();
                 }
-                const chunk = decoder.decode(value, { stream: true });
-                lastData += chunk;
-                try {
-                  const lines = lastData.split(/\r?\n/).filter(
-                    (line) => line.startsWith('data:'));
-                  lines.forEach((line) => {
-                    const data = line.replace(/^data:\s*/, '');
-                    const llmResponse = JSON.parse(data) as LlmResponse;
-                    self.zone.run(() => observer.next(llmResponse));
-                  });
-                  lastData = '';
-                } catch (e) {
-                  // the data is not a valid json, it could be an incomplete
-                  // chunk. we ignore it and wait for the next chunk.
-                  if (e instanceof SyntaxError) {
-                    read();
-                  }
-                }
-                read();  // Read the next chunk
+                const lines = (lastData + decoder.decode(value, { stream: true }))
+                  .split(/\r?\n/);
+                lastData = lines.pop() ?? '';
+                lines.forEach(emitLine);
+                read();
               })
               .catch((err) => {
                 if (signal.aborted) {

@@ -35,7 +35,7 @@ export class ArtifactService implements ArtifactServiceInterface {
   ) {
     const url =
       this.apiServerDomain +
-      `/apps/${appName}/users/${userId}/sessions/${sessionId}/artifacts/${artifactName}`;
+      `/apps/${appName}/users/${userId}/sessions/${sessionId}/artifacts/${encodeURIComponent(artifactName)}`;
 
     return this.http.get<any>(url);
   }
@@ -49,7 +49,7 @@ export class ArtifactService implements ArtifactServiceInterface {
   ) {
     const url =
       this.apiServerDomain +
-      `/apps/${appName}/users/${userId}/sessions/${sessionId}/artifacts/${artifactName}/versions/${versionId}`;
+      `/apps/${appName}/users/${userId}/sessions/${sessionId}/artifacts/${encodeURIComponent(artifactName)}/versions/${versionId}`;
 
     return this.http.get<any>(url);
   }

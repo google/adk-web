@@ -18,8 +18,8 @@
 import {HttpClientTestingModule, HttpTestingController,} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
-import {firstValueFrom} from 'rxjs';
-import {toArray} from 'rxjs/operators';
+import {firstValueFrom, Subject} from 'rxjs';
+import {switchMap, toArray} from 'rxjs/operators';
 
 import {URLUtil} from '../../../utils/url-util';
 import {
@@ -222,6 +222,103 @@ describe('AgentService', () => {
 
       expect(results).toEqual([fakeResponse]);
     });
+
+    for (const {name, chunks} of [
+      {
+        name: 'an event split after a complete event',
+        chunks: ['data: {"id":"1"}\n\ndata: {"id":', '"2"}\n\n'],
+      },
+      {
+        name: 'a chunk boundary inside the data: prefix',
+        chunks: ['data: {"id":"1"}\n\nda', 'ta: {"id":"2"}\n\n'],
+      },
+      {
+        name: 'CRLF line endings split between chunks',
+        chunks: ['data: {"id":"1"}\r', '\n\r', '\ndata: {"id":', '"2"}\r\n\r\n'],
+      },
+      {
+        name: 'comment lines and no trailing newline',
+        chunks: [': ping\n\nevent: message\ndata: {"id":"1"}\n\ndata: {"id":"2"}'],
+      },
+      {
+        name: 'a malformed data: line between events',
+        chunks: ['data: {"id":"1"}\n\ndata: {oops\n\ndata: {"id":"2"}\n\n'],
+      },
+    ]) {
+      it(`should emit each event once for ${name}`, async () => {
+        const mockBody = new ReadableStream({
+          start(controller) {
+            const encoder = new TextEncoder();
+            for (const chunk of chunks) {
+              controller.enqueue(encoder.encode(chunk));
+            }
+            controller.close();
+          },
+        });
+        spyOn(window, 'fetch').and.resolveTo(new Response(mockBody));
+
+        const results = await firstValueFrom(
+            service.runSse(RUN_SSE_PAYLOAD).pipe(toArray()),
+        );
+
+        expect(results as unknown[]).toEqual([{id: '1'}, {id: '2'}]);
+      });
+    }
+
+    it(
+        'should skip a truncated last event and complete', async () => {
+          const mockBody = new ReadableStream({
+            start(controller) {
+              controller.enqueue(
+                  new TextEncoder().encode('data: {"id":"1"}\n\ndata: {"id":'),
+              );
+              controller.close();
+            },
+          });
+          spyOn(window, 'fetch').and.resolveTo(new Response(mockBody));
+
+          const results = await firstValueFrom(
+              service.runSse(RUN_SSE_PAYLOAD).pipe(toArray()),
+          );
+
+          expect(results as unknown[]).toEqual([{id: '1'}]);
+          expect(service.getLoadingState().value).toBeFalse();
+        });
+
+    it(
+        'should keep loading on for a run that replaces an unsubscribed one',
+        async () => {
+          const firstBody = new ReadableStream({
+            start(controller) {
+              controller.enqueue(new TextEncoder().encode('data: {"id":"1"}\n\n'));
+            },
+          });
+          spyOn(window, 'fetch').and.returnValues(
+              Promise.resolve(new Response(firstBody)),
+              Promise.resolve(new Response(new ReadableStream())),
+          );
+          const flush = async () => {
+            for (let i = 0; i < 10; i++) {
+              await new Promise((resolve) => setTimeout(resolve));
+            }
+          };
+          const trigger = new Subject<void>();
+          const loading: boolean[] = [];
+          const subscription =
+              trigger.pipe(switchMap(() => service.runSse(RUN_SSE_PAYLOAD)))
+                  .subscribe();
+          trigger.next();
+          await flush();
+
+          const loadingSubscription =
+              service.getLoadingState().subscribe((value) => loading.push(value));
+          trigger.next();
+          await flush();
+          loadingSubscription.unsubscribe();
+          subscription.unsubscribe();
+
+          expect(loading).toEqual([true, false, true]);
+        });
   });
 
   describe('Agent Builder Endpoints', () => {
