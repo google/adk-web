@@ -946,10 +946,12 @@ app-canvas {
   height: 18px;
 }
 
+// Wrap rather than truncate: apps often share a long common prefix, so an
+// ellipsis can make several entries look identical.
 .app-selector-item-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .app-selector-loading {

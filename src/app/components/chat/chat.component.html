@@ -43,7 +43,7 @@
       }
     </div>
     <div class="selector-group">
-      <button class="selector-button" (click)="toggleAppSelectorDrawer()" matTooltip="Select an app">
+      <button class="selector-button" (click)="toggleAppSelectorDrawer()" [matTooltip]="isLoadedAppUnavailable() ? unavailableAppName() : (appName || 'Select an app')">
         <mat-icon fontSet="material-symbols-outlined">robot_2</mat-icon>
         <span class="selector-label">{{ isLoadedAppUnavailable() ? unavailableAppName() : (appName || 'Select an app') }}</span>
         @if (isLoadedAppUnavailable()) {
