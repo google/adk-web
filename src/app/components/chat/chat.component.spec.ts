@@ -2437,4 +2437,27 @@ describe('ChatComponent', () => {
              .toBeFalsy();
        });
   });
+
+  describe('centeredPopupFeatures', () => {
+    it('centers the popup over the current window', () => {
+      const expectedLeft = Math.round(
+          window.screenX + Math.max(0, (window.outerWidth - 600) / 2));
+      const expectedTop = Math.round(
+          window.screenY + Math.max(0, (window.outerHeight - 700) / 2));
+
+      expect(component['centeredPopupFeatures']())
+          .toBe(`width=600,height=700,left=${expectedLeft},top=${expectedTop}`);
+    });
+
+    it('opens the OAuth popup with a position', () => {
+      mockSafeValuesService.windowOpen.and.returnValue(null);
+
+      component['openOAuthPopup']('https://example.com/auth').catch(() => {});
+
+      expect(mockSafeValuesService.windowOpen)
+          .toHaveBeenCalledWith(
+              window, 'https://example.com/auth', 'oauthPopup',
+              jasmine.stringMatching(/^width=600,height=700,left=-?\d+,top=-?\d+$/));
+    });
+  });
 });

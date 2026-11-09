@@ -2400,11 +2400,26 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Returns window.open() features for a popup centered over this window.
+   *
+   * Without left/top, browsers open the popup in the top-left corner of the
+   * screen. Positions are relative to this window rather than the screen, so
+   * the popup also opens on the monitor the dev UI is on.
+   */
+  private centeredPopupFeatures(width = 600, height = 700): string {
+    const left =
+        Math.round(window.screenX + Math.max(0, (window.outerWidth - width) / 2));
+    const top =
+        Math.round(window.screenY + Math.max(0, (window.outerHeight - height) / 2));
+    return `width=${width},height=${height},left=${left},top=${top}`;
+  }
+
   private openOAuthPopup(url: string): Promise<any> {
     return new Promise((resolve, reject) => {
       // Open OAuth popup
       const popup = this.safeValuesService.windowOpen(
-        window, url, 'oauthPopup', 'width=600,height=700');
+        window, url, 'oauthPopup', this.centeredPopupFeatures());
 
       if (!popup) {
         reject('Popup blocked!');
@@ -2464,7 +2479,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.teardownAgentIdentityListeners();
 
     const popup = this.safeValuesService.windowOpen(
-      window, authUri, 'oauthPopup', 'width=600,height=700');
+      window, authUri, 'oauthPopup', this.centeredPopupFeatures());
     if (!popup) {
       this.openSnackBar('Popup blocked! Please allow popups and retry.', 'OK');
       return;
