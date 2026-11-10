@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import {HttpErrorResponse} from '@angular/common/http';
 import {HttpClientTestingModule, HttpTestingController,} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
@@ -128,6 +129,40 @@ describe('AgentService', () => {
   });
 
   describe('runSse', () => {
+    for (const {status, statusText, body} of [
+      {
+        status: 404,
+        statusText: 'Not Found',
+        body: JSON.stringify({detail: 'Session not found'}),
+      },
+      {status: 401, statusText: 'Unauthorized', body: 'Unauthorized'},
+      {
+        status: 500,
+        statusText: 'Internal Server Error',
+        body: '<html>Server error</html>',
+      },
+    ]) {
+      it(`should reject HTTP ${status} without reading it as SSE`, async () => {
+        const response = new Response(body, {status, statusText});
+        const getReader = spyOn(response.body!, 'getReader').and.callThrough();
+        spyOn(window, 'fetch').and.resolveTo(response);
+
+        const result = firstValueFrom(
+            service.runSse(RUN_SSE_PAYLOAD).pipe(toArray()),
+        );
+        await expectAsync(result)
+            .toBeRejectedWith(jasmine.any(HttpErrorResponse));
+        await expectAsync(result).toBeRejectedWith(jasmine.objectContaining({
+          name: 'HttpErrorResponse',
+          status,
+          statusText,
+          url: API_SERVER_BASE_URL + RUN_SSE_PATH,
+        }));
+        expect(getReader).not.toHaveBeenCalled();
+        expect(service.getLoadingState().value).toBeFalse();
+      });
+    }
+
     it('should set loading state to true when called', async () => {
       spyOn(window, 'fetch').and.resolveTo(new Response());
       service.runSse(RUN_SSE_PAYLOAD).subscribe();
