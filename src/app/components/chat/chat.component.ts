@@ -1409,7 +1409,13 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         if (errString.includes('aborted') || errString.includes('AbortError')) {
           return;
         }
-        this.openSnackBar(err, 'OK');
+        let errorMessage = errString;
+        if (err instanceof HttpErrorResponse) {
+          errorMessage = err.status === 404
+            ? this.i18n.sessionNotFoundMessage
+            : err.message;
+        }
+        this.openSnackBar(errorMessage, 'OK');
       },
       complete: () => {
         this.activeSseSubscription = undefined;

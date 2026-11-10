@@ -28,6 +28,7 @@ import {ActivatedRoute, NavigationEnd, Router, UrlTree} from '@angular/router';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
 import {BehaviorSubject, NEVER, of, ReplaySubject, Subject, throwError} from 'rxjs';
 
+import {AgentRunRequest} from '../../core/models/AgentRunRequest';
 import {EvalCase} from '../../core/models/Eval';
 import {OPERATION_GENERATE_CONTENT} from '../../core/models/Trace';
 import {Session} from '../../core/models/Session';
@@ -85,6 +86,7 @@ import {TelemetryConsentDialogComponent} from '../telemetry-consent-dialog/telem
 import {computed, signal} from '@angular/core';
 
 import {ChatComponent, HIDE_SIDE_PANEL_QUERY_PARAM, INITIAL_USER_INPUT_QUERY_PARAM} from './chat.component';
+import {CHAT_MESSAGES} from './chat.component.i18n';
 
 // Mock EvalTabComponent to satisfy the required viewChild in ChatComponent
 @Component({
@@ -1170,6 +1172,58 @@ describe('ChatComponent', () => {
       it('should remove state update', () => {
         expect(component.updatedSessionState()).toBeNull();
       });
+    });
+  });
+
+  describe('Agent run errors', () => {
+    const request: AgentRunRequest = {
+      appName: TEST_APP_1_NAME,
+      userId: USER_ID,
+      sessionId: SESSION_1_ID,
+      newMessage: {role: 'user', parts: [{text: TEST_MESSAGE}]},
+    };
+
+    beforeEach(() => {
+      mockAgentService.listAppsResponse.next([TEST_APP_1_NAME]);
+      component.sessionId = SESSION_1_ID;
+      component.submitAgentRunRequest(request);
+    });
+
+    it('should explain how to recover from a missing session', () => {
+      const events = component.uiEvents();
+      mockAgentService.runSseResponse.error(
+          new HttpErrorResponse({status: 404, statusText: 'Not Found'}));
+
+      expect(mockSnackBar.open).toHaveBeenCalledWith(
+          CHAT_MESSAGES.sessionNotFoundMessage, OK_BUTTON_TEXT);
+      expect(component.sessionId).toBe(SESSION_1_ID);
+      expect(component.uiEvents()).toBe(events);
+      expect(mockSessionService.createSession).not.toHaveBeenCalled();
+      expect(mockAgentService.runSse).toHaveBeenCalledTimes(1);
+    });
+
+    it('should display other HTTP errors as readable text', () => {
+      const error = new HttpErrorResponse(
+          {status: 500, statusText: 'Internal Server Error'});
+      mockAgentService.runSseResponse.error(error);
+
+      expect(mockSnackBar.open)
+          .toHaveBeenCalledWith(error.message, OK_BUTTON_TEXT);
+    });
+
+    it('should display network errors as readable text', () => {
+      const error = new Error('Network request failed');
+      mockAgentService.runSseResponse.error(error);
+
+      expect(mockSnackBar.open)
+          .toHaveBeenCalledWith(String(error), OK_BUTTON_TEXT);
+    });
+
+    it('should keep cancelled requests silent', () => {
+      mockAgentService.runSseResponse.error(
+          new DOMException('The operation was aborted.', 'AbortError'));
+
+      expect(mockSnackBar.open).not.toHaveBeenCalled();
     });
   });
 

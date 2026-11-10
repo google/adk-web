@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { URLUtil } from '../../../utils/url-util';
@@ -68,6 +68,13 @@ export class AgentService implements AgentServiceInterface {
         signal,
       })
         .then((response) => {
+          if (!response.ok) {
+            throw new HttpErrorResponse({
+              status: response.status,
+              statusText: response.statusText,
+              url: response.url || url,
+            });
+          }
           reader = response.body?.getReader();
           const decoder = new TextDecoder('utf-8');
           let lastData = '';
