@@ -3533,9 +3533,12 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   protected deleteEvalCase() {
+    const appName = this.appName;
+    const evalSetId = this.evalSetId;
+    const evalCaseId = this.evalCase!.evalId;
     const dialogData: DeleteSessionDialogData = {
       title: 'Confirm delete',
-      message: `Are you sure you want to delete ${this.evalCase!.evalId}?`,
+      message: `Are you sure you want to delete ${evalCaseId}?`,
       confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
     };
@@ -3546,10 +3549,22 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe((result: boolean) => {
-      if (result) {
-        this.evalTab()?.deleteEvalCase(this.evalCase!.evalId);
-        this.openSnackBar('Eval case deleted', 'OK');
-      }
+      if (!result) return;
+      // The eval tab belongs to SidePanelComponent and may not be mounted.
+      this.evalService.deleteEvalCase(appName, evalSetId, evalCaseId).subscribe({
+        next: () => {
+          if (this.appName === appName && this.evalSetId === evalSetId &&
+              this.evalCase?.evalId === evalCaseId) {
+            this.evalCase = null;
+            this.resetEditEvalCaseVars();
+            this.handleReturnToSession(true);
+          }
+          this.sidePanel().refreshAfterEvalCaseDeleted(
+              appName, evalSetId, evalCaseId);
+          this.openSnackBar('Eval case deleted', 'OK');
+        },
+        error: () => this.openSnackBar('Failed to delete eval case', 'OK'),
+      });
     });
   }
 

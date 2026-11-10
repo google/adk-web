@@ -331,6 +331,52 @@ describe('ChatComponent', () => {
     await fixture.whenStable();
   });
 
+  describe('deleting an eval case', () => {
+    beforeEach(() => {
+      component.appName = TEST_APP_1_NAME;
+      component.evalSetId = 'eval-set';
+      component.evalCase = {evalId: 'case-1'} as any;
+      mockDialog.open.and.returnValue({afterClosed: () => of(true)} as any);
+    });
+
+    it('deletes without a directly mounted eval tab and waits for success', () => {
+      const notify = spyOn(component as any, 'openSnackBar');
+      const refresh = spyOn(component.sidePanel(), 'refreshAfterEvalCaseDeleted');
+      (component as any).deleteEvalCase();
+      expect(refresh).not.toHaveBeenCalled();
+      expect(mockEvalService.deleteEvalCase).toHaveBeenCalledWith(
+          TEST_APP_1_NAME, 'eval-set', 'case-1');
+      expect(notify).not.toHaveBeenCalled();
+      mockEvalService.deleteEvalCaseResponse.next({});
+      expect(notify).toHaveBeenCalledWith('Eval case deleted', 'OK');
+      expect(component.evalCase).toBeNull();
+      expect(refresh).toHaveBeenCalledWith(TEST_APP_1_NAME, 'eval-set', 'case-1');
+    });
+
+    it('does not replace a case selected while deletion is pending', () => {
+      (component as any).deleteEvalCase();
+      component.evalCase = {evalId: 'case-2'} as any;
+      mockEvalService.deleteEvalCaseResponse.next({});
+      expect(component.evalCase?.evalId).toBe('case-2');
+    });
+
+    it('does not delete when confirmation is cancelled', () => {
+      mockDialog.open.and.returnValue({afterClosed: () => of(false)} as any);
+      (component as any).deleteEvalCase();
+      expect(mockEvalService.deleteEvalCase).not.toHaveBeenCalled();
+      expect(component.evalCase?.evalId).toBe('case-1');
+    });
+
+    it('keeps the case and reports a failed request', () => {
+      const notify = spyOn(component as any, 'openSnackBar');
+      (component as any).deleteEvalCase();
+      mockEvalService.deleteEvalCaseResponse.error(new Error('delete failed'));
+      expect(notify).toHaveBeenCalledWith('Failed to delete eval case', 'OK');
+      expect(notify).not.toHaveBeenCalledWith('Eval case deleted', 'OK');
+      expect(component.evalCase?.evalId).toBe('case-1');
+    });
+  });
+
   describe('Component Initialization', () => {
     it('should create', () => {
       expect(component).toBeTruthy();
