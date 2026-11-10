@@ -1172,6 +1172,84 @@ describe('ChatComponent', () => {
       });
     });
   });
+  describe('Update State persistence', () => {
+    const originalState = {counter: 1};
+    const editedState = {counter: 2};
+
+    beforeEach(() => {
+      component.userId = USER_ID;
+      component.appName = TEST_APP_1_NAME;
+      component.sessionId = SESSION_1_ID;
+      component.currentSessionState = {...originalState};
+    });
+
+    it('persists edited state immediately after Save', () => {
+      mockDialog.open.and.returnValue({
+        afterClosed: () => of(editedState),
+      } as any);
+
+      component.updateState();
+
+      expect(mockSessionService.updateSession).toHaveBeenCalledOnceWith(
+          USER_ID,
+          TEST_APP_1_NAME,
+          SESSION_1_ID,
+          {stateDelta: editedState},
+      );
+
+      mockSessionService.updateSessionResponse.next({
+        id: SESSION_1_ID,
+        state: editedState,
+      } as any);
+
+      expect(component.currentSessionState).toEqual(editedState);
+      expect(component.updatedSessionState()).toBeNull();
+    });
+
+    it('does not update the session when canceled', () => {
+      mockDialog.open.and.returnValue({
+        afterClosed: () => of(null),
+      } as any);
+
+      component.updateState();
+
+      expect(mockSessionService.updateSession).not.toHaveBeenCalled();
+      expect(component.currentSessionState).toEqual(originalState);
+    });
+
+    it('preserves pending updates when no session exists', () => {
+      component.sessionId = '';
+
+      mockDialog.open.and.returnValue({
+        afterClosed: () => of(editedState),
+      } as any);
+
+      component.updateState();
+
+      expect(mockSessionService.updateSession).not.toHaveBeenCalled();
+      expect(component.updatedSessionState()).toEqual(editedState);
+    });
+
+    it('preserves state and reports API failures', () => {
+      spyOn(console, 'error');
+
+      mockDialog.open.and.returnValue({
+        afterClosed: () => of(editedState),
+      } as any);
+
+      component.updateState();
+
+      mockSessionService.updateSessionResponse.error(
+          new Error('Request failed'),
+      );
+
+      expect(component.currentSessionState).toEqual(originalState);
+      expect(mockSnackBar.open).toHaveBeenCalledWith(
+          'Failed to update session state',
+          'OK',
+      );
+    });
+  });
 
   describe('ChatPanel integration', () => {
     beforeEach(() => {
