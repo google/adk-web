@@ -16,7 +16,7 @@
  */
 
 import {Location} from '@angular/common';
-import {Catalog} from '@a2ui/angular/v0_8';
+import {Catalog, MessageProcessor} from '@a2ui/angular/v0_8';
 import {HttpErrorResponse} from '@angular/common/http';
 import {ChangeDetectionStrategy, Component, ElementRef, ErrorHandler, Input} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
@@ -189,6 +189,7 @@ describe('ChatComponent', () => {
   let mockUiStateService: MockUiStateService;
   let mockErrorHandler: jasmine.SpyObj<ErrorHandler>;
   let mockAgentBuilderService: jasmine.SpyObj<any>;
+  let a2uiMessageProcessor: MessageProcessor;
 
   beforeEach(async () => {
     mockTelemetryService = new MockTelemetryService();
@@ -327,11 +328,42 @@ describe('ChatComponent', () => {
 
     fixture = TestBed.createComponent(ChatComponent);
     component = fixture.componentInstance;
+    a2uiMessageProcessor = TestBed.inject(MessageProcessor);
     fixture.detectChanges();
     await fixture.whenStable();
   });
 
   describe('Component Initialization', () => {
+    it('routes A2UI user actions through the current session and completes dispatch', async () => {
+      component.appName = TEST_APP_1_NAME;
+      component.sessionId = SESSION_1_ID;
+      spyOn(component, 'sendMessage').and.resolveTo();
+
+      const completion = a2uiMessageProcessor.dispatch({
+        userAction: {
+          name: 'clicked',
+          surfaceId: 'surface-1',
+          sourceComponentId: 'button-1',
+          timestamp: '2026-10-31T00:00:00.000Z',
+          context: {choice: 'yes'},
+        },
+      });
+
+      await expectAsync(completion).toBeResolvedTo([]);
+      expect(component.sendMessage).toHaveBeenCalledWith({
+        role: 'user',
+        parts: [{text: JSON.stringify({
+          userAction: {
+            name: 'clicked',
+            surfaceId: 'surface-1',
+            sourceComponentId: 'button-1',
+            timestamp: '2026-10-31T00:00:00.000Z',
+            context: {choice: 'yes'},
+          },
+        })}],
+      });
+    });
+
     it('should create', () => {
       expect(component).toBeTruthy();
     });
