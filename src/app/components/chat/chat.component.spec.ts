@@ -1648,6 +1648,37 @@ describe('ChatComponent', () => {
               .toHaveBeenCalledTimes(1);
         },
     );
+
+    const renderJsonArtifact = async (inlineData: object) => {
+      mockArtifactService.getArtifactVersion.and.returnValue(
+          of({inlineData: {mimeType: 'application/json', data: 'e30=', ...inlineData}}),
+      );
+      component.userInput = 'test message';
+      await component.sendMessage(
+          new KeyboardEvent('keydown', {key: 'Enter'}),
+      );
+      mockAgentService.runSseResponse.next({
+        id: 'event-1',
+        author: 'bot',
+        content: {role: 'bot', parts: []},
+        actions: {artifactDelta: {'incident_data.json': 0}},
+      });
+      fixture.detectChanges();
+      return component.uiEvents().find(e => e.event?.id === 'event-1')!;
+    };
+
+    it('should label a chat artifact with its filename', async () => {
+      const uiEvent = await renderJsonArtifact({});
+
+      expect(uiEvent.inlineData!.name).toBe('incident_data.json');
+    });
+
+    it('should prefer the display name of a chat artifact', async () => {
+      const uiEvent =
+          await renderJsonArtifact({displayName: 'Full data for incident 42'});
+
+      expect(uiEvent.inlineData!.name).toBe('Full data for incident 42');
+    });
   });
 
   describe('isEventA2aResponse', () => {
