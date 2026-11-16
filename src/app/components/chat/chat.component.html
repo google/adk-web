@@ -51,34 +51,25 @@
         }
         <mat-icon class="selector-caret" fontSet="material-symbols-outlined">arrow_drop_down</mat-icon>
       </button>
-      @if (!isBuilderMode()) {
-        <div class="selector-group-divider"></div>
-        @if (graphsAvailable()) {
-          <span [matTooltip]="!graphsAvailable() ? 'Agent structure graph is not available for this agent' : 'View Agent Structure Graph'" matTooltipPosition="below">
-            <button mat-icon-button class="toolbar-icon-button"
-              [disabled]="!graphsAvailable()"
-              (click)="openAgentStructureGraphDialog()"
-              matTooltipPosition="below">
-              <mat-icon>account_tree</mat-icon>
-            </button>
-          </span>
-        }
-        <span [matTooltip]="disableBuilderSwitch ? 'Editing is not available for this agent because it was not built by the builder' : 'Edit in Builder Mode'" matTooltipPosition="below">
+      <div class="selector-group-divider"></div>
+      @if (graphsAvailable()) {
+        <span [matTooltip]="!graphsAvailable() ? 'Agent structure graph is not available for this agent' : 'View Agent Structure Graph'" matTooltipPosition="below">
           <button mat-icon-button class="toolbar-icon-button"
-            [disabled]="disableBuilderSwitch"
-            (click)="enterBuilderMode()">
-            <mat-icon>edit</mat-icon>
-          </button>
-        </span>
-        <span matTooltip="Deploy this agent" matTooltipPosition="below">
-          <button mat-icon-button class="toolbar-icon-button"
-            [disabled]="!appName"
-            (click)="openDeployDialog()"
-            aria-label="Deploy this agent">
-            <mat-icon fontSet="material-symbols-outlined">rocket_launch</mat-icon>
+            [disabled]="!graphsAvailable()"
+            (click)="openAgentStructureGraphDialog()"
+            matTooltipPosition="below">
+            <mat-icon>account_tree</mat-icon>
           </button>
         </span>
       }
+      <span matTooltip="Deploy this agent" matTooltipPosition="below">
+        <button mat-icon-button class="toolbar-icon-button"
+          [disabled]="!appName"
+          (click)="openDeployDialog()"
+          aria-label="Deploy this agent">
+          <mat-icon fontSet="material-symbols-outlined">rocket_launch</mat-icon>
+        </button>
+      </span>
     </div>
   </div>
   @if (appName) {
@@ -241,9 +232,6 @@
     <div class="selector-drawer-header">
       <span class="selector-drawer-title">Select an App</span>
       <div>
-        <button mat-icon-button class="toolbar-icon-button" (click)="openAddItemDialog()" matTooltip="Create new agent" matTooltipPosition="below" aria-label="Create new agent">
-          <mat-icon>add</mat-icon>
-        </button>
         <button mat-icon-button class="toolbar-icon-button" (click)="toggleAppSelectorDrawer()" aria-label="Close app selector">
           <mat-icon>close</mat-icon>
         </button>
@@ -362,7 +350,6 @@
 
   <mat-drawer-container class="side-panel-container" autosize>
   <mat-drawer class="side-drawer" #sideDrawer [mode]="isMobile() ? 'over' : 'side'" appResizableDrawer>
-    @if (!isBuilderMode()) {
     <app-side-panel
       [isApplicationSelectorEnabledObs]="isApplicationSelectorEnabledObs"
       [showSidePanel]="showSidePanel"
@@ -382,7 +369,6 @@
       [selectedEventGraphPath]="selectedEventGraphPath"
       [llmRequest]="llmRequest"
       [llmResponse]="llmResponse"
-      [disableBuilderIcon]="disableBuilderSwitch"
       [hasSubWorkflows]="hasSubWorkflows"
       [graphsAvailable]="graphsAvailable()"
       [invocationDisplayMap]="invocationDisplayMap()"
@@ -400,8 +386,6 @@
       (page)="handlePageEvent($event)"
       (closeSelectedEvent)="closeSelectedEvent()"
       (openImageDialog)="openViewImageDialog($event)"
-      (openAddItemDialog)="openAddItemDialog()"
-      (enterBuilderMode)="enterBuilderMode()"
       (showAgentStructureGraph)="openAgentStructureGraphDialog('event')"
       (switchToEvent)="selectEvent($event)"
       (switchToTraceView)="switchToTraceView()"
@@ -409,56 +393,8 @@
       (selectEventById)="selectEvent($event)"
     >
     </app-side-panel>
-    } @else {
-    <app-builder-tabs
-      [appNameInput]="appName"
-      (exitBuilderMode)="exitBuilderMode()"
-      (closePanel)="toggleSidePanel()"
-    ></app-builder-tabs>
-    <div class="resize-handler"></div>
-    }
   </mat-drawer>
 
-  <!-- Builder Mode Layout - Canvas for Diagrams -->
-  @if (isBuilderMode()) {
-  <div class="builder-mode-container">
-    <div class="builder-exit-button">
-      <button
-        mat-icon-button
-        (click)="saveAgentBuilder()"
-        class="builder-mode-action-button"
-        matTooltip="Accept"
-      >
-        <mat-icon>check</mat-icon>
-      </button>
-      <button
-        mat-icon-button
-        (click)="exitBuilderMode()"
-        class="builder-mode-action-button"
-        matTooltip="Exit Builder Mode"
-      >
-        <mat-icon>close</mat-icon>
-      </button>
-      <button
-        mat-icon-button
-        (click)="toggleBuilderAssistant()"
-        class="builder-mode-action-button"
-        matTooltip="Builder Assistant"
-        [class.active]="showBuilderAssistant"
-      >
-        <mat-icon>assistant</mat-icon>
-      </button>
-    </div>
-    <app-canvas
-      [showSidePanel]="showSidePanel"
-      [showBuilderAssistant]="showBuilderAssistant"
-      [appNameInput]="appName"
-      (toggleSidePanelRequest)="toggleSidePanel()"
-      (builderAssistantCloseRequest)="toggleBuilderAssistant()"
-    ></app-canvas>
-  </div>
-  } @else {
-  <!-- Test Mode Layout (existing chat interface) -->
   <div class="chat-container">
     <ng-content select="[adk-web-chat-container-top]"></ng-content>
     <mat-card class="chat-card" [class.no-side-panel]="!showSidePanel">
@@ -923,7 +859,6 @@
     </mat-card>
 
   </div>
-  }
 
   </mat-drawer-container>
 </mat-drawer-container>

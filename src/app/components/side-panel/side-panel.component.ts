@@ -83,8 +83,6 @@ export class SidePanelComponent implements AfterViewInit, OnInit {
   llmResponse = input<LlmResponse|undefined>();
   showSidePanel = input(false);
   readonly isApplicationSelectorEnabledObs = input<Observable<boolean>>(of(false));
-  readonly isBuilderMode = input<boolean>(false);
-  readonly disableBuilderIcon = input<boolean>(false);
   readonly hasSubWorkflows = input<boolean>(false);
   readonly graphsAvailable = input<boolean>(true);
   readonly invocationDisplayMap = input<Map<string, string>>(new Map());
@@ -106,8 +104,6 @@ export class SidePanelComponent implements AfterViewInit, OnInit {
   readonly switchToEvent = output<string>();
   readonly closeSelectedEvent = output<void>();
   readonly openImageDialog = output<string|null>();
-  readonly openAddItemDialog = output<boolean>();
-  readonly enterBuilderMode = output<boolean>();
   readonly showAgentStructureGraph = output<boolean>();
   readonly switchToTraceView = output<void>();
   readonly drillDownNodePath = output<string>();

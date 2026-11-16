@@ -109,10 +109,6 @@ Go to `localhost:4200` and start developing!
 
 <img width="2536" height="777" alt="adk-web-eval-2" src="https://github.com/user-attachments/assets/fb5f97e7-8bcc-4512-8b8e-a1123ee78c8e" />
 
-### Agent builder & assistant
-
-![1_h3_I7RjXGLKH5-Td0U2rgw](https://github.com/user-attachments/assets/f73409c4-9b75-474a-9b86-c4525d376b02)
-
 ### And more!
 
 ## 🤝 Contributing

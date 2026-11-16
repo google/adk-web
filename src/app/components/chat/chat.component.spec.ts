@@ -33,7 +33,6 @@ import {OPERATION_GENERATE_CONTENT} from '../../core/models/Trace';
 import {Session} from '../../core/models/Session';
 import {UiEvent} from '../../core/models/UiEvent';
 import {AGENT_SERVICE, AgentService} from '../../core/services/interfaces/agent';
-import {AGENT_BUILDER_SERVICE} from '../../core/services/interfaces/agent-builder';
 import {ARTIFACT_SERVICE, ArtifactService,} from '../../core/services/interfaces/artifact';
 import {AUDIO_PLAYING_SERVICE} from '../../core/services/interfaces/audio-playing';
 import {AUDIO_RECORDING_SERVICE} from '../../core/services/interfaces/audio-recording';
@@ -188,7 +187,6 @@ describe('ChatComponent', () => {
   let graphService: MockGraphService;
   let mockUiStateService: MockUiStateService;
   let mockErrorHandler: jasmine.SpyObj<ErrorHandler>;
-  let mockAgentBuilderService: jasmine.SpyObj<any>;
 
   beforeEach(async () => {
     mockTelemetryService = new MockTelemetryService();
@@ -244,8 +242,6 @@ describe('ChatComponent', () => {
     );
     mockRouter.parseUrl.and.returnValue({queryParams: {}} as any);
     mockLocation = jasmine.createSpyObj('Location', ['replaceState', 'path']);
-    mockAgentBuilderService = jasmine.createSpyObj(
-        'AgentBuilderService', ['clear', 'setLoadedAgentData']);
 
     mockActivatedRoute = {
       snapshot: {
@@ -262,8 +258,6 @@ describe('ChatComponent', () => {
       return appName;
     });
     mockAgentService.getLoadingStateResponse.next(false);
-    mockAgentService.getAgentBuilderResponse.next('');
-    mockAgentService.getAgentBuilderTmpResponse.next('');
     mockRouter.createUrlTree.and.returnValue({
       toString: () => '/?session=session-id',
     } as any);
@@ -316,7 +310,6 @@ describe('ChatComponent', () => {
             {provide: MARKDOWN_COMPONENT, useValue: MockMarkdownComponent},
             {provide: UI_STATE_SERVICE, useValue: mockUiStateService},
             {provide: ErrorHandler, useValue: mockErrorHandler},
-            {provide: AGENT_BUILDER_SERVICE, useValue: mockAgentBuilderService},
             {provide: TelemetryService, useValue: mockTelemetryService},
             {provide: THEME_SERVICE, useClass: MockThemeService},
           ],

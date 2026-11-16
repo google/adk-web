@@ -37,7 +37,7 @@ import { MatToolbar } from '@angular/material/toolbar';
 import { SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { CustomJsonViewerComponent } from '../custom-json-viewer/custom-json-viewer.component';
-import { combineLatest, firstValueFrom, forkJoin, Observable, of, Subscription } from 'rxjs';
+import { combineLatest, firstValueFrom, Observable, of, Subscription } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, first, map, shareReplay, startWith, switchMap, take, tap } from 'rxjs/operators';
 
 import { URLUtil } from '../../../utils/url-util';
@@ -48,7 +48,6 @@ import { Session, SessionState } from '../../core/models/Session';
 import { Event as AdkEvent, Part } from '../../core/models/types';
 import { UiEvent } from '../../core/models/UiEvent';
 import { AGENT_SERVICE } from '../../core/services/interfaces/agent';
-import { AGENT_BUILDER_SERVICE } from '../../core/services/interfaces/agent-builder';
 import { ARTIFACT_SERVICE } from '../../core/services/interfaces/artifact';
 import { DOWNLOAD_SERVICE } from '../../core/services/interfaces/download';
 import { EVAL_SERVICE } from '../../core/services/interfaces/eval';
@@ -73,12 +72,9 @@ import { LOCATION_SERVICE } from '../../core/services/location.service';
 import { TestsService } from '../../core/services/tests.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { ResizableDrawerDirective } from '../../directives/resizable-drawer.directive';
-import { AddItemDialogComponent } from '../add-item-dialog/add-item-dialog.component';
 import { AgentStructureGraphDialogComponent } from '../agent-structure-graph-dialog/agent-structure-graph-dialog';
 import { getMediaTypeFromMimetype, MediaType } from '../artifact-tab/artifact-tab.component';
 import { pcmChunksToWavBase64 } from '../../core/utils/audio';
-import { BuilderTabsComponent } from '../builder-tabs/builder-tabs.component';
-import { CanvasComponent } from '../canvas/canvas.component';
 import { ChatPanelComponent } from '../chat-panel/chat-panel.component';
 import { DeployDialogComponent } from '../deploy-dialog/deploy-dialog.component';
 import { EditJsonDialogComponent } from '../edit-json-dialog/edit-json-dialog.component';
@@ -184,8 +180,6 @@ const BIDI_STREAMING_IN_PROGRESS_WARNING =
     ChatPanelComponent,
     AgentStructureGraphDialogComponent,
     SidePanelComponent,
-    CanvasComponent,
-    BuilderTabsComponent,
     SessionTabComponent,
     InlineEditComponent,
     FormatMetricNamePipe,
@@ -223,7 +217,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly stringToColorService = inject(STRING_TO_COLOR_SERVICE);
   private readonly traceService = inject(TRACE_SERVICE);
   protected readonly uiStateService = inject(UI_STATE_SERVICE);
-  protected readonly agentBuilderService = inject(AGENT_BUILDER_SERVICE);
   protected readonly themeService = inject(THEME_SERVICE, { optional: true });
   protected readonly telemetryService = inject(TelemetryService);
   protected readonly analyticsService = inject(AnalyticsService);
@@ -234,7 +227,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private activeSseSubscription?: Subscription;
 
   chatPanel = viewChild(ChatPanelComponent);
-  canvasComponent = viewChild.required(CanvasComponent);
   sideDrawer = viewChild.required<MatDrawer>('sideDrawer');
   sidePanel = viewChild.required(SidePanelComponent);
   drawerSessionTab = viewChild<SessionTabComponent>('drawerSessionTab');
@@ -245,7 +237,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   isEvalCaseEditing = signal(false);
   hasEvalCaseChanged = signal(false);
   isEvalEditMode = signal(false);
-  isBuilderMode = signal(false);  // Default to builder mode off
   chatType = signal<ChatType>('session');
   currentEvalCaseId: string | null = null;
   currentEvalTimestamp: string | null = null;
@@ -322,7 +313,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private agentIdentityMsgListener: ((e: MessageEvent) => void) | null = null;
   isMobile = signal(window.innerWidth <= 768);
   showSidePanel = this.storageService.getItem('adk-side-panel-visible') !== 'false';
-  showBuilderAssistant = true;
   showAppSelectorDrawer = false;
   showSessionSelectorDrawer = false;
   useSse = signal(this.storageService.getItem('adk-use-sse') === 'true');
@@ -814,8 +804,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.featureFlagService.isDeveloperUiDisclaimerEnabled();
 
 
-  // Builder
-  disableBuilderSwitch = false;
   autoSelectLatestEvent = false;
 
   constructor() {
@@ -3689,68 +3677,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.storageService.setItem('adk-use-sse', String(this.useSse()));
   }
 
-  enterBuilderMode() {
-    const url = this.router
-      .createUrlTree([], {
-        queryParams: { mode: 'builder' },
-        queryParamsHandling: 'merge',
-      })
-      .toString();
-    this.location.replaceState(url);
-    this.isBuilderMode.set(true);
-    this.analyticsService.sendEvent('builder_enter_click');
-
-    // Load existing agent configuration if app is selected
-    if (this.appName) {
-      this.loadExistingAgentConfiguration();
-    }
-  }
-
-
-  private loadExistingAgentConfiguration() {
-    const rootYaml$ = this.agentService.getAgentBuilderTmp(this.appName);
-    const pluginsYaml$ = this.agentService.getSubAgentBuilder(this.appName, 'plugins.yaml').pipe(
-      catchError(() => of(''))
-    );
-
-    forkJoin([rootYaml$, pluginsYaml$]).subscribe({
-      next: ([rootContent, pluginsContent]) => {
-        if (rootContent) {
-          this.canvasComponent()?.loadFromYaml(rootContent, this.appName, pluginsContent);
-        }
-      },
-      error: (error: any) => {
-        console.error('Error loading agent configuration:', error);
-        this.openSnackBar('Error loading agent configuration', 'OK');
-      },
-    });
-  }
-
-  protected exitBuilderMode() {
-    const url = this.router
-      .createUrlTree([], {
-        queryParams: { mode: null },
-        queryParamsHandling: 'merge',
-      })
-      .toString();
-    this.location.replaceState(url);
-    this.isBuilderMode.set(false);
-    this.agentBuilderService.clear();
-  }
-
-  protected toggleBuilderAssistant() {
-    this.showBuilderAssistant = !this.showBuilderAssistant;
-  }
-
-  openAddItemDialog(): void {
-    this.apps$.pipe(take(1)).subscribe((apps) => {
-      const dialogRef = this.dialog.open(AddItemDialogComponent, {
-        width: '600px',
-        data: { existingAppNames: apps ?? [] },
-      });
-    });
-  }
-
   eventGraphSvgLight: Record<string, string> = {};
   eventGraphSvgDark: Record<string, string> = {};
   selectedEventGraphPath: string = '';
@@ -3771,10 +3697,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       maxWidth: '90vw',
       data: { appName: this.appName },
     });
-  }
-
-  saveAgentBuilder() {
-    this.canvasComponent()?.saveAgent(this.appName);
   }
 
   onEventTabDrillDown(path: string) {
@@ -4734,25 +4656,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
             setTimeout(() => this.graphsAvailable.set(false));
           }
         });
-        this.agentService.getAgentBuilder(app).pipe(
-          catchError((error: HttpErrorResponse) => {
-            setTimeout(() => this.disableBuilderSwitch = true);
-            this.agentBuilderService.setLoadedAgentData(undefined);
-            return of('');
-          })
-        ).subscribe((res: any) => {
-          if (!res || res == '') {
-            setTimeout(() => this.disableBuilderSwitch = true);
-            this.agentBuilderService.setLoadedAgentData(undefined);
-          } else {
-            setTimeout(() => this.disableBuilderSwitch = false);
-            this.agentBuilderService.setLoadedAgentData(res);
-          }
-        });
-        this.isBuilderMode.set(false);
-      }
-      if (params['mode'] === 'builder') {
-        this.enterBuilderMode();
       }
     });
   }
