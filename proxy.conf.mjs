@@ -35,21 +35,32 @@ const target = process.env.ADK_BACKEND ?? 'http://127.0.0.1:8000';
 // requests that disagree. Rewriting Host makes every POST/PATCH/DELETE 403.
 const api = (extra = {}) => ({target, secure: false, ...extra});
 
+/**
+ * One API path and everything under it.
+ *
+ * A plain-string key is matched as a prefix of the whole request URL, so
+ * '/dev' also captures '/dev-ui/...' -- the prebuilt Dev UI the backend
+ * serves. The browser then loads that bundle instead of the one the dev
+ * server just built, and local changes silently do not appear.
+ *
+ * A key beginning with '^' is compiled to a RegExp instead, which lets the
+ * boundary be stated: the path either ends here or continues after a '/', and
+ * a query string or fragment still matches because the URL is tested whole.
+ */
+const endpoint = (path) => `^${path}(?:[/?#]|$)`;
+
 export default {
-  '/list-apps': api(),
-  '/version': api(),
-  '/health': api(),
+  [endpoint('/list-apps')]: api(),
+  [endpoint('/version')]: api(),
+  [endpoint('/health')]: api(),
   // `ws: true` is what makes the upgrade work; without it the handshake times
-  // out. Keep specific paths above '/run' for readability.
-  '/run_live': api({ws: true}),
-  '/run_sse': api(),
-  '/run': api(),
-  '/apps': api(),
-  '/apps/**': api(),
-  '/dev': api(),
-  '/dev/**': api(),
-  '/config': api(),
-  '/config/**': api(),
-  '/agent-identity': api(),
-  '/agent-identity/**': api(),
+  // out. '/run_live' needs its own entry rather than riding on '/run', which
+  // now stops at the path boundary.
+  [endpoint('/run_live')]: api({ws: true}),
+  [endpoint('/run_sse')]: api(),
+  [endpoint('/run')]: api(),
+  [endpoint('/apps')]: api(),
+  [endpoint('/dev')]: api(),
+  [endpoint('/config')]: api(),
+  [endpoint('/agent-identity')]: api(),
 };
