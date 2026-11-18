@@ -148,66 +148,6 @@ export class AgentService implements AgentServiceInterface {
     return new Observable<any>();
   }
 
-  agentBuild(appName: string, req: any): Observable<boolean> {
-    if (this.apiServerDomain != undefined) {
-      const url =
-        this.apiServerDomain + `/dev/apps/${appName}/builder/save`;
-      return this.http.post<any>(url, req);
-    }
-    return new Observable<false>();
-  }
-
-  agentBuildTmp(appName: string, req: any): Observable<boolean> {
-    if (this.apiServerDomain != undefined) {
-      const url =
-        this.apiServerDomain + `/dev/apps/${appName}/builder/save?tmp=true`;
-      return this.http.post<any>(url, req);
-    }
-    return new Observable<false>();
-  }
-
-  getAgentBuilder(agentName: string) {
-    if (this.apiServerDomain != undefined) {
-      const url =
-        this.apiServerDomain + `/dev/apps/${agentName}/builder?ts=${Date.now()}`
-      return this.http.get(url, {
-        responseType: 'text'
-      });
-    }
-    return new Observable<"">();
-  }
-
-  getAgentBuilderTmp(agentName: string) {
-    if (this.apiServerDomain != undefined) {
-      const url =
-        this.apiServerDomain + `/dev/apps/${agentName}/builder?ts=${Date.now()}&tmp=true`
-      return this.http.get(url, {
-        responseType: 'text'
-      });
-    }
-    return new Observable<"">();
-  }
-
-  getSubAgentBuilder(appName: string, relativePath: string) {
-    if (this.apiServerDomain != undefined) {
-      let url =
-        this.apiServerDomain + `/dev/apps/${appName}/builder?ts=${Date.now()}&file_path=${relativePath}&tmp=true`
-      return this.http.get(url, {
-        responseType: 'text'
-      });
-    }
-    return new Observable<"">();
-  }
-
-  agentChangeCancel(appName: string) {
-    if (this.apiServerDomain != undefined) {
-      let url =
-        this.apiServerDomain + `/dev/apps/${appName}/builder/cancel`
-      return this.http.post<any>(url, {});
-    }
-    return new Observable<false>();
-  }
-
   getAppInfo(appName: string) {
     if (this.apiServerDomain != undefined) {
       let url = this.apiServerDomain + `/dev/apps/${appName}/build_graph`
