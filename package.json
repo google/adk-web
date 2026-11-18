@@ -34,7 +34,6 @@
     "tslib": "^2.3.0",
     "uuidv7": "^1.0.2",
     "vanilla-jsoneditor": "^3.6.0",
-    "yaml": "^2.8.0",
     "zod": "^4.4.3",
     "zone.js": "~0.15.0"
   },
