@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {ChangeDetectionStrategy, Component, computed, input, output, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, input, linkedSignal, output, signal} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 
@@ -82,6 +82,19 @@ export class ToolConfirmationComponent {
       computed(() => isFileEditCall(this.request()?.call));
   protected readonly hasPayload =
       computed(() => this.request()?.payload !== undefined);
+  protected readonly hasEditablePayload =
+      computed(() => this.request()?.payload != null);
+  protected readonly payloadJson = linkedSignal(
+      () => JSON.stringify(this.request()?.payload, null, 2) ?? '');
+  protected readonly payloadInvalid = computed(() => {
+    if (!this.hasEditablePayload()) return false;
+    try {
+      JSON.parse(this.payloadJson());
+      return false;
+    } catch {
+      return true;
+    }
+  });
   /** Set once the user answers, which hides the buttons. */
   protected readonly answered = signal(false);
 
@@ -93,7 +106,7 @@ export class ToolConfirmationComponent {
   protected respond(confirmed: boolean) {
     const functionCall = this.functionCall();
     const request = this.request();
-    if (!functionCall || !request) return;
+    if (!functionCall || !request || this.payloadInvalid()) return;
     this.answered.set(true);
     functionCall.responseStatus = 'sent';
     this.responseComplete.emit({
@@ -104,9 +117,10 @@ export class ToolConfirmationComponent {
           name: functionCall.name,
           response: {
             confirmed,
-            // The tool reads the payload it asked about, or the call's args
-            // when it sent none.
-            payload: request.payload ?? request.call.args,
+            // A supplied payload is editable; simple confirmation keeps the
+            // original args. Preserve JSON null entered in the editor.
+            payload: this.hasEditablePayload() ?
+                JSON.parse(this.payloadJson()) : request.payload ?? request.call.args,
           },
         },
       }],

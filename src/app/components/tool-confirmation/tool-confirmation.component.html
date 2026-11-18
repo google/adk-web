@@ -35,16 +35,32 @@
       </div>
       @if (hasPayload()) {
         <div class="confirmation-payload">
-          <div class="confirmation-label">Details</div>
-          <app-custom-json-viewer [json]="confirmationRequest.payload"></app-custom-json-viewer>
+          @if (hasEditablePayload()) {
+            <label class="confirmation-label" [for]="'confirmation-payload-' + functionCall()?.id">Payload</label>
+            <textarea #payloadInput class="confirmation-payload-editor"
+                [id]="'confirmation-payload-' + functionCall()?.id"
+                [value]="payloadJson()" (input)="payloadJson.set(payloadInput.value)"
+                [attr.aria-invalid]="payloadInvalid()"
+                [attr.aria-describedby]="payloadInvalid() ? 'confirmation-payload-error-' + functionCall()?.id : null"
+                rows="4"></textarea>
+            @if (payloadInvalid()) {
+              <div class="confirmation-payload-error" role="alert"
+                  [id]="'confirmation-payload-error-' + functionCall()?.id">
+                Enter valid JSON before approving or rejecting.
+              </div>
+            }
+          } @else {
+            <div class="confirmation-label">Details</div>
+            <app-custom-json-viewer [json]="confirmationRequest.payload"></app-custom-json-viewer>
+          }
         </div>
       }
       <div class="confirmation-actions">
-        <button mat-stroked-button class="confirmation-reject" (click)="respond(false)">
+        <button mat-stroked-button class="confirmation-reject" [disabled]="payloadInvalid()" (click)="respond(false)">
           <mat-icon>block</mat-icon>
           Reject
         </button>
-        <button mat-flat-button class="confirmation-approve" (click)="respond(true)">
+        <button mat-flat-button class="confirmation-approve" [disabled]="payloadInvalid()" (click)="respond(true)">
           <mat-icon>check</mat-icon>
           Approve
         </button>

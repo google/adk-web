@@ -78,7 +78,8 @@ describe('ToolConfirmationComponent', () => {
     fixture.detectChanges();
 
     expect(query('.confirmation-hint')).toBeNull();
-    expect(text('.confirmation-payload')).toContain('currency');
+    const payload = query('textarea') as HTMLTextAreaElement;
+    expect(JSON.parse(payload.value)).toEqual({amount: 25, currency: 'USD'});
   });
 
   it('sends the approval with the tool\'s payload and hides the buttons', () => {
@@ -124,6 +125,149 @@ describe('ToolConfirmationComponent', () => {
 
     expect(sent?.parts[0].functionResponse.response)
         .toEqual({confirmed: false, payload: {name: 'notes.txt'}});
+  });
+
+  describe('editable confirmation payload', () => {
+    let responseComplete: jasmine.Spy;
+
+    beforeEach(() => {
+      responseComplete = jasmine.createSpy('responseComplete');
+      fixture.componentInstance.responseComplete.subscribe(responseComplete);
+    });
+
+    function showPayload(payload: unknown) {
+      const call = confirmationCall(
+          {name: 'request_time_off', args: {days: 5}},
+          {hint: 'Please enter the approved days.', payload});
+      fixture.componentRef.setInput('functionCall', call);
+      fixture.detectChanges();
+      return call;
+    }
+
+    function textarea(): HTMLTextAreaElement {
+      return query('textarea') as HTMLTextAreaElement;
+    }
+
+    function button(confirmed: boolean): HTMLButtonElement {
+      return query(confirmed ? '.confirmation-approve' : '.confirmation-reject') as
+          HTMLButtonElement;
+    }
+
+    function enterPayload(value: string) {
+      textarea().value = value;
+      textarea().dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    }
+
+    function expectResponse(confirmed: boolean, payload: unknown) {
+      expect(responseComplete).toHaveBeenCalledOnceWith({
+        role: 'user',
+        parts: [{
+          functionResponse: {
+            id: 'confirm-1',
+            name: 'adk_request_confirmation',
+            response: {confirmed, payload},
+          },
+        }],
+        functionCallEventId: 'event-1',
+      });
+    }
+
+    for (const confirmed of [true, false]) {
+      it(`submits the edited payload with confirmed=${confirmed}`, () => {
+        const call = showPayload({approved_days: 0});
+
+        expect(JSON.parse(textarea().value)).toEqual({approved_days: 0});
+        expect(textarea().labels?.[0].textContent).toContain('Payload');
+        enterPayload('{"approved_days": 3}');
+        button(confirmed).click();
+        fixture.detectChanges();
+
+        expectResponse(confirmed, {approved_days: 3});
+        expect(call.responseStatus).toBe('sent');
+        expect(query('textarea')).toBeNull();
+      });
+
+      it(`blocks invalid JSON and recovers for confirmed=${confirmed}`, () => {
+        const call = showPayload({approved_days: 0});
+        enterPayload('{"approved_days":');
+
+        expect(button(true).disabled).toBeTrue();
+        expect(button(false).disabled).toBeTrue();
+        expect(textarea().getAttribute('aria-invalid')).toBe('true');
+        const error = query('[role="alert"]')!;
+        expect(error.textContent).toContain('valid JSON');
+        expect(textarea().getAttribute('aria-describedby')).toBe(error.id);
+        button(confirmed).click();
+        (fixture.componentInstance as unknown as {
+          respond(confirmed: boolean): void;
+        }).respond(confirmed);
+        expect(responseComplete).not.toHaveBeenCalled();
+        expect(call.responseStatus).not.toBe('sent');
+        expect(textarea().value).toBe('{"approved_days":');
+
+        enterPayload('{"approved_days": 2}');
+
+        expect(button(confirmed).disabled).toBeFalse();
+        expect(query('[role="alert"]')).toBeNull();
+        button(confirmed).click();
+        expectResponse(confirmed, {approved_days: 2});
+      });
+
+      for (const payload of [undefined, null]) {
+        it(`keeps simple ${payload} confirmation with confirmed=${confirmed}`, () => {
+          showPayload(payload);
+
+          expect(query('textarea')).toBeNull();
+          expect(button(confirmed).disabled).toBeFalse();
+          button(confirmed).click();
+          expectResponse(confirmed, {days: 5});
+        });
+      }
+    }
+
+    for (const payload of [false, 0, '', [], ['first'], {}]) {
+      it(`edits a provided ${JSON.stringify(payload)} payload`, () => {
+        showPayload(payload);
+
+        expect(JSON.parse(textarea().value)).toEqual(payload);
+        button(true).click();
+        expectResponse(true, payload);
+      });
+    }
+
+    for (const payload of [null, false, 0, '', ['first', {nested: true}]]) {
+      it(`submits entered JSON ${JSON.stringify(payload)}`, () => {
+        showPayload({approved_days: 0});
+        enterPayload(JSON.stringify(payload));
+
+        expect(button(true).disabled).toBeFalse();
+        button(true).click();
+        expectResponse(true, payload);
+      });
+    }
+
+    it('does not replace empty input with the original arguments', () => {
+      const call = showPayload({approved_days: 0});
+      enterPayload('');
+
+      expect(button(true).disabled).toBeTrue();
+      (fixture.componentInstance as unknown as {
+        respond(confirmed: boolean): void;
+      }).respond(true);
+      expect(responseComplete).not.toHaveBeenCalled();
+      expect(call.responseStatus).not.toBe('sent');
+    });
+
+    it('resets invalid input for a different confirmation request', () => {
+      showPayload({approved_days: 0});
+      enterPayload('{');
+      showPayload({user_name: ''});
+
+      expect(JSON.parse(textarea().value)).toEqual({user_name: ''});
+      expect(button(true).disabled).toBeFalse();
+      expect(query('[role="alert"]')).toBeNull();
+    });
   });
 
   it('shows the user\'s answer and a tool\'s approval placeholders', () => {
