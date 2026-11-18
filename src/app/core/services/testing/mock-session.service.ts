@@ -24,6 +24,9 @@ import {SessionService} from '../session.service';
 
 @Injectable()
 export class MockSessionService implements Partial<SessionService> {
+  updateSessionResponse = new ReplaySubject<Session>(1);
+  updateSession = jasmine.createSpy('updateSession')
+      .and.returnValue(this.updateSessionResponse);
   createSessionResponse = new ReplaySubject<Session>(1);
   createSession = jasmine.createSpy('createSession')
                       .and.returnValue(this.createSessionResponse);
