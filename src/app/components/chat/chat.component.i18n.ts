@@ -39,6 +39,8 @@ export const CHAT_MESSAGES = {
   cancelUserIdEditTooltip: 'Cancel editing user ID',
   invalidUserIdMessage: 'User ID cannot be empty',
   loadingSessionLabel: 'Loading session...',
+  sessionNotFoundMessage:
+      'This session is no longer available. Start a new session to continue.',
   tokenStreamingLabel: 'Token Streaming',
   moreOptionsTooltip: 'More options',
   createNewSessionTooltip: 'Create a new Session',
