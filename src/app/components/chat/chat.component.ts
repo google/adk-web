@@ -2108,7 +2108,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           const mediaType = getMediaTypeFromMimetype(mimeType);
 
           const inlineData = {
-            name: this.createDefaultArtifactName(mimeType),
+            name: res.inlineData?.displayName || artifactId,
             data: base64Data,
             mimeType: mimeType,
             mediaType,
@@ -4858,14 +4858,6 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         coordinates,
       },
     });
-  }
-
-  private createDefaultArtifactName(mimeType: string): string {
-    if (!mimeType || !mimeType.includes('/')) {
-      return '';
-    }
-
-    return mimeType.replace('/', '.');
   }
 
   protected exportSession() {
