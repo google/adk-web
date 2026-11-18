@@ -117,6 +117,94 @@ describe('EventContentComponent', () => {
     });
   });
 
+  describe('Human input responses', () => {
+    function renderResponses(
+        responses: Array<{name: string, response: any}>, role = 'user') {
+      component.uiEvent = new UiEvent({
+        role,
+        event: {id: 'human-response', author: role} as AdkEvent,
+        functionResponses: responses.map((response, index) => ({
+          id: `input-${index}`,
+          ...response,
+        })),
+      });
+      component.index = 0;
+      fixture.detectChanges();
+      return fixture.debugElement.queryAll(By.css('.user-input-response'));
+    }
+
+    it('shows a free-text answer while keeping its function response chip', () => {
+      const responses = renderResponses([
+        {name: 'adk_request_input', response: {result: 'yes'}},
+      ]);
+
+      expect(responses.length).toBe(1);
+      expect(responses[0]?.nativeElement.textContent).toBe('yes');
+      const chip = fixture.debugElement.query(By.css('app-hover-info-button'));
+      expect(chip.componentInstance.text).toBe('adk_request_input');
+      expect(chip.componentInstance.tooltipContent).toEqual({result: 'yes'});
+    });
+
+    it('preserves multiline text and displays markup literally', () => {
+      const answer = '<img src=x onerror="alert(1)">\n**Keep this literal**';
+      const responses = renderResponses([
+        {name: 'adk_request_input', response: {result: answer}},
+      ]);
+
+      expect(responses[0]?.nativeElement.textContent).toBe(answer);
+      expect(responses[0]?.query(By.css('img'))).toBeNull();
+      expect(responses[0]?.query(By.css('strong'))).toBeNull();
+    });
+
+    it('shows structured form answers without dropping false, zero or null', () => {
+      const answer = {approved: false, retries: 0, note: null, labels: ['a', 'b']};
+      const responses = renderResponses([
+        {name: 'adk_request_input', response: answer},
+      ]);
+
+      expect(responses[0]?.nativeElement.textContent)
+          .toBe(JSON.stringify(answer, null, 2));
+    });
+
+    it('keeps additional fields when a structured answer has a result field', () => {
+      const answer = {result: 'yes', reason: 'Reviewed the proposed change'};
+      const responses = renderResponses([
+        {name: 'adk_request_input', response: answer},
+      ]);
+
+      expect(responses[0]?.nativeElement.textContent)
+          .toBe(JSON.stringify(answer, null, 2));
+    });
+
+    it('shows every human input answer in the order it was sent', () => {
+      const responses = renderResponses([
+        {name: 'adk_request_input', response: {result: 'first'}},
+        {name: 'adk_request_input', response: {result: 'second'}},
+      ]);
+
+      expect(responses.map(response => response.nativeElement.textContent))
+          .toEqual(['first', 'second']);
+    });
+
+    it('does not present an agent tool result as a human answer', () => {
+      const responses = renderResponses([
+        {name: 'adk_request_input', response: {result: 'tool output'}},
+      ], 'bot');
+
+      expect(responses.length).toBe(0);
+    });
+
+    it('leaves other function responses in their existing chip format', () => {
+      const responses = renderResponses([
+        {name: 'get_weather', response: {result: 'sunny'}},
+      ]);
+
+      expect(responses.length).toBe(0);
+      const chip = fixture.debugElement.query(By.css('app-hover-info-button'));
+      expect(chip.componentInstance.text).toBe('get_weather');
+    });
+  });
+
   describe('Shell commands', () => {
     it('renders a shell command call under its function call chip', () => {
       component.uiEvent = new UiEvent({
