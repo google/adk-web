@@ -248,6 +248,34 @@ describe('SidePanelComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('refreshing a deleted eval case', () => {
+    it('refreshes the dynamically created tab for the matching eval set', () => {
+      const refresh = jasmine.createSpy('refreshAfterEvalCaseDeleted');
+      (component as any).evalTabRef.set({instance: {
+        appName: () => 'app', selectedEvalSet: () => 'set',
+        refreshAfterEvalCaseDeleted: refresh,
+      }});
+      component.refreshAfterEvalCaseDeleted('app', 'set', 'case');
+      expect(refresh).toHaveBeenCalledWith('case');
+    });
+
+    it('does not refresh a different eval set', () => {
+      const refresh = jasmine.createSpy('refreshAfterEvalCaseDeleted');
+      (component as any).evalTabRef.set({instance: {
+        appName: () => 'app', selectedEvalSet: () => 'other-set',
+        refreshAfterEvalCaseDeleted: refresh,
+      }});
+      component.refreshAfterEvalCaseDeleted('app', 'set', 'case');
+      expect(refresh).not.toHaveBeenCalled();
+    });
+
+    it('handles an unmounted eval tab', () => {
+      (component as any).evalTabRef.set(null);
+      expect(() => component.refreshAfterEvalCaseDeleted('app', 'set', 'case'))
+          .not.toThrow();
+    });
+  });
+
   describe('Tab hiding', () => {
     it('should hide Trace tab when isTraceEnabled is false', () => {
       mockFeatureFlagService.isTraceEnabledResponse.next(false);
