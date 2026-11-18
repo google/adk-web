@@ -26,7 +26,6 @@ import {of} from 'rxjs';
 import {AppComponent} from './app.component';
 import {EVAL_TAB_COMPONENT, EvalTabComponent} from './components/eval-tab/eval-tab.component';
 import {AGENT_SERVICE} from './core/services/interfaces/agent';
-import {AGENT_BUILDER_SERVICE} from './core/services/interfaces/agent-builder';
 import {ARTIFACT_SERVICE} from './core/services/interfaces/artifact';
 import {AUDIO_PLAYING_SERVICE} from './core/services/interfaces/audio-playing';
 import {AUDIO_RECORDING_SERVICE} from './core/services/interfaces/audio-recording';
@@ -88,7 +87,6 @@ describe('AppComponent', () => {
     const safeValuesService = new MockSafeValuesService();
     const localFileService = new MockLocalFileService();
     const mockUiStateService = new MockUiStateService();
-    const mockAgentBuilderService = jasmine.createSpyObj('AgentBuilderService', ['clear', 'setLoadedAgentData']);
 
     traceService.selectedTraceRow$.next(undefined);
     traceService.hoveredMessageIndices$.next([]);
@@ -201,10 +199,6 @@ describe('AppComponent', () => {
             {
               provide: UI_STATE_SERVICE,
               useValue: mockUiStateService,
-            },
-            {
-              provide: AGENT_BUILDER_SERVICE,
-              useValue: mockAgentBuilderService,
             },
             {
               provide: THEME_SERVICE,

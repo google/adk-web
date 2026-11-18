@@ -37,7 +37,6 @@ import {MarkdownComponent} from './app/components/markdown/markdown.component';
 import {MARKDOWN_COMPONENT} from './app/components/markdown/markdown.component.interface';
 import {A2UI_THEME} from './app/core/constants/a2ui-theme';
 import {RuntimeConfig} from './app/core/models/RuntimeConfig';
-import {AgentBuilderService} from './app/core/services/agent-builder.service';
 import {AgentService} from './app/core/services/agent.service';
 import {ArtifactService} from './app/core/services/artifact.service';
 import {AudioPlayingService} from './app/core/services/audio-playing.service';
@@ -50,7 +49,6 @@ import {FeatureFlagService} from './app/core/services/feature-flag.service';
 import {FeedbackService} from './app/core/services/feedback.service';
 import {GraphService} from './app/core/services/graph.service';
 import {AGENT_SERVICE} from './app/core/services/interfaces/agent';
-import {AGENT_BUILDER_SERVICE} from './app/core/services/interfaces/agent-builder';
 import {ARTIFACT_SERVICE} from './app/core/services/interfaces/artifact';
 import {AUDIO_PLAYING_SERVICE} from './app/core/services/interfaces/audio-playing';
 import {DEPLOY_SERVICE} from './app/core/services/interfaces/deploy';
@@ -137,7 +135,6 @@ fetch('./assets/config/runtime-config.json')
           ...(config.logo ?
                   [{provide: LOGO_COMPONENT, useValue: CustomLogoComponent}] :
                   []),
-          {provide: AGENT_BUILDER_SERVICE, useClass: AgentBuilderService},
           {provide: EVAL_TAB_COMPONENT, useValue: EvalTabComponent},
           provideAnimations(),
           provideMarkdown(),
