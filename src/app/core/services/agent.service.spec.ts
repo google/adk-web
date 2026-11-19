@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import {HttpXsrfTokenExtractor} from '@angular/common/http';
 import {HttpClientTestingModule, HttpTestingController,} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 // 1p-ONLY-IMPORTS: import {beforeEach, describe, expect, it}
@@ -143,6 +144,24 @@ describe('AgentService', () => {
             headers: {
               [HEADER_CONTENT_TYPE]: APPLICATION_JSON,
               [HEADER_ACCEPT]: TEXT_EVENT_STREAM,
+            },
+            body: JSON.stringify(RUN_SSE_PAYLOAD),
+            signal: jasmine.any(AbortSignal),
+          });
+    });
+
+    it('should include X-XSRF-TOKEN header when token is present', async () => {
+      const xsrfExtractor = TestBed.inject(HttpXsrfTokenExtractor);
+      spyOn(xsrfExtractor, 'getToken').and.returnValue('my-xsrf-token');
+      spyOn(window, 'fetch').and.resolveTo(new Response());
+      service.runSse(RUN_SSE_PAYLOAD).subscribe();
+      expect(window.fetch)
+          .toHaveBeenCalledWith(API_SERVER_BASE_URL + RUN_SSE_PATH, {
+            method: METHOD_POST,
+            headers: {
+              [HEADER_CONTENT_TYPE]: APPLICATION_JSON,
+              [HEADER_ACCEPT]: TEXT_EVENT_STREAM,
+              'X-XSRF-TOKEN': 'my-xsrf-token',
             },
             body: JSON.stringify(RUN_SSE_PAYLOAD),
             signal: jasmine.any(AbortSignal),

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpXsrfTokenExtractor } from '@angular/common/http';
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { URLUtil } from '../../../utils/url-util';
@@ -35,6 +35,7 @@ export class AgentService implements AgentServiceInterface {
   constructor(
     private http: HttpClient,
     private zone: NgZone,
+    private xsrfTokenExtractor: HttpXsrfTokenExtractor,
   ) { }
 
   getApp(): Observable<string> {
@@ -58,12 +59,18 @@ export class AgentService implements AgentServiceInterface {
       const signal = controller.signal;
       let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
 
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream',
+      };
+      const xsrfToken = this.xsrfTokenExtractor.getToken();
+      if (xsrfToken) {
+        headers['X-XSRF-TOKEN'] = xsrfToken;
+      }
+
       fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'text/event-stream',
-        },
+        headers,
         body: JSON.stringify(req),
         signal,
       })
