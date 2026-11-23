@@ -14,10 +14,14 @@
  limitations under the License.
 -->
 
-<markdown
-  [data]="text()"
-  (ready)="openExternalLinksInNewTab()"
-  [ngStyle]="{
-              color: thought() ? '#9aa0a6' : 'inherit'
-            }"
-></markdown>
+@if (literalText()) {
+  <span class="literal-text" [style.color]="thought() ? '#9aa0a6' : 'inherit'">{{ text() }}</span>
+} @else {
+  <markdown
+    [data]="text()"
+    (ready)="openExternalLinksInNewTab()"
+    [ngStyle]="{
+                color: thought() ? '#9aa0a6' : 'inherit'
+              }"
+  ></markdown>
+}

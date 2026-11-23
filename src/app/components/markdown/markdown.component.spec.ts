@@ -56,6 +56,18 @@ describe('MarkdownComponent', () => {
        expect(element.querySelector('strong')?.textContent).toBe('bold');
      }));
 
+  it('renders literal text without interpreting Markdown', () => {
+    const userText = '2*3*4*5';
+    fixture.componentRef.setInput('text', userText);
+    fixture.componentRef.setInput('literalText', true);
+    fixture.detectChanges();
+
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('.literal-text')?.textContent).toBe(userText);
+    expect(element.querySelector('markdown')).toBeNull();
+    expect(element.querySelector('em')).toBeNull();
+  });
+
   it('opens HTTP and HTTPS links in a new tab safely', fakeAsync(() => {
     fixture.componentRef.setInput('text', [
       '[HTTP](http://example.com)',

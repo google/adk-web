@@ -47,6 +47,11 @@ import 'prismjs/components/prism-yaml';
     provideMarkdown(),
   ],
   styles: [`
+    .literal-text {
+      display: block;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
     .mermaid-container {
       display: flex;
       justify-content: center;
@@ -182,6 +187,7 @@ import 'prismjs/components/prism-yaml';
 export class MarkdownComponent implements OnInit {
   text = input('');
   thought = input(false);
+  literalText = input(false);
   isReadme = input(false);
 
   constructor(
