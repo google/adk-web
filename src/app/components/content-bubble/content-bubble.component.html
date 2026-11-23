@@ -34,7 +34,7 @@
             @if (item.thought) {
               <div class="output-chip-header">thought</div>
             }
-            <ng-container [ngComponentOutlet]="markdownComponent" [ngComponentOutletInputs]="{text: item.text, thought: item.thought}"></ng-container>
+            <ng-container [ngComponentOutlet]="markdownComponent" [ngComponentOutletInputs]="{text: item.text, thought: item.thought, literalText: role === 'user'}"></ng-container>
           </div>
         } @else {
           <app-code-execution [executableCode]="item.executableCode" [codeExecutionResult]="item.codeExecutionResult"></app-code-execution>
@@ -48,11 +48,11 @@
               @if (part.thought && type !== 'thought') {
                 <div class="output-chip-header">thought</div>
               }
-              <ng-container [ngComponentOutlet]="markdownComponent" [ngComponentOutletInputs]="{text: part.text, thought: part.thought}"></ng-container>
+              <ng-container [ngComponentOutlet]="markdownComponent" [ngComponentOutletInputs]="{text: part.text, thought: part.thought, literalText: role === 'user'}"></ng-container>
             </div>
           }
         } @else {
-          <ng-container [ngComponentOutlet]="markdownComponent" [ngComponentOutletInputs]="{text: uiEvent.text || rawMessageText, thought: uiEvent.thought}"></ng-container>
+          <ng-container [ngComponentOutlet]="markdownComponent" [ngComponentOutletInputs]="{text: uiEvent.text || rawMessageText, thought: uiEvent.thought, literalText: role === 'user'}"></ng-container>
         }
       </div>
     } @else if (uiEvent.thought || uiEvent.text || uiEvent.renderedContent || uiEvent.a2uiData || uiEvent.event.inputTranscription || uiEvent.event.outputTranscription) {
@@ -94,11 +94,11 @@
                   @if (part.thought && type !== 'thought') {
                     <div class="output-chip-header">thought</div>
                   }
-                  <ng-container [ngComponentOutlet]="markdownComponent" [ngComponentOutletInputs]="{text: part.text, thought: part.thought}"></ng-container>
+                  <ng-container [ngComponentOutlet]="markdownComponent" [ngComponentOutletInputs]="{text: part.text, thought: part.thought, literalText: role === 'user'}"></ng-container>
                 </div>
               }
             } @else {
-              <ng-container [ngComponentOutlet]="markdownComponent" [ngComponentOutletInputs]="{text: uiEvent.text!, thought: uiEvent.thought}"></ng-container>
+              <ng-container [ngComponentOutlet]="markdownComponent" [ngComponentOutletInputs]="{text: uiEvent.text!, thought: uiEvent.thought, literalText: role === 'user'}"></ng-container>
             }
           }
         }
