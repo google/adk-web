@@ -375,6 +375,18 @@ describe('ChatComponent', () => {
       expect(notify).not.toHaveBeenCalledWith('Eval case deleted', 'OK');
       expect(component.evalCase?.evalId).toBe('case-1');
     });
+
+    it('exposes the delete action for the current eval case', () => {
+      const deleteEvalCase = spyOn(component as any, 'deleteEvalCase');
+      fixture.detectChanges();
+
+      const deleteButton: HTMLButtonElement =
+          fixture.nativeElement.querySelector(
+              '[aria-label="Delete current eval case"]');
+      expect(deleteButton).toBeTruthy();
+      deleteButton.click();
+      expect(deleteEvalCase).toHaveBeenCalled();
+    });
   });
 
   describe('Component Initialization', () => {
