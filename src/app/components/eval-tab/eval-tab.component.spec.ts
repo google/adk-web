@@ -20,7 +20,8 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { EvalTabComponent } from './eval-tab.component';
 import { EvalService } from '../../core/services/eval.service';
 import { SessionService } from '../../core/services/session.service';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
+import {initTestBed} from '../../testing/utils';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -76,6 +77,7 @@ describe('EvalTabComponent', () => {
     featureFlagService.isA2ACardEnabled.and.returnValue(of(false));
     featureFlagService.isEvalV2Enabled.and.returnValue(of(false));
 
+    initTestBed();  // required for 1p compatibility
     await TestBed.configureTestingModule({
       imports: [MatDialogModule, EvalTabComponent, NoopAnimationsModule],
       providers: [
@@ -97,6 +99,34 @@ describe('EvalTabComponent', () => {
     fixture = TestBed.createComponent(EvalTabComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  it('updates the table when the post-deletion list arrives', () => {
+    const response = new Subject<string[]>();
+    const service = TestBed.inject(EVAL_SERVICE) as jasmine.SpyObj<EvalService>;
+    service.listEvalCases.and.returnValue(response);
+    component.selectedEvalSet.set('set');
+    component.evalCases = ['case-1', 'case-2'];
+    component.selectedEvalCase.set({evalId: 'case-1'} as any);
+    const getEvalCase = spyOn(component as any, 'getEvalCase');
+
+    component.refreshAfterEvalCaseDeleted('case-1');
+    expect(component.selectedEvalCase()).toBeNull();
+    response.next(['case-2']);
+    expect(component.evalCases).toEqual(['case-2']);
+    expect(component.dataSource.data).toEqual(['case-2']);
+    expect(getEvalCase).toHaveBeenCalledWith('case-2');
+  });
+
+  it('preserves a different selected case during the refresh', () => {
+    const response = new Subject<string[]>();
+    const service = TestBed.inject(EVAL_SERVICE) as jasmine.SpyObj<EvalService>;
+    service.listEvalCases.and.returnValue(response);
+    component.evalCases = ['case-1', 'case-2'];
+    component.selectedEvalCase.set({evalId: 'case-2'} as any);
+    component.refreshAfterEvalCaseDeleted('case-1');
+    response.next(['case-2']);
+    expect(component.selectedEvalCase()?.evalId).toBe('case-2');
   });
 
   it('should create', () => {

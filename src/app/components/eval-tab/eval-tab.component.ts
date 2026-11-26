@@ -763,11 +763,17 @@ export class EvalTabComponent implements OnInit, OnChanges {
     this.evalService
         .deleteEvalCase(this.appName(), this.selectedEvalSet(), evalCaseId)
         .subscribe((res) => {
-          this.deletedEvalCaseIndex = this.evalCases.indexOf(evalCaseId);
-          this.selectedEvalCase.set(null);
-          this.listEvalCases();
-          this.changeDetectorRef.detectChanges();
+          this.refreshAfterEvalCaseDeleted(evalCaseId);
         });
+  }
+
+  refreshAfterEvalCaseDeleted(evalCaseId: string) {
+    const selectedCase = this.selectedEvalCase();
+    const replaceSelection = !selectedCase || selectedCase.evalId === evalCaseId;
+    this.deletedEvalCaseIndex = replaceSelection ? this.evalCases.indexOf(evalCaseId) : -1;
+    if (replaceSelection) this.selectedEvalCase.set(null);
+    // listEvalCases updates the view after the refreshed list arrives.
+    this.listEvalCases();
   }
 
   confirmDeleteEvalSet(event: Event, evalSetId: string) {

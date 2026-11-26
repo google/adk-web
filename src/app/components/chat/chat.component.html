@@ -143,8 +143,15 @@
         {{ i18n.saveButton }}
       </button>
       } @else {
-
-
+      <button
+        mat-icon-button
+        class="toolbar-icon-button"
+        (click)="deleteEvalCase()"
+        [matTooltip]="i18n.deleteEvalCaseTooltip"
+        [attr.aria-label]="i18n.deleteEvalCaseTooltip"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
       }
     </div>
     } @else {
